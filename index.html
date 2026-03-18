@@ -6,12 +6,12 @@
 <title>Club+ · Fidélité</title>
 
 <!-- PWA -->
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/club-plus/manifest.json">
 <meta name="theme-color" content="#7c6ff7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Club+">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="/club-plus/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1162,7 +1162,7 @@ else showView("pin");
 
 // PWA - Enregistrement du Service Worker
 if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js")
+  navigator.serviceWorker.register("/club-plus/sw.js", {scope: "/club-plus/"})
     .then(()=>console.log("SW enregistré ✓"))
     .catch(e=>console.log("SW erreur:",e));
 }
