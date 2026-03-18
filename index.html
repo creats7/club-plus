@@ -986,7 +986,7 @@ let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClient
 let chartStamps=null,chartTokens=null;
 
 // ── DB ──
-const dbGet=(u)=>fetch(u,{headers:H,cache:"no-store"}).then(r=>r.json());
+const dbGet=(u)=>fetch(u,{headers:H}).then(r=>r.json());
 const dbPost=(u,d)=>fetch(u,{method:"POST",headers:H,body:JSON.stringify(d)}).then(r=>r.json());
 const dbPatch=(u,d)=>fetch(u,{method:"PATCH",headers:{...H,"Prefer":"return=minimal"},body:JSON.stringify(d)});
 const dbDelete=(u)=>fetch(u,{method:"DELETE",headers:H});
@@ -2177,12 +2177,13 @@ async function loadClientView(id){
     dbGet(T_OFFERS+"?active=eq.true&order=created_at.desc&limit=1"),
     dbGet(T_PRODUCTS+"?active=eq.true&order=created_at.asc")
   ]);
-  if(!cData||!cData.length){
-    // Seulement si le tableau est vide (client supprimé), pas si erreur réseau
-    if(Array.isArray(cData)){
+  if(!Array.isArray(cData)||!cData.length){
+    if(Array.isArray(cData)&&cData.length===0){
+      // Client vraiment supprimé
       localStorage.removeItem("clubplus_client_id");
       showView("register");
     }
+    // Sinon erreur réseau — on ne fait rien, on garde la session
     return;
   }
   const c=cData[0],full=c.stamps>=10,rem=10-c.stamps,tokens=c.tokens||0;
