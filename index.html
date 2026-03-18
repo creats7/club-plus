@@ -62,11 +62,38 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* ── ADMIN ── */
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
 .topbar-brand{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--accent3)}
-.tabs{display:flex;gap:2px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);padding:3px;margin-bottom:1.5rem;width:100%}
-.tab{flex:1;padding:7px 2px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-align:center}
-.tab.active{background:linear-gradient(135deg,rgba(109,95,245,0.3),rgba(139,92,246,0.2));color:var(--text);font-weight:500}
+
+/* ── BOTTOM NAV ── */
+.admin-body{padding-bottom:72px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;background:rgba(10,8,24,0.96);border-top:1px solid var(--border2);backdrop-filter:blur(16px);z-index:50;display:flex;align-items:stretch}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 10px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:color .15s;position:relative;font-family:'DM Sans',sans-serif}
+.nav-item.active{color:var(--accent3)}
+.nav-item:active{transform:scale(.92)}
+.nav-icon{font-size:20px;margin-bottom:2px;line-height:1}
+.nav-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase}
+.nav-badge{position:absolute;top:6px;right:calc(50% - 14px);background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:1px 5px;font-family:'DM Mono',monospace;min-width:16px;text-align:center}
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .panel-title{font-size:18px;font-weight:600}
+
+/* ── HOME / ACCUEIL ── */
+.home-section{margin-bottom:1.5rem}
+.home-section-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.quick-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.quick-card:hover{border-color:var(--border2);background:rgba(30,26,56,0.7)}
+.quick-card:active{transform:scale(.97)}
+.quick-card::before{content:'';position:absolute;top:-20px;right:-10px;width:60px;height:60px;border-radius:50%;opacity:.12;filter:blur(15px)}
+.quick-card.blue::before{background:var(--blue)}.quick-card.purple::before{background:var(--accent)}.quick-card.token::before{background:var(--token)}.quick-card.danger::before{background:var(--danger)}.quick-card.green::before{background:var(--green)}.quick-card.amber::before{background:var(--amber)}
+.quick-icon{font-size:22px;margin-bottom:6px}
+.quick-label{font-size:12px;font-weight:500;margin-bottom:2px}
+.quick-sub{font-size:11px;color:var(--muted)}
+.quick-badge{position:absolute;top:10px;right:10px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:2px 7px;font-family:'DM Mono',monospace}
+
+/* ── PENDING ORDERS ON HOME ── */
+.pending-order-row{background:rgba(20,18,40,0.6);border:1px solid rgba(251,191,36,0.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pending-order-info{min-width:0}
+.pending-order-product{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pending-order-client{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
 
 /* ── STATS ── */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
@@ -384,53 +411,71 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 <div class="view" id="view-admin">
+  <div class="admin-body">
   <div class="topbar">
     <div class="topbar-brand">CLUB+ · ADMIN</div>
     <button class="btn btn-sm" onclick="logout()">Déconnexion</button>
   </div>
-  <div class="tabs">
-    <button class="tab active" id="tab-dashboard" onclick="switchTab('dashboard')">Stats</button>
-    <button class="tab" id="tab-clients" onclick="switchTab('clients')">Clients</button>
-    <button class="tab" id="tab-offers" onclick="switchTab('offers')">Offres</button>
-    <button class="tab" id="tab-products" onclick="switchTab('products')">Stock</button>
-    <button class="tab" id="tab-orders" onclick="switchTab('orders')">Commandes</button>
-    <button class="tab" id="tab-challenges" onclick="switchTab('challenges')">Défis</button>
-    <button class="tab" id="tab-rewards" onclick="switchTab('rewards')">Roue</button>
-    <button class="tab" id="tab-history" onclick="switchTab('history')">Historique</button>
+
+  <!-- HOME / ACCUEIL -->
+  <div id="panel-home">
+    <!-- Commandes en attente -->
+    <div class="home-section">
+      <div class="home-section-title">🔔 Commandes en attente</div>
+      <div id="home-pending-orders"><div class="loader">Chargement...</div></div>
+    </div>
+    <!-- Raccourcis -->
+    <div class="home-section">
+      <div class="home-section-title">Accès rapide</div>
+      <div class="quick-grid">
+        <div class="quick-card purple" onclick="switchTab('clients')">
+          <div class="quick-icon">👥</div>
+          <div class="quick-label">Clients</div>
+          <div class="quick-sub" id="qc-clients">— inscrits</div>
+        </div>
+        <div class="quick-card blue" onclick="switchTab('orders')">
+          <div class="quick-icon">🛍</div>
+          <div class="quick-label">Commandes</div>
+          <div class="quick-sub" id="qc-orders">— aujourd'hui</div>
+          <div class="quick-badge" id="qc-badge" style="display:none"></div>
+        </div>
+        <div class="quick-card token" onclick="switchTab('products')">
+          <div class="quick-icon">📦</div>
+          <div class="quick-label">Stock</div>
+          <div class="quick-sub" id="qc-products">— produits</div>
+        </div>
+        <div class="quick-card amber" onclick="switchTab('challenges')">
+          <div class="quick-icon">🎯</div>
+          <div class="quick-label">Défis</div>
+          <div class="quick-sub" id="qc-challenges">— actifs</div>
+        </div>
+        <div class="quick-card green" onclick="switchTab('offers')">
+          <div class="quick-icon">🏷</div>
+          <div class="quick-label">Offre active</div>
+          <div class="quick-sub" id="qc-offers">Aucune</div>
+        </div>
+        <div class="quick-card blue" onclick="switchTab('stats')">
+          <div class="quick-icon">📊</div>
+          <div class="quick-label">Statistiques</div>
+          <div class="quick-sub" id="qc-stats">Voir les stats</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- STATS / DASHBOARD -->
-  <div id="panel-dashboard">
+  <!-- STATS -->
+  <div id="panel-stats" style="display:none">
+    <div class="panel-header"><div class="panel-title">Statistiques</div></div>
     <div class="stats-grid">
       <div class="stat-card blue"><div class="stat-label">Clients</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">inscrits</div></div>
       <div class="stat-card purple"><div class="stat-label">Tampons</div><div class="stat-value" id="s-stamps">—</div><div class="stat-sub">distribués</div></div>
       <div class="stat-card token"><div class="stat-label">Tokens actifs</div><div class="stat-value" id="s-tokens">—</div><div class="stat-sub">en circulation</div></div>
       <div class="stat-card danger"><div class="stat-label">Spins total</div><div class="stat-value" id="s-spins">—</div><div class="stat-sub">roues lancées</div></div>
     </div>
-
-    <!-- Graphique tampons par semaine -->
-    <div class="chart-card">
-      <div class="chart-title">Tampons distribués — 8 dernières semaines</div>
-      <div class="chart-wrap"><canvas id="chart-stamps"></canvas></div>
-    </div>
-
-    <!-- Graphique tokens -->
-    <div class="chart-card">
-      <div class="chart-title">Tokens gagnés vs utilisés — 8 semaines</div>
-      <div class="chart-wrap"><canvas id="chart-tokens"></canvas></div>
-    </div>
-
-    <!-- Top clients actifs -->
-    <div style="margin-bottom:1.5rem">
-      <div class="section-title">Clients les plus actifs</div>
-      <div id="top-clients"></div>
-    </div>
-
-    <!-- Récompenses les plus gagnées -->
-    <div>
-      <div class="section-title">Récompenses les plus gagnées</div>
-      <div id="top-rewards"></div>
-    </div>
+    <div class="chart-card"><div class="chart-title">Tampons distribués — 8 dernières semaines</div><div class="chart-wrap"><canvas id="chart-stamps"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Tokens gagnés vs utilisés — 8 semaines</div><div class="chart-wrap"><canvas id="chart-tokens"></canvas></div></div>
+    <div style="margin-bottom:1.5rem"><div class="section-title">Clients les plus actifs</div><div id="top-clients"></div></div>
+    <div><div class="section-title">Récompenses les plus gagnées</div><div id="top-rewards"></div></div>
   </div>
 
   <!-- CLIENTS -->
@@ -588,6 +633,38 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div id="challenges-list"><div class="loader">Chargement...</div></div>
   </div>
 
+  <!-- PLUS / MORE -->
+  <div id="panel-more" style="display:none">
+    <div class="panel-header"><div class="panel-title">Outils</div></div>
+    <div class="quick-grid">
+      <div class="quick-card purple" onclick="switchTab('offers')">
+        <div class="quick-icon">🏷</div>
+        <div class="quick-label">Offres</div>
+        <div class="quick-sub">Gérer les promos</div>
+      </div>
+      <div class="quick-card amber" onclick="switchTab('challenges')">
+        <div class="quick-icon">🎯</div>
+        <div class="quick-label">Défis</div>
+        <div class="quick-sub">Défis clients</div>
+      </div>
+      <div class="quick-card blue" onclick="switchTab('rewards')">
+        <div class="quick-icon">🎡</div>
+        <div class="quick-label">Roue</div>
+        <div class="quick-sub">Récompenses</div>
+      </div>
+      <div class="quick-card token" onclick="switchTab('stats')">
+        <div class="quick-icon">📊</div>
+        <div class="quick-label">Stats</div>
+        <div class="quick-sub">Graphiques</div>
+      </div>
+      <div class="quick-card danger" onclick="switchTab('history')">
+        <div class="quick-icon">📋</div>
+        <div class="quick-label">Historique</div>
+        <div class="quick-sub">Spins passés</div>
+      </div>
+    </div>
+  </div>
+
   <!-- HISTORIQUE -->
   <div id="panel-history" style="display:none">
     <div class="panel-header">
@@ -596,6 +673,34 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div id="history-list"><div class="loader">Chargement...</div></div>
   </div>
+
+  </div><!-- end admin-body -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Accueil</div>
+      <div class="nav-badge" id="nav-badge-home" style="display:none"></div>
+    </button>
+    <button class="nav-item" id="nav-clients" onclick="switchTab('clients')">
+      <div class="nav-icon">👥</div>
+      <div class="nav-label">Clients</div>
+    </button>
+    <button class="nav-item" id="nav-orders" onclick="switchTab('orders')">
+      <div class="nav-icon">🛍</div>
+      <div class="nav-label">Commandes</div>
+      <div class="nav-badge" id="nav-badge-orders" style="display:none"></div>
+    </button>
+    <button class="nav-item" id="nav-products" onclick="switchTab('products')">
+      <div class="nav-icon">📦</div>
+      <div class="nav-label">Stock</div>
+    </button>
+    <button class="nav-item" id="nav-more" onclick="switchTab('more')">
+      <div class="nav-icon">☰</div>
+      <div class="nav-label">Plus</div>
+    </button>
+  </nav>
 </div>
 
 <!-- ══ CLIENT VIEW ══ -->
@@ -805,18 +910,75 @@ function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit"
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","more","history"];
+const NAV_ITEMS=["home","clients","orders","products","more"];
+
 function switchTab(tab){
-  ["dashboard","clients","offers","products","orders","challenges","rewards","history"].forEach(t=>{
-    document.getElementById("tab-"+t).classList.toggle("active",t===tab);
-    document.getElementById("panel-"+t).style.display=t===tab?"block":"none";
+  // Hide all panels
+  ALL_PANELS.forEach(t=>{
+    const p=document.getElementById("panel-"+t);
+    if(p)p.style.display="none";
   });
-  if(tab==="dashboard")loadCharts();
+  // Show target panel
+  const target=document.getElementById("panel-"+tab);
+  if(target)target.style.display="block";
+  // Update bottom nav active state
+  NAV_ITEMS.forEach(n=>{
+    const el=document.getElementById("nav-"+n);
+    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="rewards"&&n==="more")||(tab==="history"&&n==="more"));
+  });
+  // Load data
+  if(tab==="home")loadHome();
+  if(tab==="stats")loadCharts();
   if(tab==="offers")loadOffer();
   if(tab==="products")loadProducts();
   if(tab==="orders")loadOrders();
   if(tab==="challenges")loadChallenges();
   if(tab==="rewards")loadRewards();
   if(tab==="history")loadHistory();
+}
+
+async function loadHome(){
+  // Commandes en attente
+  const [orders,clients,products,challenges,offers]=await Promise.all([
+    dbGet(T_ORDERS+"?status=eq.pending&order=created_at.asc"),
+    dbGet(T_CLIENTS+"?select=id"),
+    dbGet(T_PRODUCTS+"?active=eq.true&select=id"),
+    dbGet(T_CHALLENGES+"?active=eq.true&select=id"),
+    dbGet(T_OFFERS+"?active=eq.true&limit=1")
+  ]);
+  const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
+
+  // Pending orders section
+  const po=document.getElementById("home-pending-orders");
+  if(!orders||!orders.length){
+    po.innerHTML='<div style="color:var(--muted);font-size:13px;padding:.5rem 0">Aucune commande en attente ✓</div>';
+  } else {
+    po.innerHTML=orders.map(o=>`
+      <div class="pending-order-row">
+        <div class="pending-order-info">
+          <div class="pending-order-product">${o.product_name}</div>
+          <div class="pending-order-client">${clientMap[o.client_id]||o.customer_name||"Client"} · ${fmtDate(o.created_at)}</div>
+        </div>
+        <button class="btn btn-sm btn-accent" onclick="setOrderStatus('${o.id}','confirmed');loadHome()">✓</button>
+      </div>`).join("");
+    // Badge nav
+    const b=document.getElementById("nav-badge-orders");
+    const bh=document.getElementById("nav-badge-home");
+    if(b){b.textContent=orders.length;b.style.display="block";}
+    if(bh){bh.textContent=orders.length;bh.style.display="block";}
+  }
+
+  // Quick cards counters
+  const todayOrders=await dbGet(T_ORDERS+"?select=id,created_at");
+  const todayCount=(todayOrders||[]).filter(o=>{const d=new Date(o.created_at);const n=new Date();return d.toDateString()===n.toDateString();}).length;
+  document.getElementById("qc-clients").textContent=(clients?.length||0)+" inscrits";
+  document.getElementById("qc-orders").textContent=todayCount+" aujourd'hui";
+  document.getElementById("qc-products").textContent=(products?.length||0)+" produits";
+  document.getElementById("qc-challenges").textContent=(challenges?.length||0)+" actifs";
+  document.getElementById("qc-offers").textContent=offers&&offers.length?offers[0].title:"Aucune";
+  const badge=document.getElementById("qc-badge");
+  if(badge&&orders&&orders.length){badge.textContent=orders.length;badge.style.display="block";}
 }
 
 // ── PIN ──
@@ -835,7 +997,7 @@ function checkPin(){
   if(pinBuf===ADMIN_PIN){
     pinBuf="";dots(false);
     localStorage.setItem("clubplus_admin","1");
-    showView("admin");loadAll();
+    showView("admin");loadAll();switchTab("home");
   } else {
     dots(true);document.getElementById("pin-error").textContent="Code incorrect";
     setTimeout(()=>{pinBuf="";dots(false);document.getElementById("pin-error").textContent="";},900);
@@ -901,6 +1063,13 @@ async function loadAll(){
   document.getElementById("clients-list").innerHTML='<div class="loader">Chargement...</div>';
   allClients=await dbGet(T_CLIENTS+"?order=created_at.asc");
   renderDash(allClients);renderList(allClients);
+  // Refresh home badges
+  const pending=await dbGet(T_ORDERS+"?status=eq.pending&select=id");
+  const n=pending?.length||0;
+  ["nav-badge-orders","nav-badge-home","qc-badge"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=n;el.style.display=n>0?"block":"none";}
+  });
 }
 
 // ── DASHBOARD ──
@@ -1798,7 +1967,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   const cid=new URLSearchParams(window.location.search).get("client");
   if(cid) loadClientView(cid);
-  else if(localStorage.getItem("clubplus_admin")==="1"){showView("admin");loadAll();}
+  else if(localStorage.getItem("clubplus_admin")==="1"){showView("admin");loadAll();switchTab("home");}
   else{
     const saved=localStorage.getItem("clubplus_client_id");
     if(saved) loadClientView(saved);
