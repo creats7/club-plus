@@ -986,7 +986,7 @@ let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClient
 let chartStamps=null,chartTokens=null;
 
 // ── DB ──
-const dbGet=(u)=>fetch(u+"&_="+Date.now(),{headers:H,cache:"no-store"}).then(r=>r.json());
+const dbGet=(u)=>fetch(u,{headers:{...H,"Cache-Control":"no-cache"},cache:"no-store"}).then(r=>r.json());
 const dbPost=(u,d)=>fetch(u,{method:"POST",headers:H,body:JSON.stringify(d)}).then(r=>r.json());
 const dbPatch=(u,d)=>fetch(u,{method:"PATCH",headers:{...H,"Prefer":"return=minimal"},body:JSON.stringify(d)});
 const dbDelete=(u)=>fetch(u,{method:"DELETE",headers:H});
