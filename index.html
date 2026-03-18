@@ -134,7 +134,39 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .reward-form{background:rgba(20,18,40,0.8);border:1px solid var(--border2);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
 .reward-form.open{display:block}
 
-/* ── OFFERS ── */
+/* ── PRODUCTS ADMIN ── */
+.product-form-wrap{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
+.product-form-wrap.open{display:block}
+.products-list{display:flex;flex-direction:column;gap:10px}
+.product-row{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:12px}
+.product-row.out-of-stock{opacity:.5}
+.product-img{width:48px;height:48px;border-radius:var(--rs);object-fit:cover;background:rgba(255,255,255,0.06);border:1px solid var(--border);flex-shrink:0}
+.product-img-placeholder{width:48px;height:48px;border-radius:var(--rs);background:rgba(124,111,247,0.1);border:1px solid rgba(124,111,247,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.product-info{flex:1;min-width:0}
+.product-name{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.product-price{font-size:12px;color:var(--accent3);font-family:'DM Mono',monospace}
+.product-stock{font-size:12px;font-family:'DM Mono',monospace;margin-top:2px}
+.product-stock.ok{color:var(--green)}.product-stock.low{color:var(--amber)}.product-stock.out{color:var(--danger)}
+.product-status{font-size:10px;font-weight:600;border-radius:99px;padding:2px 8px;margin-top:4px;display:inline-block}
+.product-status.dispo{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.product-status.rupture{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
+
+/* ── PRODUCTS CLIENT ── */
+.cv-products{width:100%;max-width:460px;animation:fadeUp .5s ease .2s both}
+.cv-products-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;text-align:center}
+.cv-product-card{background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.15);border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:8px;backdrop-filter:blur(10px)}
+.cv-product-card.out{opacity:.45}
+.cv-product-img{width:52px;height:52px;border-radius:10px;object-fit:cover;background:rgba(255,255,255,0.06);border:1px solid var(--border);flex-shrink:0}
+.cv-product-img-ph{width:52px;height:52px;border-radius:10px;background:rgba(124,111,247,0.1);border:1px solid rgba(124,111,247,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.cv-product-info{flex:1;min-width:0}
+.cv-product-name{font-size:14px;font-weight:500;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cv-product-price{font-size:13px;color:var(--accent3);font-family:'DM Mono',monospace}
+.cv-product-right{text-align:right;flex-shrink:0}
+.cv-product-stock{font-size:12px;font-family:'DM Mono',monospace}
+.cv-product-stock.ok{color:var(--green)}.cv-product-stock.low{color:var(--token)}.cv-product-stock.out{color:var(--danger)}
+.cv-product-badge{font-size:10px;font-weight:600;border-radius:99px;padding:2px 8px;margin-top:3px;display:inline-block}
+.cv-product-badge.dispo{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.cv-product-badge.rupture{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
 .offer-active-box{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem}
 .offer-colors{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .offer-color-btn{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s;flex-shrink:0}
@@ -288,6 +320,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <button class="tab active" id="tab-dashboard" onclick="switchTab('dashboard')">Stats</button>
     <button class="tab" id="tab-clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" id="tab-offers" onclick="switchTab('offers')">Offres</button>
+    <button class="tab" id="tab-products" onclick="switchTab('products')">Stock</button>
     <button class="tab" id="tab-rewards" onclick="switchTab('rewards')">Roue</button>
     <button class="tab" id="tab-history" onclick="switchTab('history')">Historique</button>
   </div>
@@ -409,6 +442,31 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div id="rewards-list"></div>
   </div>
 
+  <!-- PRODUCTS -->
+  <div id="panel-products" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Stock</div>
+      <button class="btn btn-accent btn-sm" onclick="toggleProductForm()">+ Produit</button>
+    </div>
+    <div class="product-form-wrap" id="product-form">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="product-form-title">Nouveau produit</div>
+      <input type="hidden" id="pf-id" />
+      <label class="modal-label">Nom du produit</label>
+      <input class="input" id="pf-name" placeholder="ex: Puff Watermelon Ice" />
+      <label class="modal-label">Prix (€)</label>
+      <input class="input" id="pf-price" type="number" min="0" step="0.01" placeholder="ex: 9.90" />
+      <label class="modal-label">Stock</label>
+      <input class="input" id="pf-stock" type="number" min="0" placeholder="ex: 50" />
+      <label class="modal-label">URL de l'image (optionnel)</label>
+      <input class="input" id="pf-image" placeholder="https://..." style="margin-bottom:8px" />
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveProduct()">Enregistrer</button>
+        <button class="btn" onclick="toggleProductForm()">Annuler</button>
+      </div>
+    </div>
+    <div class="products-list" id="products-list"></div>
+  </div>
+
   <!-- HISTORIQUE -->
   <div id="panel-history" style="display:none">
     <div class="panel-header">
@@ -456,6 +514,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
     </div>
     <div class="cv-footer">Seul l'admin peut modifier ta carte</div>
+
+    <!-- STOCK CLIENT -->
+    <div class="cv-products" id="cv-products" style="display:none">
+      <div class="cv-products-title">📦 Nos produits</div>
+      <div id="cv-products-list"></div>
+    </div>
   </div>
 </div>
 
@@ -518,6 +582,7 @@ const T_REWARDS=SUPA_URL+"/rest/v1/rewards";
 const T_SPINS=SUPA_URL+"/rest/v1/spins";
 const T_STAMP_LOGS=SUPA_URL+"/rest/v1/stamp_logs";
 const T_TOKEN_LOGS=SUPA_URL+"/rest/v1/token_logs";
+const T_PRODUCTS=SUPA_URL+"/rest/v1/products";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -538,12 +603,13 @@ function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Ma
 
 // ── TABS ──
 function switchTab(tab){
-  ["dashboard","clients","offers","rewards","history"].forEach(t=>{
+  ["dashboard","clients","offers","products","rewards","history"].forEach(t=>{
     document.getElementById("tab-"+t).classList.toggle("active",t===tab);
     document.getElementById("panel-"+t).style.display=t===tab?"block":"none";
   });
   if(tab==="dashboard")loadCharts();
   if(tab==="offers")loadOffer();
+  if(tab==="products")loadProducts();
   if(tab==="rewards")loadRewards();
   if(tab==="history")loadHistory();
 }
@@ -825,6 +891,67 @@ function showQR(id,name){
 }
 function closeQR(){document.getElementById("qr-modal").classList.remove("open");}
 
+// ── PRODUCTS ADMIN ──
+async function loadProducts(){
+  const list=document.getElementById("products-list");
+  list.innerHTML='<div class="loader">Chargement...</div>';
+  const products=await dbGet(T_PRODUCTS+"?order=created_at.asc");
+  if(!products||!products.length){list.innerHTML='<div class="empty-state">Aucun produit · Ajoute le premier</div>';return;}
+  list.innerHTML="";
+  products.forEach(p=>{
+    const stockClass=p.stock===0?"out":p.stock<=5?"low":"ok";
+    const stockLabel=p.stock===0?"Rupture":p.stock<=5?"Stock faible":"En stock";
+    const div=document.createElement("div");div.className="product-row"+(p.stock===0?" out-of-stock":"");
+    div.innerHTML=`
+      ${p.image_url?`<img class="product-img" src="${p.image_url}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:''}
+      <div class="product-img-placeholder" ${p.image_url?"style='display:none'":""}>📦</div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-price">${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
+        <div class="product-stock ${stockClass}">${p.stock} unité${p.stock!==1?"s":""}</div>
+        <div class="product-status ${p.active&&p.stock>0?"dispo":"rupture"}">${p.active&&p.stock>0?"Disponible":"Rupture"}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <button class="btn btn-icon" onclick="editProduct('${p.id}','${p.name.replace(/'/g,"\\'")}',${p.price||0},${p.stock},'${(p.image_url||"").replace(/'/g,"\\'")}')">✎</button>
+        <button class="btn btn-sm" onclick="updateStock('${p.id}',${p.stock},1)">+</button>
+        <button class="btn btn-sm" onclick="updateStock('${p.id}',${p.stock},-1)" ${p.stock===0?"disabled":""}>−</button>
+        <button class="btn btn-icon btn-danger" onclick="deleteProduct('${p.id}','${p.name.replace(/'/g,"\\'")}')">✕</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+function toggleProductForm(edit=false){
+  const f=document.getElementById("product-form");
+  if(!edit){["pf-id","pf-name","pf-price","pf-stock","pf-image"].forEach(id=>document.getElementById(id).value="");document.getElementById("product-form-title").textContent="Nouveau produit";}
+  f.classList.toggle("open");if(f.classList.contains("open"))document.getElementById("pf-name").focus();
+}
+function editProduct(id,name,price,stock,image){
+  document.getElementById("pf-id").value=id;document.getElementById("pf-name").value=name;
+  document.getElementById("pf-price").value=price;document.getElementById("pf-stock").value=stock;
+  document.getElementById("pf-image").value=image;
+  document.getElementById("product-form-title").textContent="Modifier le produit";
+  document.getElementById("product-form").classList.add("open");document.getElementById("pf-name").focus();
+}
+async function saveProduct(){
+  const name=document.getElementById("pf-name").value.trim();if(!name)return;
+  const price=parseFloat(document.getElementById("pf-price").value)||null;
+  const stock=parseInt(document.getElementById("pf-stock").value)||0;
+  const image_url=document.getElementById("pf-image").value.trim()||null;
+  const id=document.getElementById("pf-id").value;
+  if(id){await dbPatch(T_PRODUCTS+"?id=eq."+id,{name,price,stock,image_url});toast("Produit modifié ✓");}
+  else{await dbPost(T_PRODUCTS,{name,price,stock,image_url,active:true});toast("Produit ajouté ✓");}
+  document.getElementById("product-form").classList.remove("open");loadProducts();
+}
+async function updateStock(id,cur,d){
+  const next=Math.max(0,cur+d);
+  await dbPatch(T_PRODUCTS+"?id=eq."+id,{stock:next});
+  toast(d>0?"Stock +1":"Stock −1");loadProducts();
+}
+async function deleteProduct(id,name){
+  if(!confirm("Supprimer \""+name+"\" ?"))return;
+  await dbDelete(T_PRODUCTS+"?id=eq."+id);toast("Produit supprimé");loadProducts();
+}
+
 // ── OFFERS ──
 const OFFER_COLORS=["#7c6ff7","#a78bfa","#60a5fa","#34d399","#38bdf8","#f87171","#f472b6","#fb923c"];
 function buildOfferColors(){
@@ -1035,7 +1162,11 @@ function spawnConfetti(){const w=document.getElementById("cv-confetti");w.innerH
 
 async function loadClientView(id){
   currentClientId=id;showView("client");
-  const [cData,oData]=await Promise.all([dbGet(T_CLIENTS+"?id=eq."+id),dbGet(T_OFFERS+"?active=eq.true&order=created_at.desc&limit=1")]);
+  const [cData,oData,pData]=await Promise.all([
+    dbGet(T_CLIENTS+"?id=eq."+id),
+    dbGet(T_OFFERS+"?active=eq.true&order=created_at.desc&limit=1"),
+    dbGet(T_PRODUCTS+"?active=eq.true&order=created_at.asc")
+  ]);
   if(!cData||!cData.length)return;
   const c=cData[0],full=c.stamps>=10,rem=10-c.stamps,tokens=c.tokens||0;
   document.getElementById("cv-count").innerHTML=c.stamps+'<span>/10</span>';
@@ -1049,11 +1180,9 @@ async function loadClientView(id){
   if(c.stamps===0&&tokens>0){banner.classList.add("show");spawnConfetti();setTimeout(()=>banner.classList.remove("show"),4000);}
   else banner.classList.remove("show");
   const tokenSection=document.getElementById("cv-token-section"),spinBtn=document.getElementById("btn-spin");
-  if(tokens>0){
-    tokenSection.style.display="flex";
-    document.getElementById("cv-token-count").textContent=tokens;
-    spinBtn.disabled=false;
-  } else {tokenSection.style.display="none";}
+  if(tokens>0){tokenSection.style.display="flex";document.getElementById("cv-token-count").textContent=tokens;spinBtn.disabled=false;}
+  else{tokenSection.style.display="none";}
+
   // Offer
   const ob=document.getElementById("cv-offer-banner");
   const o=oData&&oData.length?oData[0]:null;
@@ -1072,6 +1201,30 @@ async function loadClientView(id){
     </div>`;
     if(o.expires_at){if(clientOfferTick)clearInterval(clientOfferTick);const upd=()=>{const el=document.getElementById("cot");if(el)el.textContent=fmtTimer(new Date(o.expires_at)-new Date());};upd();clientOfferTick=setInterval(upd,1000);}
   }else ob.innerHTML="";
+
+  // Products
+  const pw=document.getElementById("cv-products");
+  const pl=document.getElementById("cv-products-list");
+  if(pData&&pData.length){
+    pw.style.display="block";
+    pl.innerHTML=pData.map(p=>{
+      const stockClass=p.stock===0?"out":p.stock<=5?"low":"ok";
+      const dispo=p.stock>0;
+      return `<div class="cv-product-card${dispo?"":" out"}">
+        ${p.image_url
+          ?`<img class="cv-product-img" src="${p.image_url}" alt="${p.name}" onerror="this.style.display='none'">`
+          :`<div class="cv-product-img-ph">📦</div>`}
+        <div class="cv-product-info">
+          <div class="cv-product-name">${p.name}</div>
+          <div class="cv-product-price">${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
+        </div>
+        <div class="cv-product-right">
+          <div class="cv-product-stock ${stockClass}">${p.stock} unité${p.stock!==1?"s":""}</div>
+          <div class="cv-product-badge ${dispo?"dispo":"rupture"}">${dispo?"Dispo":"Rupture"}</div>
+        </div>
+      </div>`;
+    }).join("");
+  } else pw.style.display="none";
 }
 
 function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
