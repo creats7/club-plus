@@ -527,10 +527,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div class="orders-filter">
       <button class="filter-btn active" id="of-all" onclick="filterOrders('all')">Toutes</button>
-      <button class="filter-btn" id="of-pending" onclick="filterOrders('pending')">En attente</button>
+      <button class="filter-btn" id="of-pending" onclick="filterOrders('pending')">Reçues</button>
       <button class="filter-btn" id="of-confirmed" onclick="filterOrders('confirmed')">Confirmées</button>
-      <button class="filter-btn" id="of-preparing" onclick="filterOrders('preparing')">En prépa</button>
-      <button class="filter-btn" id="of-ready" onclick="filterOrders('ready')">Prêtes</button>
       <button class="filter-btn" id="of-delivered" onclick="filterOrders('delivered')">Livrées</button>
       <button class="filter-btn" id="of-cancelled" onclick="filterOrders('cancelled')">Annulées</button>
     </div>
@@ -1049,10 +1047,10 @@ function closeQR(){document.getElementById("qr-modal").classList.remove("open");
 // ── ORDERS ADMIN ──
 let currentOrderFilter="all";
 
-const ORDER_STEPS=["pending","confirmed","preparing","ready","delivered"];
-const ORDER_LABELS={pending:"En attente",confirmed:"Confirmée",preparing:"En préparation",ready:"Prête à retirer",delivered:"Livrée",cancelled:"Annulée"};
-const ORDER_NEXT={pending:"confirmed",confirmed:"preparing",preparing:"ready",ready:"delivered"};
-const ORDER_NEXT_LABEL={pending:"✓ Confirmer",confirmed:"👨‍🍳 En préparation",preparing:"📦 Prête",ready:"🚀 Livrée"};
+const ORDER_STEPS=["pending","confirmed","delivered"];
+const ORDER_LABELS={pending:"Reçue",confirmed:"Confirmée",delivered:"Livrée",cancelled:"Annulée"};
+const ORDER_NEXT={pending:"confirmed",confirmed:"delivered"};
+const ORDER_NEXT_LABEL={pending:"✓ Confirmer",confirmed:"🚀 Livrée"};
 
 async function loadOrders(){
   const list=document.getElementById("orders-list");
@@ -1094,7 +1092,7 @@ async function loadOrders(){
 
 function filterOrders(status){
   currentOrderFilter=status;
-  ["all","pending","confirmed","preparing","ready","delivered","cancelled"].forEach(s=>{
+  ["all","pending","confirmed","delivered","cancelled"].forEach(s=>{
     const el=document.getElementById("of-"+s);
     if(el)el.classList.toggle("active",s===status);
   });
@@ -1103,7 +1101,7 @@ function filterOrders(status){
 
 async function setOrderStatus(id,status){
   await dbPatch(T_ORDERS+"?id=eq."+id,{status});
-  const labels={confirmed:"Commande confirmée ✓",preparing:"En préparation 👨‍🍳",ready:"Commande prête 📦",delivered:"Commande livrée 🚀",cancelled:"Commande annulée"};
+  const labels={confirmed:"Commande confirmée ✓",delivered:"Commande livrée 🚀",cancelled:"Commande annulée"};
   toast(labels[status]||"Statut mis à jour");loadOrders();
 }
 
@@ -1118,8 +1116,6 @@ function clientLogout(){
 const TRACKER_STEPS=[
   {key:"pending",   icon:"🛒", label:"Reçue"},
   {key:"confirmed", icon:"✓",  label:"Confirmée"},
-  {key:"preparing", icon:"👨‍🍳", label:"En prépa"},
-  {key:"ready",     icon:"📦", label:"Prête"},
   {key:"delivered", icon:"🚀", label:"Livrée"}
 ];
 
