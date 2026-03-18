@@ -145,9 +145,28 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .order-meta-row span{color:var(--text)}
 .order-status{display:inline-block;font-size:11px;font-weight:600;border-radius:99px;padding:3px 10px;font-family:'DM Mono',monospace}
 .order-status.pending{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.25)}
-.order-status.confirmed{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
-.order-status.cancelled{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
+.order-status.confirmed{background:rgba(124,111,247,0.12);color:var(--accent3);border:1px solid rgba(124,111,247,0.25)}
+.order-status.preparing{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.25)}
 .order-status.ready{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25)}
+.order-status.delivered{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.order-status.cancelled{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
+
+/* DELIVERY TRACKER (client) */
+@keyframes trackerPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.15)}}
+.delivery-tracker{background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.2);border-radius:16px;padding:16px;margin-bottom:8px;backdrop-filter:blur(10px)}
+.tracker-product{font-size:14px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.tracker-price{font-size:13px;color:var(--accent3);font-family:'DM Mono',monospace}
+.tracker-steps{display:flex;align-items:center;justify-content:space-between;position:relative;margin-bottom:10px}
+.tracker-line{position:absolute;top:14px;left:14px;right:14px;height:2px;background:rgba(255,255,255,0.08);z-index:0}
+.tracker-line-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,#6d5ff5,#a78bfa);transition:width .6s ease;border-radius:1px}
+.tracker-step{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:1;flex:1}
+.tracker-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .3s;border:2px solid rgba(255,255,255,0.08);background:rgba(18,16,38,0.9)}
+.tracker-dot.done{background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border-color:rgba(139,92,246,0.6);box-shadow:0 0 10px rgba(109,95,245,0.4)}
+.tracker-dot.active{background:rgba(109,95,245,0.2);border-color:rgba(124,111,247,0.6);animation:trackerPulse 1.5s ease-in-out infinite}
+.tracker-dot.cancelled{background:rgba(248,113,113,0.15);border-color:rgba(248,113,113,0.4)}
+.tracker-label{font-size:9px;color:var(--muted2);font-family:'DM Mono',monospace;text-align:center;max-width:50px;line-height:1.2}
+.tracker-label.active{color:var(--accent3)}
+.tracker-label.done{color:var(--muted)}
 .order-actions{display:flex;gap:6px;flex-wrap:wrap}
 .orders-filter{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
 .filter-btn{padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
@@ -510,7 +529,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <button class="filter-btn active" id="of-all" onclick="filterOrders('all')">Toutes</button>
       <button class="filter-btn" id="of-pending" onclick="filterOrders('pending')">En attente</button>
       <button class="filter-btn" id="of-confirmed" onclick="filterOrders('confirmed')">Confirmées</button>
+      <button class="filter-btn" id="of-preparing" onclick="filterOrders('preparing')">En prépa</button>
       <button class="filter-btn" id="of-ready" onclick="filterOrders('ready')">Prêtes</button>
+      <button class="filter-btn" id="of-delivered" onclick="filterOrders('delivered')">Livrées</button>
       <button class="filter-btn" id="of-cancelled" onclick="filterOrders('cancelled')">Annulées</button>
     </div>
     <div id="orders-list"><div class="loader">Chargement...</div></div>
@@ -1025,6 +1046,12 @@ function closeQR(){document.getElementById("qr-modal").classList.remove("open");
 
 // ── ORDERS ADMIN ──
 let currentOrderFilter="all";
+
+const ORDER_STEPS=["pending","confirmed","preparing","ready","delivered"];
+const ORDER_LABELS={pending:"En attente",confirmed:"Confirmée",preparing:"En préparation",ready:"Prête à retirer",delivered:"Livrée",cancelled:"Annulée"};
+const ORDER_NEXT={pending:"confirmed",confirmed:"preparing",preparing:"ready",ready:"delivered"};
+const ORDER_NEXT_LABEL={pending:"✓ Confirmer",confirmed:"👨‍🍳 En préparation",preparing:"📦 Prête",ready:"🚀 Livrée"};
+
 async function loadOrders(){
   const list=document.getElementById("orders-list");
   list.innerHTML='<div class="loader">Chargement...</div>';
@@ -1033,17 +1060,17 @@ async function loadOrders(){
   const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
   const filtered=currentOrderFilter==="all"?orders:orders.filter(o=>o.status===currentOrderFilter);
   if(!filtered.length){list.innerHTML='<div class="empty-state">Aucune commande dans cette catégorie</div>';return;}
-  const statusLabel={pending:"En attente",confirmed:"Confirmée",ready:"Prête",cancelled:"Annulée"};
   list.innerHTML="";
   filtered.forEach(o=>{
     const div=document.createElement("div");div.className="order-card";
+    const nextStatus=ORDER_NEXT[o.status];
     div.innerHTML=`
       <div class="order-header">
         <div>
           <div class="order-product">${o.product_name}${o.quantity>1?" ×"+o.quantity:""}</div>
           <div class="order-client">${clientMap[o.client_id]||o.customer_name||"Client"} · ${fmtDate(o.created_at)}</div>
         </div>
-        <div>${o.product_price!=null?`<div class="order-price">${(o.product_price*(o.quantity||1)).toFixed(2)} €</div>`:""}</div>
+        ${o.product_price!=null?`<div class="order-price">${(o.product_price*(o.quantity||1)).toFixed(2)} €</div>`:""}
       </div>
       <div class="order-meta">
         ${o.customer_name?`<div class="order-meta-row">👤 <span>${o.customer_name}</span></div>`:""}
@@ -1053,61 +1080,83 @@ async function loadOrders(){
         ${o.note?`<div class="order-meta-row">💬 <span>${o.note}</span></div>`:""}
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div class="order-status ${o.status}">${statusLabel[o.status]||o.status}</div>
+        <div class="order-status ${o.status}">${ORDER_LABELS[o.status]||o.status}</div>
         <div class="order-actions">
-          ${o.status==="pending"?`<button class="btn btn-sm btn-accent" onclick="setOrderStatus('${o.id}','confirmed')">✓ Confirmer</button>`:""}
-          ${o.status==="confirmed"?`<button class="btn btn-sm" style="color:var(--blue);border-color:rgba(96,165,250,0.3)" onclick="setOrderStatus('${o.id}','ready')">📦 Prête</button>`:""}
-          ${o.status!=="cancelled"?`<button class="btn btn-sm btn-danger" onclick="setOrderStatus('${o.id}','cancelled')">✕ Annuler</button>`:""}
+          ${nextStatus?`<button class="btn btn-sm btn-accent" onclick="setOrderStatus('${o.id}','${nextStatus}')">${ORDER_NEXT_LABEL[o.status]}</button>`:""}
+          ${o.status!=="cancelled"&&o.status!=="delivered"?`<button class="btn btn-sm btn-danger" onclick="setOrderStatus('${o.id}','cancelled')">✕ Annuler</button>`:""}
         </div>
       </div>`;
     list.appendChild(div);
   });
 }
+
 function filterOrders(status){
   currentOrderFilter=status;
-  ["all","pending","confirmed","ready","cancelled"].forEach(s=>{
-    document.getElementById("of-"+s).classList.toggle("active",s===status);
+  ["all","pending","confirmed","preparing","ready","delivered","cancelled"].forEach(s=>{
+    const el=document.getElementById("of-"+s);
+    if(el)el.classList.toggle("active",s===status);
   });
   loadOrders();
 }
+
 async function setOrderStatus(id,status){
   await dbPatch(T_ORDERS+"?id=eq."+id,{status});
-  const labels={confirmed:"Commande confirmée ✓",ready:"Commande prête 📦",cancelled:"Commande annulée"};
+  const labels={confirmed:"Commande confirmée ✓",preparing:"En préparation 👨‍🍳",ready:"Commande prête 📦",delivered:"Commande livrée 🚀",cancelled:"Commande annulée"};
   toast(labels[status]||"Statut mis à jour");loadOrders();
 }
 
 function clientLogout(){
   localStorage.removeItem("clubplus_client_id");
   currentClientId=null;
+  if(orderRefreshInterval)clearInterval(orderRefreshInterval);
   showView("register");
 }
 
 // ── CLIENT ORDERS ──
+const TRACKER_STEPS=[
+  {key:"pending",   icon:"🛒", label:"Reçue"},
+  {key:"confirmed", icon:"✓",  label:"Confirmée"},
+  {key:"preparing", icon:"👨‍🍳", label:"En prépa"},
+  {key:"ready",     icon:"📦", label:"Prête"},
+  {key:"delivered", icon:"🚀", label:"Livrée"}
+];
+
+function buildTracker(status){
+  if(status==="cancelled") return `<div style="font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;margin-bottom:8px">✕ Commande annulée</div>`;
+  const curIdx=TRACKER_STEPS.findIndex(s=>s.key===status);
+  const pct=curIdx<=0?0:Math.round((curIdx/(TRACKER_STEPS.length-1))*100);
+  const steps=TRACKER_STEPS.map((s,i)=>{
+    const done=i<curIdx,active=i===curIdx;
+    return `<div class="tracker-step">
+      <div class="tracker-dot ${done?"done":active?"active":""}">${done?"✓":s.icon}</div>
+      <div class="tracker-label ${done?"done":active?"active":""}">${s.label}</div>
+    </div>`;
+  }).join("");
+  return `<div class="tracker-steps">
+    <div class="tracker-line"><div class="tracker-line-fill" style="width:${pct}%"></div></div>
+    ${steps}
+  </div>`;
+}
+
 async function loadClientOrders(clientId){
   const ow=document.getElementById("cv-orders");
   const ol=document.getElementById("cv-orders-list");
   const orders=await dbGet(T_ORDERS+"?client_id=eq."+clientId+"&order=created_at.desc&limit=10");
   if(!orders||!orders.length){ow.style.display="none";return;}
   ow.style.display="block";
-  const statusLabel={pending:"⏳ En attente",confirmed:"✓ Confirmée",ready:"📦 Prête",cancelled:"✕ Annulée"};
-  const statusColor={pending:"var(--amber)",confirmed:"var(--green)",ready:"var(--blue)",cancelled:"var(--danger)"};
   ol.innerHTML=orders.map(o=>`
-    <div class="cv-order-card">
-      <div class="cv-order-top">
-        <div>
-          <div class="cv-order-name">${o.product_name}</div>
-          <div style="font-size:11px;color:${statusColor[o.status]||"var(--muted)"};font-family:'DM Mono',monospace;margin-top:2px">${statusLabel[o.status]||o.status}</div>
-        </div>
-        ${o.product_price?`<div class="cv-order-price">${o.product_price.toFixed(2)} €</div>`:""}
+    <div class="delivery-tracker">
+      <div class="tracker-product">
+        <span>${o.product_name}${o.quantity>1?" ×"+o.quantity:""}</span>
+        ${o.product_price!=null?`<span class="tracker-price">${o.product_price.toFixed(2)} €</span>`:""}
       </div>
-      <div class="cv-order-meta">
-        ${o.delivery_address?`<div>📍 ${o.delivery_address}</div>`:""}
-        ${o.pickup_slot?`<div>🕐 ${o.pickup_slot}</div>`:""}
-        ${o.note?`<div>💬 ${o.note}</div>`:""}
-        <div style="color:var(--muted2)">${fmtDate(o.created_at)}</div>
+      ${buildTracker(o.status)}
+      <div style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:4px;display:flex;justify-content:space-between;align-items:center">
+        <span>${fmtDate(o.created_at)}</span>
+        ${o.pickup_slot?`<span>🕐 ${o.pickup_slot}</span>`:""}
       </div>
       ${o.status==="pending"?`
-      <div class="cv-order-actions">
+      <div class="cv-order-actions" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
         <button class="btn btn-sm btn-accent" onclick="openEditOrder('${o.id}','${o.product_name.replace(/'/g,"\\'")}',${o.product_price||0},'${(o.delivery_address||"").replace(/'/g,"\\'")}','${(o.note||"").replace(/'/g,"\\'")}','${(o.pickup_slot||"").replace(/'/g,"\\'")}')">✎ Modifier</button>
         <button class="btn btn-sm btn-danger" onclick="cancelClientOrder('${o.id}')">Annuler</button>
       </div>`:""}
@@ -1469,10 +1518,15 @@ async function showWheelResult(){
 function puffSvg(){return`<svg viewBox="0 0 18 18" fill="none"><path d="M5 10.5C3.6 10.5 2.5 9.4 2.5 8 2.5 6.7 3.5 5.7 4.7 5.5 4.9 4.1 6.1 3 7.5 3c.8 0 1.5.3 2 .9C9.9 3.3 10.6 3 11.4 3 12.8 3 14 4.1 14 5.5c0 .1 0 .2 0 .3.9.3 1.5 1.1 1.5 2.2 0 1.4-1.1 2.5-2.5 2.5H5Z" fill="white" opacity=".95"/><rect x="8.2" y="10.5" width="1.6" height="4" rx=".8" fill="white" opacity=".7"/><rect x="6.5" y="13.5" width="5" height="1.2" rx=".6" fill="white" opacity=".5"/></svg>`;}
 function spawnConfetti(){const w=document.getElementById("cv-confetti");w.innerHTML="";const cols=["#a78bfa","#7c6ff7","#60a5fa","#38bdf8","#c4b5fd"];for(let i=0;i<20;i++){const e=document.createElement("div");e.className="confetti-piece";e.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*20}%;background:${cols[i%cols.length]};animation-delay:${Math.random()*.6}s;animation-duration:${.9+Math.random()*.7}s;transform:rotate(${Math.random()*360}deg)`;w.appendChild(e);}}
 
+let orderRefreshInterval=null;
+
 async function loadClientView(id){
   currentClientId=id;
-  localStorage.setItem("clubplus_client_id",id); // persist
+  localStorage.setItem("clubplus_client_id",id);
   showView("client");
+  // Auto-refresh orders every 15s
+  if(orderRefreshInterval)clearInterval(orderRefreshInterval);
+  orderRefreshInterval=setInterval(()=>{if(currentClientId)loadClientOrders(currentClientId);},15000);
   const [cData,oData,pData]=await Promise.all([
     dbGet(T_CLIENTS+"?id=eq."+id),
     dbGet(T_OFFERS+"?active=eq.true&order=created_at.desc&limit=1"),
