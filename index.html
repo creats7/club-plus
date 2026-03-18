@@ -1545,22 +1545,24 @@ async function loadClientView(id){
 function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
 
 // ── INIT ──
-buildPin();
-buildOfferColors();
+document.addEventListener("DOMContentLoaded", function(){
+  buildPin();
+  buildOfferColors();
 
-const cid=new URLSearchParams(window.location.search).get("client");
-if(cid) loadClientView(cid);
-else if(localStorage.getItem("clubplus_admin")==="1"){showView("admin");loadAll();}
-else{
-  const saved=localStorage.getItem("clubplus_client_id");
-  if(saved) loadClientView(saved);
-  else showView("register");
-}
+  const cid=new URLSearchParams(window.location.search).get("client");
+  if(cid) loadClientView(cid);
+  else if(localStorage.getItem("clubplus_admin")==="1"){showView("admin");loadAll();}
+  else{
+    const saved=localStorage.getItem("clubplus_client_id");
+    if(saved) loadClientView(saved);
+    else showView("register");
+  }
 
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("/club-plus/sw.js",{scope:"/club-plus/"})
-    .then(()=>console.log("SW ✓")).catch(e=>console.log("SW:",e));
-}
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("/club-plus/sw.js",{scope:"/club-plus/"})
+      .then(()=>console.log("SW ✓")).catch(e=>console.log("SW:",e));
+  }
+});
 </script>
 </body>
 </html>
