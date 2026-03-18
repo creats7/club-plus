@@ -161,7 +161,43 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .reward-form{background:rgba(20,18,40,0.8);border:1px solid var(--border2);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
 .reward-form.open{display:block}
 
-/* ── CHALLENGES ── */
+/* ── CHESTS ── */
+.chest-admin-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:10px}
+.chest-form-wrap{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
+.chest-form-wrap.open{display:block}
+.chest-reward-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:6px}
+.chest-reward-name{flex:1;font-size:13px}
+.chest-reward-prob{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)}
+
+/* CLIENT CHEST */
+@keyframes chestShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(8deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(4deg)}}
+@keyframes chestOpen{0%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes rewardPop{0%{opacity:0;transform:translateY(20px) scale(.8)}60%{transform:translateY(-6px) scale(1.05)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.cv-chests-section{width:100%;max-width:460px;animation:fadeUp .5s ease .2s both}
+.cv-chests-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;text-align:center}
+.cv-chest-intro{font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px}
+.cv-chests-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:8px}
+.cv-chest-item{background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.2);border-radius:16px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .2s;position:relative;backdrop-filter:blur(10px)}
+.cv-chest-item:hover{border-color:rgba(124,111,247,0.5);background:rgba(30,24,56,0.85);transform:translateY(-2px)}
+.cv-chest-item:active{transform:scale(.95)}
+.cv-chest-item.selected{border-color:rgba(124,111,247,0.7);background:rgba(109,95,245,0.15);box-shadow:0 0 20px rgba(124,111,247,0.2)}
+.cv-chest-emoji{font-size:32px;margin-bottom:6px;display:block;transition:transform .3s}
+.cv-chest-item.selected .cv-chest-emoji{animation:chestShake .5s ease}
+.cv-chest-name{font-size:12px;font-weight:500;color:var(--text)}
+.cv-chest-desc{font-size:10px;color:var(--muted);margin-top:2px}
+.cv-chest-count{position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#6d5ff5,#8b5cf6);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:2px 6px;font-family:'DM Mono',monospace}
+.cv-open-btn{width:100%;padding:13px;border-radius:var(--rs);background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;box-shadow:0 4px 20px rgba(109,95,245,0.4);display:none}
+.cv-open-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(109,95,245,0.5)}
+.cv-open-btn:active{transform:scale(.97)}
+
+/* CHEST RESULT OVERLAY */
+.chest-result-overlay{position:fixed;inset:0;background:rgba(4,3,16,.92);display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(10px);flex-direction:column;gap:0}
+.chest-result-overlay.open{display:flex}
+.chest-result-box{background:rgba(14,12,32,0.98);border:1px solid rgba(124,111,247,0.3);border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:340px;text-align:center;box-shadow:0 8px 60px rgba(0,0,0,.8),0 0 40px rgba(124,111,247,0.15)}
+.chest-result-emoji{font-size:64px;margin-bottom:16px;animation:chestOpen .6s ease both}
+.chest-result-title{font-size:14px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.chest-result-reward{font-size:26px;font-weight:700;color:var(--accent3);margin-bottom:6px;animation:rewardPop .5s ease .3s both;opacity:0}
+.chest-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
 .challenge-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:10px}
 .challenge-card.inactive{opacity:.45}
 .challenge-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
@@ -662,7 +698,38 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="quick-label">Historique</div>
         <div class="quick-sub">Spins passés</div>
       </div>
+      <div class="quick-card green" onclick="switchTab('chests')">
+        <div class="quick-icon">🎁</div>
+        <div class="quick-label">Coffres</div>
+        <div class="quick-sub">Gérer les coffres</div>
+      </div>
     </div>
+  </div>
+
+  <!-- COFFRES ADMIN -->
+  <div id="panel-chests" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Coffres</div>
+      <button class="btn btn-accent btn-sm" onclick="toggleChestForm()">+ Coffre</button>
+    </div>
+    <div class="chest-form-wrap" id="chest-form">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="chest-form-title">Nouveau coffre</div>
+      <input type="hidden" id="chf-id" />
+      <label class="modal-label">Emoji</label>
+      <input class="input" id="chf-emoji" placeholder="ex: 🎁" maxlength="4" style="width:80px;display:inline-block;margin-right:8px;margin-bottom:8px" />
+      <label class="modal-label" style="display:inline-block">Nom</label>
+      <input class="input" id="chf-name" placeholder="ex: Coffre Mystère" />
+      <label class="modal-label">Description</label>
+      <input class="input" id="chf-desc" placeholder="ex: Des surprises à l'intérieur !" style="margin-bottom:4px" />
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:'DM Mono',monospace">Lots (probabilités en %)</div>
+      <div id="chf-rewards-list"></div>
+      <button class="btn btn-sm" onclick="addChestRewardRow()" style="margin-bottom:12px">+ Ajouter un lot</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveChest()">Enregistrer</button>
+        <button class="btn" onclick="toggleChestForm()">Annuler</button>
+      </div>
+    </div>
+    <div id="chests-admin-list"><div class="loader">Chargement...</div></div>
   </div>
 
   <!-- HISTORIQUE -->
@@ -761,6 +828,14 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="cv-products" id="cv-challenges" style="display:none">
       <div class="cv-products-title">🎯 Défis en cours</div>
       <div id="cv-challenges-list"></div>
+    </div>
+
+    <!-- COFFRES CLIENT -->
+    <div class="cv-chests-section" id="cv-chests" style="display:none">
+      <div class="cv-chests-title">🎁 Tes coffres à ouvrir</div>
+      <div class="cv-chest-intro">Tu as gagné un coffre après ta dernière commande livrée.<br>Choisis-en un à ouvrir !</div>
+      <div class="cv-chests-grid" id="cv-chests-grid"></div>
+      <button class="cv-open-btn" id="cv-open-btn" onclick="openSelectedChest()">Ouvrir ce coffre ✨</button>
     </div>
 
   </div>
@@ -874,6 +949,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
+<!-- CHEST RESULT -->
+<div class="chest-result-overlay" id="chest-result-overlay">
+  <div class="chest-result-box">
+    <div class="chest-result-emoji" id="cr-emoji">🎁</div>
+    <div class="chest-result-title">Tu as gagné</div>
+    <div class="chest-result-reward" id="cr-reward"></div>
+    <div class="chest-result-sub" id="cr-sub"></div>
+    <button class="btn-spin" style="width:100%;justify-content:center" onclick="closeChestResult()">Super !</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -891,6 +977,9 @@ const T_PRODUCTS=SUPA_URL+"/rest/v1/products";
 const T_ORDERS=SUPA_URL+"/rest/v1/orders";
 const T_CHALLENGES=SUPA_URL+"/rest/v1/challenges";
 const T_COMPLETIONS=SUPA_URL+"/rest/v1/challenge_completions";
+const T_CHESTS=SUPA_URL+"/rest/v1/chests";
+const T_CHEST_REWARDS=SUPA_URL+"/rest/v1/chest_rewards";
+const T_CLIENT_CHESTS=SUPA_URL+"/rest/v1/client_chests";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -910,7 +999,7 @@ function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit"
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","more","history"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","chests","more","history"];
 const NAV_ITEMS=["home","clients","orders","products","more"];
 
 function switchTab(tab){
@@ -935,6 +1024,7 @@ function switchTab(tab){
   if(tab==="orders")loadOrders();
   if(tab==="challenges")loadChallenges();
   if(tab==="rewards")loadRewards();
+  if(tab==="chests")loadChestsAdmin();
   if(tab==="history")loadHistory();
 }
 
@@ -1332,7 +1422,14 @@ function filterOrders(status){
 
 async function setOrderStatus(id,status){
   await dbPatch(T_ORDERS+"?id=eq."+id,{status});
-  const labels={confirmed:"Commande confirmée ✓",delivered:"Commande livrée 🚀",cancelled:"Commande annulée"};
+  // Donner un coffre au client quand la commande est livrée
+  if(status==="delivered"){
+    const order=await dbGet(T_ORDERS+"?id=eq."+id+"&select=client_id");
+    if(order&&order[0]&&order[0].client_id){
+      await dbPost(T_CLIENT_CHESTS,{client_id:order[0].client_id,order_id:id,opened:false});
+    }
+  }
+  const labels={confirmed:"Commande confirmée ✓",delivered:"Commande livrée 🚀 · Coffre envoyé !",cancelled:"Commande annulée"};
   toast(labels[status]||"Statut mis à jour");loadOrders();
 }
 
@@ -1670,6 +1767,185 @@ async function loadClientChallenges(clientId){
   cl.innerHTML=items.join("");
 }
 
+// ── CHESTS ADMIN ──
+let chestRewardRows=[];
+
+async function loadChestsAdmin(){
+  const list=document.getElementById("chests-admin-list");
+  list.innerHTML='<div class="loader">Chargement...</div>';
+  const chests=await dbGet(T_CHESTS+"?order=created_at.asc");
+  if(!chests||!chests.length){list.innerHTML='<div class="empty-state">Aucun coffre · Crée le premier</div>';return;}
+  list.innerHTML="";
+  for(const ch of chests){
+    const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+ch.id+"&order=probability.desc");
+    const total=(rewards||[]).reduce((s,r)=>s+r.probability,0);
+    const div=document.createElement("div");div.className="chest-admin-card";
+    div.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:28px">${ch.emoji||"🎁"}</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500">${ch.name}</div>
+          ${ch.description?`<div style="font-size:12px;color:var(--muted)">${ch.description}</div>`:""}
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm" onclick="toggleChestActive('${ch.id}',${ch.active})">${ch.active?"● Actif":"○ Inactif"}</button>
+          <button class="btn btn-icon btn-danger" onclick="deleteChestAdmin('${ch.id}','${ch.name.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      </div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:${total===100?"var(--green)":"var(--danger)"};margin-bottom:8px">
+        Total probabilités : ${total}%${total!==100?" ⚠":"  ✓"}
+      </div>
+      ${(rewards||[]).map(r=>`
+        <div class="chest-reward-row">
+          <span style="font-size:13px">${r.type==="nothing"?"🌫":r.type==="reduction"?"💰":"🎀"}</span>
+          <span class="chest-reward-name">${r.name}${r.value?" · "+r.value:""}</span>
+          <span class="chest-reward-prob">${r.probability}%</span>
+          <button class="btn btn-icon btn-danger btn-sm" onclick="deleteChestReward('${r.id}','${ch.id}')">✕</button>
+        </div>`).join("")}`;
+    list.appendChild(div);
+  }
+}
+
+function toggleChestForm(){
+  const f=document.getElementById("chest-form");
+  chestRewardRows=[];
+  ["chf-id","chf-name","chf-desc"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("chf-emoji").value="🎁";
+  document.getElementById("chf-rewards-list").innerHTML="";
+  document.getElementById("chest-form-title").textContent="Nouveau coffre";
+  f.classList.toggle("open");
+  if(f.classList.contains("open")){addChestRewardRow();document.getElementById("chf-name").focus();}
+}
+
+function addChestRewardRow(){
+  const list=document.getElementById("chf-rewards-list");
+  const idx=chestRewardRows.length;
+  const row=document.createElement("div");row.className="chest-reward-row";row.id="crr-"+idx;
+  row.innerHTML=`
+    <select class="input" id="crr-type-${idx}" style="width:110px;margin-bottom:0;flex-shrink:0;font-size:12px">
+      <option value="nothing">🌫 Rien</option>
+      <option value="reduction">💰 Réduction</option>
+      <option value="product">🎀 Produit</option>
+    </select>
+    <input class="input" id="crr-name-${idx}" placeholder="Nom du lot" style="margin-bottom:0;flex:1" />
+    <input class="input" id="crr-val-${idx}" placeholder="ex: -2€" style="margin-bottom:0;width:70px;flex-shrink:0" />
+    <input class="input" id="crr-prob-${idx}" type="number" placeholder="%" min="1" max="100" style="margin-bottom:0;width:56px;flex-shrink:0" />
+    <button class="btn btn-icon btn-danger btn-sm" onclick="removeChestRewardRow(${idx})">✕</button>`;
+  list.appendChild(row);
+  chestRewardRows.push(idx);
+}
+
+function removeChestRewardRow(idx){
+  const el=document.getElementById("crr-"+idx);if(el)el.remove();
+  chestRewardRows=chestRewardRows.filter(i=>i!==idx);
+}
+
+async function saveChest(){
+  const name=document.getElementById("chf-name").value.trim();if(!name){toast("Nom requis");return;}
+  const emoji=document.getElementById("chf-emoji").value.trim()||"🎁";
+  const desc=document.getElementById("chf-desc").value.trim();
+  const rewards=chestRewardRows.map(i=>({
+    type:document.getElementById("crr-type-"+i)?.value||"nothing",
+    name:document.getElementById("crr-name-"+i)?.value.trim()||"Rien",
+    value:document.getElementById("crr-val-"+i)?.value.trim()||null,
+    probability:parseInt(document.getElementById("crr-prob-"+i)?.value)||0
+  })).filter(r=>r.name);
+  if(!rewards.length){toast("Ajoute au moins un lot");return;}
+  const total=rewards.reduce((s,r)=>s+r.probability,0);
+  if(total!==100){toast("Les probabilités doivent totaliser 100% (actuellement "+total+"%)");return;}
+  const res=await dbPost(T_CHESTS,{name,emoji,description:desc||null,active:true});
+  const chestId=res&&res[0]?.id;if(!chestId){toast("Erreur création coffre");return;}
+  for(const r of rewards){await dbPost(T_CHEST_REWARDS,{chest_id:chestId,name:r.name,type:r.type,value:r.value,probability:r.probability});}
+  document.getElementById("chest-form").classList.remove("open");
+  toast("Coffre créé ✓");loadChestsAdmin();
+}
+
+async function toggleChestActive(id,active){await dbPatch(T_CHESTS+"?id=eq."+id,{active:!active});toast(active?"Coffre désactivé":"Coffre activé");loadChestsAdmin();}
+async function deleteChestAdmin(id,name){if(!confirm("Supprimer \""+name+"\" ?"))return;await dbDelete(T_CHESTS+"?id=eq."+id);toast("Coffre supprimé");loadChestsAdmin();}
+async function deleteChestReward(id,chestId){await dbDelete(T_CHEST_REWARDS+"?id=eq."+id);toast("Lot supprimé");loadChestsAdmin();}
+
+// ── CHESTS CLIENT ──
+let selectedChestId=null;
+let pendingClientChestId=null;
+
+async function loadClientChests(clientId){
+  const cw=document.getElementById("cv-chests");
+  // Coffres non ouverts
+  const clientChests=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&opened=eq.false&order=created_at.desc&limit=5");
+  if(!clientChests||!clientChests.length){cw.style.display="none";return;}
+  // Charger les coffres disponibles actifs
+  const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
+  if(!chests||!chests.length){cw.style.display="none";return;}
+  cw.style.display="block";
+  const unopened=clientChests.length;
+  document.getElementById("cv-chest-intro")||0;
+  const intro=cw.querySelector(".cv-chest-intro");
+  if(intro)intro.textContent=unopened>1?`Tu as ${unopened} coffres à ouvrir ! Choisis-en un.`:"Tu as gagné un coffre ! Choisis-en un à ouvrir.";
+  // Build grid
+  const grid=document.getElementById("cv-chests-grid");
+  grid.innerHTML=chests.map(ch=>`
+    <div class="cv-chest-item" id="chest-item-${ch.id}" onclick="selectChest('${ch.id}','${clientChests[0].id}')">
+      ${unopened>1?`<div class="cv-chest-count">×${unopened}</div>`:""}
+      <span class="cv-chest-emoji">${ch.emoji||"🎁"}</span>
+      <div class="cv-chest-name">${ch.name}</div>
+      ${ch.description?`<div class="cv-chest-desc">${ch.description}</div>`:""}
+    </div>`).join("");
+  selectedChestId=null;
+  pendingClientChestId=clientChests[0].id;
+  document.getElementById("cv-open-btn").style.display="none";
+}
+
+function selectChest(chestId, clientChestId){
+  document.querySelectorAll(".cv-chest-item").forEach(el=>el.classList.remove("selected"));
+  const el=document.getElementById("chest-item-"+chestId);
+  if(el)el.classList.add("selected");
+  selectedChestId=chestId;
+  pendingClientChestId=clientChestId;
+  document.getElementById("cv-open-btn").style.display="block";
+}
+
+async function openSelectedChest(){
+  if(!selectedChestId||!pendingClientChestId)return;
+  // Tirer un lot selon les probabilités
+  const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+selectedChestId);
+  if(!rewards||!rewards.length){toast("Ce coffre est vide");return;}
+  const total=rewards.reduce((s,r)=>s+r.probability,0);
+  let rand=Math.random()*total,cumul=0,won=rewards[rewards.length-1];
+  for(const r of rewards){cumul+=r.probability;if(rand<=cumul){won=r;break;}}
+  // Marquer comme ouvert
+  await dbPatch(T_CLIENT_CHESTS+"?id=eq."+pendingClientChestId,{
+    opened:true,chest_id:selectedChestId,
+    reward_name:won.name+(won.value?" · "+won.value:""),
+    reward_type:won.type,opened_at:new Date().toISOString()
+  });
+  // Appliquer la récompense
+  if(won.type==="stamp"){
+    const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=stamps,tokens");
+    if(cData&&cData.length){
+      let {stamps,tokens}=cData[0];stamps=Math.min(10,stamps+1);
+      if(stamps===10){stamps=0;tokens=(tokens||0)+1;}
+      await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{stamps,tokens});
+    }
+  }
+  if(won.type==="token"){
+    const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
+    if(cData&&cData.length){await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:(cData[0].tokens||0)+1});}
+  }
+  // Afficher résultat
+  const chest=await dbGet(T_CHESTS+"?id=eq."+selectedChestId+"&select=emoji");
+  document.getElementById("cr-emoji").textContent=chest&&chest[0]?chest[0].emoji:"🎁";
+  document.getElementById("cr-reward").textContent=won.type==="nothing"?"Pas de chance…":won.name+(won.value?" — "+won.value:"");
+  document.getElementById("cr-sub").textContent=won.type==="nothing"?"Retente ta chance à la prochaine commande !":"Montre ce résultat à la boutique pour récupérer ton lot !";
+  document.getElementById("chest-result-overlay").classList.add("open");
+  selectedChestId=null;
+  document.getElementById("cv-open-btn").style.display="none";
+}
+
+function closeChestResult(){
+  document.getElementById("chest-result-overlay").classList.remove("open");
+  if(currentClientId)loadClientView(currentClientId);
+}
+
 // ── OFFERS ──
 const OFFER_COLORS=["#7c6ff7","#a78bfa","#60a5fa","#34d399","#38bdf8","#f87171","#f472b6","#fb923c"];
 function buildOfferColors(){
@@ -1956,6 +2232,8 @@ async function loadClientView(id){
   await loadClientOrders(id);
   // Challenges
   loadClientChallenges(id);
+  // Coffres
+  loadClientChests(id);
 }
 
 function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
