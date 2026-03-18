@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Club+ · Fidélité</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c6ff7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Club+">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -1150,6 +1159,13 @@ buildOfferColors();
 const cid=new URLSearchParams(window.location.search).get("client");
 if(cid) loadClientView(cid);
 else showView("pin");
+
+// PWA - Enregistrement du Service Worker
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js")
+    .then(()=>console.log("SW enregistré ✓"))
+    .catch(e=>console.log("SW erreur:",e));
+}
 </script>
 </body>
 </html>
