@@ -1328,14 +1328,17 @@ async function chg(id,curStamps,curTokens,d){
   if(d===1&&newStamps===10){
     newStamps=0;newTokens=curTokens+1;
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens});
-    // Log stamp + token earned
     await dbPost(T_STAMP_LOGS,{client_id:id});
     await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-    toast("🎉 Carte complète ! +1 token ajouté");
+    // Coffre offert à chaque tampon
+    await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+    toast("🎉 Carte complète ! +1 token + 🎁 coffre offert !");
   } else if(d===1){
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
     await dbPost(T_STAMP_LOGS,{client_id:id});
-    toast("Tampon ajouté ✓");
+    // Coffre offert à chaque tampon
+    await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+    toast("Tampon ajouté ✓ · 🎁 coffre offert !");
   } else {
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
     toast("Tampon retiré");
@@ -2175,8 +2178,11 @@ async function loadClientView(id){
     dbGet(T_PRODUCTS+"?active=eq.true&order=created_at.asc")
   ]);
   if(!cData||!cData.length){
-    localStorage.removeItem("clubplus_client_id");
-    showView("register");
+    // Seulement si le tableau est vide (client supprimé), pas si erreur réseau
+    if(Array.isArray(cData)){
+      localStorage.removeItem("clubplus_client_id");
+      showView("register");
+    }
     return;
   }
   const c=cData[0],full=c.stamps>=10,rem=10-c.stamps,tokens=c.tokens||0;
@@ -2265,16 +2271,7 @@ document.addEventListener("DOMContentLoaded", function(){
     showView("admin");loadAll();switchTab("home");
   } else {
     const saved=localStorage.getItem("clubplus_client_id");
-    if(saved){
-      // Vérifie que le client existe encore avant de charger
-      dbGet(T_CLIENTS+"?id=eq."+saved+"&select=id").then(data=>{
-        if(data&&data.length) loadClientView(saved);
-        else{
-          localStorage.removeItem("clubplus_client_id");
-          showView("register");
-        }
-      }).catch(()=>showView("register"));
-    }
+    if(saved) loadClientView(saved);
     else showView("register");
   }
 
