@@ -1739,8 +1739,13 @@ async function loadClientChallenges(clientId){
         await dbPost(T_TOKEN_LOGS,{client_id:clientId,type:"earned"});
       }
       toast("🎯 Défi complété ! +"+ch.reward_tokens+" token"+(ch.reward_tokens>1?"s":"")+" 🎉",4000);
-      // Refresh token display
-      setTimeout(()=>loadClientView(clientId),1000);
+      // Refresh token section only
+      const freshData=await dbGet(T_CLIENTS+"?id=eq."+clientId+"&select=tokens");
+      if(freshData&&freshData.length){
+        const tk=freshData[0].tokens||0;
+        const tokenSection=document.getElementById("cv-token-section");
+        if(tk>0&&tokenSection){tokenSection.style.display="flex";document.getElementById("cv-token-count").textContent=tk;document.getElementById("btn-spin").disabled=false;}
+      }
       return `<div class="cv-challenge-card done">
         <div class="cv-challenge-title">${ch.title}</div>
         ${ch.description?`<div class="cv-challenge-desc">${ch.description}</div>`:""}
@@ -1870,18 +1875,15 @@ let pendingClientChestId=null;
 
 async function loadClientChests(clientId){
   const cw=document.getElementById("cv-chests");
-  // Coffres non ouverts
-  const clientChests=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&opened=eq.false&order=created_at.desc&limit=5");
+  // Supabase boolean filter: use is=false
+  const clientChests=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&opened=is.false&order=created_at.desc&limit=5");
   if(!clientChests||!clientChests.length){cw.style.display="none";return;}
-  // Charger les coffres disponibles actifs
   const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
   if(!chests||!chests.length){cw.style.display="none";return;}
   cw.style.display="block";
   const unopened=clientChests.length;
-  document.getElementById("cv-chest-intro")||0;
   const intro=cw.querySelector(".cv-chest-intro");
   if(intro)intro.textContent=unopened>1?`Tu as ${unopened} coffres à ouvrir ! Choisis-en un.`:"Tu as gagné un coffre ! Choisis-en un à ouvrir.";
-  // Build grid
   const grid=document.getElementById("cv-chests-grid");
   grid.innerHTML=chests.map(ch=>`
     <div class="cv-chest-item" id="chest-item-${ch.id}" onclick="selectChest('${ch.id}','${clientChests[0].id}')">
