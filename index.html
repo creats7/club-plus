@@ -986,7 +986,7 @@ let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClient
 let chartStamps=null,chartTokens=null;
 
 // ── DB ──
-const dbGet=(u)=>fetch(u,{headers:{...H,"Cache-Control":"no-cache"},cache:"no-store"}).then(r=>r.json());
+const dbGet=(u)=>fetch(u,{headers:H,cache:"no-store"}).then(r=>r.json());
 const dbPost=(u,d)=>fetch(u,{method:"POST",headers:H,body:JSON.stringify(d)}).then(r=>r.json());
 const dbPatch=(u,d)=>fetch(u,{method:"PATCH",headers:{...H,"Prefer":"return=minimal"},body:JSON.stringify(d)});
 const dbDelete=(u)=>fetch(u,{method:"DELETE",headers:H});
@@ -1875,9 +1875,10 @@ let pendingClientChestId=null;
 
 async function loadClientChests(clientId){
   const cw=document.getElementById("cv-chests");
-  // Supabase boolean filter: use is=false
-  const clientChests=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&opened=is.false&order=created_at.desc&limit=5");
-  if(!clientChests||!clientChests.length){cw.style.display="none";return;}
+  // Récupère tous les coffres du client et filtre côté JS
+  const allClientChests=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&order=created_at.desc&limit=20");
+  const clientChests=(allClientChests||[]).filter(c=>!c.opened);
+  if(!clientChests.length){cw.style.display="none";return;}
   const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
   if(!chests||!chests.length){cw.style.display="none";return;}
   cw.style.display="block";
@@ -1916,9 +1917,11 @@ async function openSelectedChest(){
   for(const r of rewards){cumul+=r.probability;if(rand<=cumul){won=r;break;}}
   // Marquer comme ouvert
   await dbPatch(T_CLIENT_CHESTS+"?id=eq."+pendingClientChestId,{
-    opened:true,chest_id:selectedChestId,
+    opened:true,
+    chest_id:selectedChestId,
     reward_name:won.name+(won.value?" · "+won.value:""),
-    reward_type:won.type,opened_at:new Date().toISOString()
+    reward_type:won.type,
+    opened_at:new Date().toISOString()
   });
   // Appliquer la récompense
   if(won.type==="stamp"){
