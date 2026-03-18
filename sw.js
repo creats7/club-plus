@@ -1,5 +1,11 @@
-const CACHE = "clubplus-v1";
-const ASSETS = ["/", "/index.html", "/manifest.json"];
+const CACHE = "clubplus-v2";
+const ASSETS = [
+  "/club-plus/",
+  "/club-plus/index.html",
+  "/club-plus/manifest.json",
+  "/club-plus/icon-192.png",
+  "/club-plus/icon-512.png"
+];
 
 // Installation : mise en cache des ressources de base
 self.addEventListener("install", e => {
