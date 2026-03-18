@@ -397,7 +397,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .wheel-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem;display:none}
 
 /* ── CLIENT VIEW ── */
-@keyframes stampPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes stampPop{0%{transform:scale(.3) rotate(-12deg);opacity:0}55%{transform:scale(1.2) rotate(3deg)}80%{transform:scale(.95) rotate(-1deg)}100%{transform:scale(1) rotate(0deg);opacity:1}}
+@keyframes stampShine{0%{opacity:0;transform:translateX(-100%) rotate(45deg)}40%,100%{opacity:0;transform:translateX(200%) rotate(45deg)}20%{opacity:.4}}
 @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(90px) rotate(720deg);opacity:0}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes offerIn{0%{opacity:0;transform:translateY(-8px) scale(.98)}100%{opacity:1;transform:translateY(0) scale(1)}}
@@ -422,10 +423,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cv-card{width:100%;max-width:460px;background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.2);border-radius:22px;padding:1.75rem;animation:fadeUp .5s ease .1s both;position:relative;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px)}
 .cv-card::before{content:'';position:absolute;top:-60px;left:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(109,95,245,0.12) 0%,transparent 70%);pointer-events:none}
 .cv-stamps-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:1.5rem;position:relative;z-index:1}
-.cv-stamp{aspect-ratio:1;border-radius:11px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center}
-.cv-stamp.on{background:linear-gradient(135deg,#6d5ff5 0%,#8b5cf6 100%);border-color:rgba(139,92,246,0.6);box-shadow:0 0 14px rgba(109,95,245,0.5),inset 0 1px 0 rgba(255,255,255,.2);animation:stampPop .45s cubic-bezier(.34,1.56,.64,1) both}
-.cv-stamp.on svg{width:18px;height:18px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
-.cv-stamp-num{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.18)}
+.cv-stamp{aspect-ratio:1;border-radius:13px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;transition:border .3s}
+.cv-stamp.on{border-color:transparent;animation:stampPop .5s cubic-bezier(.34,1.56,.64,1) both;box-shadow:0 2px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.25)}
+.cv-stamp.on::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.12) 50%,transparent 60%);animation:stampShine 2.5s ease var(--shine-delay,0s) infinite}
+.cv-stamp.on svg{width:20px;height:20px;position:relative;z-index:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5)) drop-shadow(0 0 4px rgba(255,255,255,.15))}
+.cv-stamp-num{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.15)}
 .cv-progress-section{margin-bottom:1.25rem;position:relative;z-index:1}
 .cv-progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .cv-progress-label{font-size:13px;color:var(--muted)}
@@ -2480,7 +2482,42 @@ async function buyChest(type,cost){
 }
 
 // ── CLIENT VIEW ──
-function puffSvg(){return`<svg viewBox="0 0 18 18" fill="none"><path d="M5 10.5C3.6 10.5 2.5 9.4 2.5 8 2.5 6.7 3.5 5.7 4.7 5.5 4.9 4.1 6.1 3 7.5 3c.8 0 1.5.3 2 .9C9.9 3.3 10.6 3 11.4 3 12.8 3 14 4.1 14 5.5c0 .1 0 .2 0 .3.9.3 1.5 1.1 1.5 2.2 0 1.4-1.1 2.5-2.5 2.5H5Z" fill="white" opacity=".95"/><rect x="8.2" y="10.5" width="1.6" height="4" rx=".8" fill="white" opacity=".7"/><rect x="6.5" y="13.5" width="5" height="1.2" rx=".6" fill="white" opacity=".5"/></svg>`;}
+// Arc-en-ciel : couleurs pour chaque case 1→10
+const STAMP_COLORS=[
+  ["#818cf8","#6366f1"], // 1 - indigo
+  ["#a78bfa","#7c3aed"], // 2 - violet
+  ["#c084fc","#9333ea"], // 3 - purple
+  ["#e879f9","#a21caf"], // 4 - fuchsia
+  ["#f472b6","#db2777"], // 5 - pink
+  ["#fb7185","#e11d48"], // 6 - rose
+  ["#fb923c","#ea580c"], // 7 - orange
+  ["#fbbf24","#d97706"], // 8 - amber
+  ["#34d399","#059669"], // 9 - emerald
+  ["#38bdf8","#0284c7"], // 10 - sky
+];
+
+function puffSvg(idx=0){
+  const [c1,c2]=STAMP_COLORS[Math.min(idx,9)];
+  const id="pg"+idx;
+  return `<svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${c1}"/>
+        <stop offset="100%" stop-color="${c2}"/>
+      </linearGradient>
+    </defs>
+    <!-- Corps nuage puff -->
+    <path d="M6 13.5C4.3 13.5 3 12.2 3 10.5 3 9 4.1 7.8 5.5 7.5 5.8 5.7 7.3 4.5 9 4.5c1 0 1.9.4 2.5 1C12 5 12.8 4.5 13.8 4.5 15.5 4.5 17 5.8 17 7.5c0 .1 0 .2 0 .3 1.1.4 1.8 1.4 1.8 2.7 0 1.7-1.3 3-3 3H6Z" fill="url(#${id})"/>
+    <!-- Reflet haut -->
+    <path d="M7 6.5C7.8 5.8 8.8 5.4 9.8 5.5" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+    <!-- Tige -->
+    <rect x="10.2" y="13.5" width="1.8" height="4.5" rx="0.9" fill="url(#${id})" opacity=".8"/>
+    <!-- Embout -->
+    <rect x="8" y="17" width="6" height="1.5" rx="0.75" fill="url(#${id})" opacity=".6"/>
+    <!-- Petite bulle gauche -->
+    <circle cx="5.5" cy="10" r="1" fill="rgba(255,255,255,.15)"/>
+  </svg>`;
+}
 function spawnConfetti(){const w=document.getElementById("cv-confetti");w.innerHTML="";const cols=["#a78bfa","#7c6ff7","#60a5fa","#38bdf8","#c4b5fd"];for(let i=0;i<20;i++){const e=document.createElement("div");e.className="confetti-piece";e.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*20}%;background:${cols[i%cols.length]};animation-delay:${Math.random()*.6}s;animation-duration:${.9+Math.random()*.7}s;transform:rotate(${Math.random()*360}deg)`;w.appendChild(e);}}
 
 let orderRefreshInterval=null;
@@ -2515,7 +2552,13 @@ async function loadClientView(id){
   if(full)cd.innerHTML="";
   else if(rem===1)cd.innerHTML=`<strong>Plus qu'1 tampon</strong> pour un token !`;
   else cd.innerHTML=`Plus que <strong>${rem} tampons</strong> pour un token !`;
-  document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>`<div class="cv-stamp ${i<stamps?"on":""}" ${i<stamps?`style="animation-delay:${i*.06}s"`:""}>${i<stamps?puffSvg():`<span class="cv-stamp-num">${i+1}</span>`}</div>`).join("");
+  document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>{
+    if(i<stamps){
+      const [c1,c2]=STAMP_COLORS[i];
+      return `<div class="cv-stamp on" style="background:linear-gradient(135deg,${c1},${c2});animation-delay:${i*.07}s;--shine-delay:${i*.3}s">${puffSvg(i)}</div>`;
+    }
+    return `<div class="cv-stamp"><span class="cv-stamp-num">${i+1}</span></div>`;
+  }).join("");
   const banner=document.getElementById("cv-complete");
   if(stamps===0&&tokens>0){banner.classList.add("show");spawnConfetti();setTimeout(()=>banner.classList.remove("show"),4000);}
   else banner.classList.remove("show");
