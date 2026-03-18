@@ -169,35 +169,46 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .chest-reward-name{flex:1;font-size:13px}
 .chest-reward-prob{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)}
 
-/* CLIENT CHEST */
-@keyframes chestShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(8deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(4deg)}}
-@keyframes chestOpen{0%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}100%{transform:scale(1)}}
-@keyframes rewardPop{0%{opacity:0;transform:translateY(20px) scale(.8)}60%{transform:translateY(-6px) scale(1.05)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.cv-chests-section{width:100%;max-width:460px;animation:fadeUp .5s ease .2s both}
-.cv-chests-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;text-align:center}
-.cv-chest-intro{font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px}
-.cv-chests-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:8px}
-.cv-chest-item{background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.2);border-radius:16px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .2s;position:relative;backdrop-filter:blur(10px)}
-.cv-chest-item:hover{border-color:rgba(124,111,247,0.5);background:rgba(30,24,56,0.85);transform:translateY(-2px)}
-.cv-chest-item:active{transform:scale(.95)}
-.cv-chest-item.selected{border-color:rgba(124,111,247,0.7);background:rgba(109,95,245,0.15);box-shadow:0 0 20px rgba(124,111,247,0.2)}
-.cv-chest-emoji{font-size:32px;margin-bottom:6px;display:block;transition:transform .3s}
-.cv-chest-item.selected .cv-chest-emoji{animation:chestShake .5s ease}
-.cv-chest-name{font-size:12px;font-weight:500;color:var(--text)}
-.cv-chest-desc{font-size:10px;color:var(--muted);margin-top:2px}
-.cv-chest-count{position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#6d5ff5,#8b5cf6);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:2px 6px;font-family:'DM Mono',monospace}
-.cv-open-btn{width:100%;padding:13px;border-radius:var(--rs);background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;box-shadow:0 4px 20px rgba(109,95,245,0.4);display:none}
-.cv-open-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(109,95,245,0.5)}
+/* CLIENT CHEST — REDESIGN */
+@keyframes chestFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes chestGlow{0%,100%{box-shadow:0 0 20px rgba(124,111,247,0.3),0 0 0 0 rgba(124,111,247,0)}50%{box-shadow:0 0 40px rgba(124,111,247,0.6),0 0 0 8px rgba(124,111,247,0.05)}}
+@keyframes chestShake{0%,100%{transform:rotate(0deg) scale(1)}15%{transform:rotate(-6deg) scale(1.05)}30%{transform:rotate(6deg) scale(1.05)}45%{transform:rotate(-4deg) scale(1.03)}60%{transform:rotate(4deg) scale(1.03)}75%{transform:rotate(-2deg) scale(1.01)}90%{transform:rotate(2deg) scale(1.01)}}
+@keyframes chestOpen{0%{transform:scale(1) rotate(0deg)}20%{transform:scale(1.15) rotate(-3deg)}40%{transform:scale(1.2) rotate(3deg)}60%{transform:scale(1.1) rotate(0deg)}80%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes particleBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
+@keyframes rewardPop{0%{opacity:0;transform:translateY(24px) scale(.7)}60%{transform:translateY(-4px) scale(1.06)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+
+.cv-chest-wrap{display:flex;flex-direction:column;align-items:center;padding:1.5rem 0}
+.cv-chest-count-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.25rem}
+.cv-chest-count-badge span{color:var(--accent3);font-weight:600;font-size:14px}
+
+/* Le coffre SVG */
+.cv-chest-visual{position:relative;width:180px;height:160px;cursor:pointer;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:center}
+.cv-chest-visual.floating{animation:chestFloat 3s ease-in-out infinite}
+.cv-chest-visual.selected{animation:chestShake .6s ease}
+.cv-chest-svg{filter:drop-shadow(0 8px 24px rgba(124,111,247,0.4));transition:filter .3s}
+.cv-chest-visual.selected .cv-chest-svg{filter:drop-shadow(0 8px 32px rgba(124,111,247,0.7))}
+.cv-chest-glow-ring{position:absolute;inset:-16px;border-radius:50%;background:radial-gradient(circle,rgba(124,111,247,0.15) 0%,transparent 70%);animation:chestGlow 2.5s ease-in-out infinite;pointer-events:none}
+.cv-chest-particles{position:absolute;inset:0;pointer-events:none}
+.cv-chest-particle{position:absolute;width:6px;height:6px;border-radius:50%;top:50%;left:50%;animation:particleBurst .7s ease forwards}
+
+/* Info + bouton */
+.cv-chest-name{font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px;text-align:center}
+.cv-chest-desc-text{font-size:13px;color:var(--muted);text-align:center;margin-bottom:1.5rem;line-height:1.5}
+.cv-open-btn{width:100%;padding:14px;border-radius:var(--rs);background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;box-shadow:0 4px 24px rgba(109,95,245,0.5);display:none;position:relative;overflow:hidden}
+.cv-open-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);background-size:200% 100%;animation:shimmer 2s linear infinite}
+.cv-open-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(109,95,245,0.65)}
 .cv-open-btn:active{transform:scale(.97)}
 
-/* CHEST RESULT OVERLAY */
-.chest-result-overlay{position:fixed;inset:0;background:rgba(4,3,16,.92);display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(10px);flex-direction:column;gap:0}
+/* OVERLAY RÉSULTAT */
+.chest-result-overlay{position:fixed;inset:0;background:rgba(4,3,16,.94);display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(12px)}
 .chest-result-overlay.open{display:flex}
-.chest-result-box{background:rgba(14,12,32,0.98);border:1px solid rgba(124,111,247,0.3);border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:340px;text-align:center;box-shadow:0 8px 60px rgba(0,0,0,.8),0 0 40px rgba(124,111,247,0.15)}
-.chest-result-emoji{font-size:64px;margin-bottom:16px;animation:chestOpen .6s ease both}
-.chest-result-title{font-size:14px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
-.chest-result-reward{font-size:26px;font-weight:700;color:var(--accent3);margin-bottom:6px;animation:rewardPop .5s ease .3s both;opacity:0}
-.chest-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+.chest-result-box{background:rgba(12,10,28,0.98);border:1px solid rgba(124,111,247,0.35);border-radius:26px;padding:2.5rem 2rem;width:100%;max-width:340px;text-align:center;box-shadow:0 0 0 1px rgba(124,111,247,0.1),0 24px 80px rgba(0,0,0,.8),0 0 60px rgba(124,111,247,0.15);position:relative;overflow:hidden}
+.chest-result-box::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(124,111,247,0.2) 0%,transparent 70%);pointer-events:none}
+.chest-result-visual{font-size:72px;margin-bottom:8px;animation:chestOpen .7s cubic-bezier(.34,1.56,.64,1) both;display:block;position:relative;z-index:1}
+.chest-result-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.18em;margin-bottom:14px}
+.chest-result-reward{font-size:24px;font-weight:700;background:linear-gradient(135deg,#c4b5fd,#7c6ff7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;animation:rewardPop .5s cubic-bezier(.34,1.56,.64,1) .25s both;opacity:0;line-height:1.2}
+.chest-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.75rem;line-height:1.5}
 .challenge-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:10px}
 .challenge-card.inactive{opacity:.45}
 .challenge-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
@@ -841,33 +852,32 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
       <div id="cv-offer-banner"></div>
 
-      <!-- XP CARD -->
-      <div class="cv-xp-card">
-        <div class="cv-xp-top">
-          <div class="cv-xp-level-badge">
-            <div class="cv-xp-level-num" id="cv-level">1</div>
-            <div class="cv-xp-level-label">Niveau</div>
+      <div class="cv-card">
+        <span id="cv-avatar" style="display:none"></span>
+        <span id="cv-name" style="display:none"></span>
+        <div class="cv-stamps-grid" id="cv-stamps"></div>
+        <div class="cv-progress-section">
+          <div class="cv-progress-header">
+            <span class="cv-progress-label">Progression</span>
+            <span class="cv-progress-count" id="cv-count">0<span>/10</span></span>
           </div>
-          <div style="flex:1;margin:0 16px">
-            <div class="cv-xp-bar-header">
-              <span class="cv-xp-bar-label" id="cv-xp-label">XP</span>
-              <span class="cv-xp-bar-val" id="cv-xp-val">0 / 10</span>
-            </div>
-            <div class="cv-xp-track"><div class="cv-xp-fill" id="cv-xp-fill" style="width:0%"></div></div>
-            <div class="cv-xp-next" id="cv-xp-next"></div>
-          </div>
-          <div class="cv-xp-tokens">
-            <div class="cv-xp-token-row">
-              <div class="cv-xp-token-count" id="cv-token-count">0</div>
-              <div class="cv-xp-token-label">🪙</div>
-            </div>
-            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">tokens</div>
-          </div>
+          <div class="cv-track"><div class="cv-fill" id="cv-fill" style="width:0%"></div></div>
+          <div class="cv-countdown" id="cv-countdown"></div>
         </div>
-
-        <div class="cv-stamp-row">
-          <div class="cv-stamp-info">Total tampons : <strong id="cv-total-stamps">0</strong></div>
-          <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled style="font-size:12px;padding:8px 14px">🎡 Roue — 1 token</button>
+        <div class="cv-complete-banner" id="cv-complete">
+          <div id="cv-confetti"></div>
+          <div class="cv-complete-title">✦ Carte complète !</div>
+          <div class="cv-complete-sub">Token ajouté — lance la roue !</div>
+        </div>
+        <div class="cv-token-section" id="cv-token-section" style="display:none">
+          <div class="cv-token-info">
+            <div class="cv-token-icon">🪙</div>
+            <div>
+              <div class="cv-token-count" id="cv-token-count">0</div>
+              <div class="cv-token-label">token(s)</div>
+            </div>
+          </div>
+          <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled>🎡 Lancer la roue — 1 token</button>
         </div>
       </div>
 
@@ -893,41 +903,96 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
     <!-- ── SECTION COFFRES ── -->
     <div class="cv-section" id="cvs-coffres">
-      <div class="cv-section-header">🎁 Boutique coffres</div>
-      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;font-family:'DM Mono',monospace">Dépense tes tokens pour ouvrir un coffre</div>
-      <div class="cv-chest-shop">
-        <div class="cv-chest-buy-card bronze" id="chest-bronze" onclick="buyChest('bronze',1)">
-          <div class="cv-chest-buy-icon">🟫</div>
-          <div class="cv-chest-buy-info">
-            <div class="cv-chest-buy-name" style="color:#cd7f32">Coffre Bronze</div>
-            <div class="cv-chest-buy-desc">Lot commun · Bonne chance !</div>
-          </div>
-          <div class="cv-chest-buy-price">1 🪙</div>
-        </div>
-        <div class="cv-chest-buy-card silver" id="chest-silver" onclick="buyChest('silver',2)">
-          <div class="cv-chest-buy-icon">⬜</div>
-          <div class="cv-chest-buy-info">
-            <div class="cv-chest-buy-name" style="color:#c0c0c0">Coffre Argent</div>
-            <div class="cv-chest-buy-desc">Meilleurs lots · Plus rare</div>
-          </div>
-          <div class="cv-chest-buy-price">2 🪙</div>
-        </div>
-        <div class="cv-chest-buy-card gold" id="chest-gold" onclick="buyChest('gold',3)">
-          <div class="cv-chest-buy-icon">🟡</div>
-          <div class="cv-chest-buy-info">
-            <div class="cv-chest-buy-name" style="color:#ffd700">Coffre Or</div>
-            <div class="cv-chest-buy-desc">Lots exclusifs · Très rare</div>
-          </div>
-          <div class="cv-chest-buy-price">3 🪙</div>
-        </div>
+      <div id="cv-coffres-empty" style="text-align:center;color:var(--muted);font-size:13px;padding:4rem 1rem">
+        <div style="font-size:48px;margin-bottom:12px;opacity:.3">🔒</div>
+        Aucun coffre à ouvrir<br>
+        <span style="font-size:11px;opacity:.6">Collecte des tampons pour en gagner un !</span>
       </div>
-      <div style="margin-top:16px">
-        <div class="cv-section-header" style="margin-bottom:12px">Coffres à ouvrir</div>
-        <div id="cv-coffres-empty" style="text-align:center;color:var(--muted);font-size:13px;padding:1rem 0">Aucun coffre en attente</div>
-        <div id="cv-coffres-content" style="display:none">
-          <div class="cv-chest-intro" id="cv-chest-intro-text" style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:12px"></div>
-          <div class="cv-chests-grid" id="cv-chests-grid"></div>
-          <button class="cv-open-btn" id="cv-open-btn" onclick="openSelectedChest()">Ouvrir ce coffre ✨</button>
+      <div id="cv-coffres-content" style="display:none">
+        <div class="cv-chest-wrap">
+          <div class="cv-chest-count-badge">Tu as <span id="cv-chest-count-num">1</span> coffre à ouvrir</div>
+          <!-- Coffre SVG -->
+          <div class="cv-chest-visual floating" id="cv-chest-visual" onclick="selectAndOpenChest()">
+            <div class="cv-chest-glow-ring"></div>
+            <svg class="cv-chest-svg" width="180" height="155" viewBox="0 0 180 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Ombre sol -->
+              <ellipse cx="90" cy="148" rx="52" ry="6" fill="rgba(0,0,0,0.35)"/>
+              <!-- Corps principal -->
+              <rect x="18" y="72" width="144" height="70" rx="8" fill="url(#bodyGrad)"/>
+              <!-- Reflet bas -->
+              <rect x="18" y="120" width="144" height="22" rx="8" fill="rgba(0,0,0,0.2)"/>
+              <!-- Couvercle -->
+              <rect x="14" y="38" width="152" height="40" rx="8" fill="url(#lidGrad)"/>
+              <!-- Couvercle reflet haut -->
+              <rect x="14" y="38" width="152" height="14" rx="8" fill="rgba(255,255,255,0.06)"/>
+              <!-- Bande centrale dorée -->
+              <rect x="18" y="68" width="144" height="10" rx="2" fill="url(#bandGrad)"/>
+              <!-- Bords métalliques corps -->
+              <rect x="18" y="72" width="5" height="70" rx="2" fill="url(#metalSide)"/>
+              <rect x="157" y="72" width="5" height="70" rx="2" fill="url(#metalSide)"/>
+              <!-- Bords métalliques couvercle -->
+              <rect x="14" y="38" width="5" height="40" rx="2" fill="url(#metalSide)"/>
+              <rect x="161" y="38" width="5" height="40" rx="2" fill="url(#metalSide)"/>
+              <!-- Serrure -->
+              <rect x="76" y="61" width="28" height="22" rx="5" fill="url(#lockGrad)"/>
+              <circle cx="90" cy="71" r="7" fill="url(#lockCircle)" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>
+              <rect x="87" y="73" width="6" height="7" rx="2" fill="rgba(0,0,0,0.5)"/>
+              <!-- Rivets coins -->
+              <circle cx="28" cy="80" r="4" fill="url(#rivetGrad)"/>
+              <circle cx="152" cy="80" r="4" fill="url(#rivetGrad)"/>
+              <circle cx="28" cy="132" r="4" fill="url(#rivetGrad)"/>
+              <circle cx="152" cy="132" r="4" fill="url(#rivetGrad)"/>
+              <!-- Éclat lumineux coins couvercle -->
+              <circle cx="22" cy="46" r="4" fill="url(#rivetGrad)"/>
+              <circle cx="158" cy="46" r="4" fill="url(#rivetGrad)"/>
+              <!-- Lignes décoratives sur le corps -->
+              <line x1="40" y1="95" x2="140" y2="95" stroke="rgba(124,111,247,0.2)" stroke-width="1"/>
+              <line x1="40" y1="110" x2="140" y2="110" stroke="rgba(124,111,247,0.15)" stroke-width="1"/>
+              <!-- Halos lumineux internes -->
+              <rect x="24" y="74" width="132" height="64" rx="5" fill="url(#innerGlow)" opacity="0.5"/>
+              <defs>
+                <linearGradient id="bodyGrad" x1="18" y1="72" x2="18" y2="142" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#1e1a3e"/>
+                  <stop offset="100%" stop-color="#120e2a"/>
+                </linearGradient>
+                <linearGradient id="lidGrad" x1="14" y1="38" x2="14" y2="78" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#2a2350"/>
+                  <stop offset="100%" stop-color="#1a1538"/>
+                </linearGradient>
+                <linearGradient id="bandGrad" x1="18" y1="68" x2="162" y2="68" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#4a3f8a"/>
+                  <stop offset="30%" stop-color="#7c6ff7"/>
+                  <stop offset="50%" stop-color="#a78bfa"/>
+                  <stop offset="70%" stop-color="#7c6ff7"/>
+                  <stop offset="100%" stop-color="#4a3f8a"/>
+                </linearGradient>
+                <linearGradient id="metalSide" x1="0" y1="0" x2="5" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#3d3470"/>
+                  <stop offset="100%" stop-color="#6d5ff5"/>
+                </linearGradient>
+                <linearGradient id="lockGrad" x1="76" y1="61" x2="104" y2="83" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#5a4e9e"/>
+                  <stop offset="100%" stop-color="#3d3470"/>
+                </linearGradient>
+                <radialGradient id="lockCircle" cx="50%" cy="40%">
+                  <stop offset="0%" stop-color="#8b7ddb"/>
+                  <stop offset="100%" stop-color="#4a3f8a"/>
+                </radialGradient>
+                <radialGradient id="rivetGrad" cx="30%" cy="30%">
+                  <stop offset="0%" stop-color="#a78bfa"/>
+                  <stop offset="100%" stop-color="#4a3f8a"/>
+                </radialGradient>
+                <radialGradient id="innerGlow" cx="50%" cy="50%">
+                  <stop offset="0%" stop-color="#7c6ff7" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#7c6ff7" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+            </svg>
+            <div class="cv-chest-particles" id="cv-chest-particles"></div>
+          </div>
+          <div class="cv-chest-name" id="cv-chest-name-display">Coffre Mystère</div>
+          <div class="cv-chest-desc-text" id="cv-chest-desc-display">Clique pour révéler ton lot !</div>
+          <button class="cv-open-btn" id="cv-open-btn" onclick="openSelectedChest()" style="display:block">✦ Ouvrir le coffre</button>
         </div>
       </div>
     </div>
@@ -1067,8 +1132,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <!-- CHEST RESULT -->
 <div class="chest-result-overlay" id="chest-result-overlay">
   <div class="chest-result-box">
-    <div class="chest-result-emoji" id="cr-emoji">🎁</div>
-    <div class="chest-result-title">Tu as gagné</div>
+    <span class="chest-result-visual" id="cr-emoji">🎁</span>
+    <div class="chest-result-label">Tu as gagné</div>
     <div class="chest-result-reward" id="cr-reward"></div>
     <div class="chest-result-sub" id="cr-sub"></div>
     <button class="btn-spin" style="width:100%;justify-content:center" onclick="closeChestResult()">Super !</button>
@@ -1288,7 +1353,7 @@ function renderDash(cl){
   dbGet(T_SPINS+"?select=id").then(d=>{document.getElementById("s-spins").textContent=d?d.length:0;});
 
   // Top clients actifs (par tampons totaux accumulés = stamps actuels + historique)
-  const sorted=[...cl].sort((a,b)=>(b.total_stamps||0)-(a.total_stamps||0));
+  const sorted=[...cl].sort((a,b)=>(b.stamps||0)-(a.stamps||0));
   const medals=["🥇","🥈","🥉"];
   document.getElementById("top-clients").innerHTML=sorted.length?sorted.slice(0,5).map((c,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
@@ -1298,7 +1363,7 @@ function renderDash(cl){
         <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
         ${c.phone?`<div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${c.phone}</div>`:""}
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">Niv.${calcLevel(c.total_stamps||0)} · ${c.total_stamps||0} XP</div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${c.stamps||0}/10</div>
     </div>`).join(""):'<div style="color:var(--muted);font-size:13px">Aucun client</div>';
 }
 
@@ -1380,8 +1445,8 @@ function renderList(cl){
   if(!cl||!cl.length){list.innerHTML='<div class="empty-state">Aucun client</div>';return;}
   list.innerHTML="";
   cl.forEach(c=>{
-    const totalStamps=c.total_stamps||0;
-    const level=calcLevel(totalStamps);
+    const stamps=c.stamps||0;
+    const full=stamps>=10;
     const div=document.createElement("div");div.className="client-card";
     div.innerHTML=`
       <div class="client-top">
@@ -1392,21 +1457,22 @@ function renderList(cl){
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
               ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
               ${(c.tokens||0)>0?`<div class="token-badge">🪙 ${c.tokens}</div>`:""}
-              <div style="font-size:10px;color:var(--accent3);font-family:'DM Mono',monospace">Niv.${level} · ${totalStamps} XP</div>
             </div>
           </div>
         </div>
         <div class="client-actions">
-          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${totalStamps},${c.tokens||0})">✎</button>
+          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${stamps},${c.tokens||0})">✎</button>
           <button class="btn btn-sm" onclick="showQR('${c.id}','${c.name.replace(/'/g,"\\'")}')">QR</button>
           <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
       </div>
+      <div class="stamps-row">${[...Array(10)].map((_,i)=>`<div class="stamp ${i<stamps?"on":""}">${i<stamps?`<svg viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:""}</div>`).join("")}</div>
       <div class="stamp-controls">
-        <div class="stamp-count"><span class="n">${totalStamps}</span> tampons</div>
+        <div class="stamp-count"><span class="n">${stamps}</span>/10${full?' &nbsp;<span class="complete-tag">COMPLET</span>':""}</div>
         <div class="stamp-btns">
-          <button class="btn btn-sm" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},-1)" ${totalStamps===0?"disabled":""}>−</button>
-          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},1)">+ Tampon</button>
+          <button class="btn btn-sm" onclick="chg('${c.id}',${stamps},${c.tokens||0},-1)" ${stamps===0?"disabled":""}>−</button>
+          <button class="btn btn-sm" onclick="rst('${c.id}','${c.name.replace(/'/g,"\\'")}')">Reset</button>
+          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)" ${full?"disabled":""}>+ Tampon</button>
           <button class="btn btn-sm" style="color:var(--token);border-color:var(--token-border);background:var(--token-dim)" onclick="giveToken('${c.id}',${c.tokens||0})">🪙 +1</button>
         </div>
       </div>`;
@@ -1432,25 +1498,33 @@ function closeEdit(){document.getElementById("edit-modal").classList.remove("ope
 async function saveEdit(){
   const id=document.getElementById("edit-id").value,name=document.getElementById("edit-name").value.trim();
   const phone=document.getElementById("edit-phone").value.trim();
-  const total_stamps=Math.max(0,parseInt(document.getElementById("edit-stamps").value)||0);
+  const stamps=Math.max(0,Math.min(10,parseInt(document.getElementById("edit-stamps").value)||0));
   const tokens=Math.max(0,parseInt(document.getElementById("edit-tokens").value)||0);
   if(!name)return;
-  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,total_stamps,tokens});
+  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps,tokens});
   closeEdit();toast("Client modifié ✓");await loadAll();
 }
 async function chg(id,curStamps,curTokens,d){
+  let newStamps=curStamps+d;
   if(d===1){
-    // 1 tampon = 1 token direct
-    const newTokens=curTokens+1;
-    const newTotal=(curStamps||0)+1; // total_stamps = XP
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{tokens:newTokens,total_stamps:newTotal});
-    await dbPost(T_STAMP_LOGS,{client_id:id});
-    await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-    toast("✦ Tampon ajouté · +1 🪙 token !");
-  } else if(d===-1){
-    const newTokens=Math.max(0,curTokens-1);
-    const newTotal=Math.max(0,(curStamps||0)-1);
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{tokens:newTokens,total_stamps:newTotal});
+    if(newStamps>=10){
+      // Carte complète : reset + 1 token
+      newStamps=0;
+      const newTokens=curTokens+1;
+      await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:0,tokens:newTokens,total_stamps:(id&&allClients.find(c=>c.id===id)?.total_stamps||0)+1});
+      await dbPost(T_STAMP_LOGS,{client_id:id});
+      await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
+      await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+      toast("🎉 Carte complète ! +1 token 🪙 + coffre 🎁");
+    } else {
+      await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,total_stamps:(allClients.find(c=>c.id===id)?.total_stamps||0)+1});
+      await dbPost(T_STAMP_LOGS,{client_id:id});
+      await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+      toast("Tampon ajouté ✓ · 🎁 coffre offert !");
+    }
+  } else {
+    newStamps=Math.max(0,newStamps);
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
     toast("Tampon retiré");
   }
   await loadAll();
@@ -2001,32 +2075,58 @@ async function loadClientChests(clientId){
   const allClientChests=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&order=created_at.desc&limit=20");
   const clientChests=(allClientChests||[]).filter(c=>!c.opened);
   if(!clientChests.length){
-    empty.style.display="block";content.style.display="none";
+    if(empty)empty.style.display="block";
+    if(content)content.style.display="none";
     if(badge)badge.style.display="none";
     return;
   }
   const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
-  if(!chests||!chests.length){
-    empty.style.display="block";content.style.display="none";
-    if(badge)badge.style.display="none";
-    return;
-  }
-  empty.style.display="none";content.style.display="block";
+  if(empty)empty.style.display="none";
+  if(content)content.style.display="block";
   const unopened=clientChests.length;
   if(badge){badge.textContent=unopened;badge.style.display="block";}
-  const intro=document.getElementById("cv-chest-intro-text");
-  if(intro)intro.textContent=unopened>1?`Tu as ${unopened} coffres à ouvrir ! Choisis-en un.`:"Tu as un coffre à ouvrir ! Choisis-en un.";
-  const grid=document.getElementById("cv-chests-grid");
-  grid.innerHTML=chests.map(ch=>`
-    <div class="cv-chest-item" id="chest-item-${ch.id}" onclick="selectChest('${ch.id}','${clientChests[0].id}')">
-      ${unopened>1?`<div class="cv-chest-count">×${unopened}</div>`:""}
-      <span class="cv-chest-emoji">${ch.emoji||"🎁"}</span>
-      <div class="cv-chest-name">${ch.name}</div>
-      ${ch.description?`<div class="cv-chest-desc">${ch.description}</div>`:""}
-    </div>`).join("");
-  selectedChestId=null;
+  const countEl=document.getElementById("cv-chest-count-num");
+  if(countEl)countEl.textContent=unopened;
+  // Update chest name/desc from first available chest
+  if(chests&&chests.length){
+    const ch=chests[0];
+    const nameEl=document.getElementById("cv-chest-name-display");
+    const descEl=document.getElementById("cv-chest-desc-display");
+    if(nameEl)nameEl.textContent=ch.name||"Coffre Mystère";
+    if(descEl)descEl.textContent=ch.description||"Clique pour révéler ton lot !";
+  }
+  // Set pending chest
+  selectedChestId=chests&&chests.length?chests[0].id:null;
   pendingClientChestId=clientChests[0].id;
-  document.getElementById("cv-open-btn").style.display="none";
+  // Reset visual
+  const visual=document.getElementById("cv-chest-visual");
+  if(visual){visual.classList.remove("selected");visual.classList.add("floating");}
+}
+
+function selectAndOpenChest(){
+  const visual=document.getElementById("cv-chest-visual");
+  if(!visual||!pendingClientChestId)return;
+  visual.classList.remove("floating");
+  visual.classList.add("selected");
+  setTimeout(()=>{
+    visual.classList.remove("selected");visual.classList.add("floating");
+  },700);
+}
+
+function spawnChestParticles(){
+  const container=document.getElementById("cv-chest-particles");
+  if(!container)return;
+  container.innerHTML="";
+  const cols=["#a78bfa","#7c6ff7","#c4b5fd","#38bdf8","#ffd700"];
+  for(let i=0;i<16;i++){
+    const p=document.createElement("div");
+    p.className="cv-chest-particle";
+    const angle=(i/16)*2*Math.PI;
+    const dist=60+Math.random()*40;
+    p.style.cssText=`background:${cols[i%cols.length]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;animation-delay:${Math.random()*.1}s;animation-duration:.8s`;
+    container.appendChild(p);
+  }
+  setTimeout(()=>{container.innerHTML="";},900);
 }
 
 function selectChest(chestId, clientChestId){
@@ -2039,14 +2139,24 @@ function selectChest(chestId, clientChestId){
 }
 
 async function openSelectedChest(){
-  if(!selectedChestId||!pendingClientChestId)return;
-  // Tirer un lot selon les probabilités
+  if(!pendingClientChestId)return;
+  // Auto-select first active chest if none selected
+  if(!selectedChestId){
+    const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc&limit=1");
+    if(chests&&chests.length)selectedChestId=chests[0].id;
+    else{toast("Aucun coffre configuré par l'admin");return;}
+  }
+  // Vibrate + shake animation
+  const visual=document.getElementById("cv-chest-visual");
+  if(visual){visual.classList.remove("floating","selected");visual.classList.add("selected");}
+  spawnChestParticles();
+
   const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+selectedChestId);
   if(!rewards||!rewards.length){toast("Ce coffre est vide");return;}
   const total=rewards.reduce((s,r)=>s+r.probability,0);
   let rand=Math.random()*total,cumul=0,won=rewards[rewards.length-1];
   for(const r of rewards){cumul+=r.probability;if(rand<=cumul){won=r;break;}}
-  // Marquer comme ouvert
+
   await dbPatch(T_CLIENT_CHESTS+"?id=eq."+pendingClientChestId,{
     opened:true,
     chest_id:selectedChestId,
@@ -2054,27 +2164,17 @@ async function openSelectedChest(){
     reward_type:won.type,
     opened_at:new Date().toISOString()
   });
-  // Appliquer la récompense
-  if(won.type==="stamp"){
-    const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=stamps,tokens");
-    if(cData&&cData.length){
-      let {stamps,tokens}=cData[0];stamps=Math.min(10,stamps+1);
-      if(stamps===10){stamps=0;tokens=(tokens||0)+1;}
-      await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{stamps,tokens});
-    }
-  }
-  if(won.type==="token"){
-    const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
-    if(cData&&cData.length){await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:(cData[0].tokens||0)+1});}
-  }
-  // Afficher résultat
+
   const chest=await dbGet(T_CHESTS+"?id=eq."+selectedChestId+"&select=emoji");
-  document.getElementById("cr-emoji").textContent=chest&&chest[0]?chest[0].emoji:"🎁";
-  document.getElementById("cr-reward").textContent=won.type==="nothing"?"Pas de chance…":won.name+(won.value?" — "+won.value:"");
-  document.getElementById("cr-sub").textContent=won.type==="nothing"?"Retente ta chance à la prochaine commande !":"Montre ce résultat à la boutique pour récupérer ton lot !";
-  document.getElementById("chest-result-overlay").classList.add("open");
-  selectedChestId=null;
-  document.getElementById("cv-open-btn").style.display="none";
+  const emoji=chest&&chest[0]?chest[0].emoji:"🎁";
+
+  setTimeout(()=>{
+    document.getElementById("cr-emoji").textContent=emoji;
+    document.getElementById("cr-reward").textContent=won.type==="nothing"?"Pas de chance…":won.name+(won.value?" — "+won.value:"");
+    document.getElementById("cr-sub").textContent=won.type==="nothing"?"Retente ta chance au prochain tampon !":"Montre ce résultat à la boutique pour récupérer ton lot !";
+    document.getElementById("chest-result-overlay").classList.add("open");
+    selectedChestId=null;
+  },500);
 }
 
 function closeChestResult(){
@@ -2376,9 +2476,23 @@ async function loadClientView(id){
     return;
   }
   const c=cData[0];
-  const totalStamps=c.total_stamps||0;
+  const stamps=c.stamps||0;
   const tokens=c.tokens||0;
-  updateXPDisplay(totalStamps,tokens);
+  const full=stamps>=10;
+  const rem=10-stamps;
+  document.getElementById("cv-count").innerHTML=stamps+'<span>/10</span>';
+  document.getElementById("cv-fill").style.width=(stamps*10)+"%";
+  const cd=document.getElementById("cv-countdown");
+  if(full)cd.innerHTML="";
+  else if(rem===1)cd.innerHTML=`<strong>Plus qu'1 tampon</strong> pour un token !`;
+  else cd.innerHTML=`Plus que <strong>${rem} tampons</strong> pour un token !`;
+  document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>`<div class="cv-stamp ${i<stamps?"on":""}" ${i<stamps?`style="animation-delay:${i*.06}s"`:""}>${i<stamps?puffSvg():`<span class="cv-stamp-num">${i+1}</span>`}</div>`).join("");
+  const banner=document.getElementById("cv-complete");
+  if(stamps===0&&tokens>0){banner.classList.add("show");spawnConfetti();setTimeout(()=>banner.classList.remove("show"),4000);}
+  else banner.classList.remove("show");
+  const tokenSection=document.getElementById("cv-token-section"),spinBtn=document.getElementById("btn-spin");
+  if(tokens>0){tokenSection.style.display="flex";document.getElementById("cv-token-count").textContent=tokens;spinBtn.disabled=false;}
+  else{tokenSection.style.display="none";}
 
   // Offer
   const ob=document.getElementById("cv-offer-banner");
