@@ -797,10 +797,16 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- HISTORIQUE -->
   <div id="panel-history" style="display:none">
     <div class="panel-header">
-      <div class="panel-title">Historique des spins</div>
+      <div class="panel-title">Historique</div>
       <button class="btn btn-sm" onclick="loadHistory()">↻ Actualiser</button>
     </div>
-    <div id="history-list"><div class="loader">Chargement...</div></div>
+    <!-- Onglets internes -->
+    <div style="display:flex;gap:6px;margin-bottom:1rem">
+      <button class="filter-btn active" id="hist-tab-spins" onclick="switchHistTab('spins')">🎡 Roue</button>
+      <button class="filter-btn" id="hist-tab-chests" onclick="switchHistTab('chests')">🎁 Coffres</button>
+    </div>
+    <div id="history-list-spins"><div class="loader">Chargement...</div></div>
+    <div id="history-list-chests" style="display:none"><div class="loader">Chargement...</div></div>
   </div>
 
   </div><!-- end admin-body -->
@@ -2282,17 +2288,40 @@ async function resetRewards(){
 }
 
 // ── HISTORY ──
+function switchHistTab(tab){
+  document.getElementById("hist-tab-spins").classList.toggle("active",tab==="spins");
+  document.getElementById("hist-tab-chests").classList.toggle("active",tab==="chests");
+  document.getElementById("history-list-spins").style.display=tab==="spins"?"block":"none";
+  document.getElementById("history-list-chests").style.display=tab==="chests"?"block":"none";
+}
+
 async function loadHistory(){
-  const list=document.getElementById("history-list");
-  list.innerHTML='<div class="loader">Chargement...</div>';
+  // Spins
+  const spinsList=document.getElementById("history-list-spins");
+  spinsList.innerHTML='<div class="loader">Chargement...</div>';
   const spins=await dbGet(T_SPINS+"?order=created_at.desc&limit=50");
-  if(!spins||!spins.length){list.innerHTML='<div class="empty-state">Aucun spin enregistré</div>';return;}
-  const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
-  list.innerHTML=spins.map(s=>`
-    <div class="spin-row">
-      <div><div class="spin-reward">${s.reward_name}</div><div class="spin-meta">${clientMap[s.client_id]||"Client inconnu"}</div></div>
-      <div class="spin-meta">${fmtDate(s.created_at)}</div>
-    </div>`).join("");
+  if(!spins||!spins.length){spinsList.innerHTML='<div class="empty-state">Aucun spin enregistré</div>';}
+  else{
+    const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
+    spinsList.innerHTML=spins.map(s=>`
+      <div class="spin-row">
+        <div><div class="spin-reward">🎡 ${s.reward_name}</div><div class="spin-meta">${clientMap[s.client_id]||"Client inconnu"}</div></div>
+        <div class="spin-meta">${fmtDate(s.created_at)}</div>
+      </div>`).join("");
+  }
+  // Coffres
+  const chestsList=document.getElementById("history-list-chests");
+  chestsList.innerHTML='<div class="loader">Chargement...</div>';
+  const chestLogs=await dbGet(T_CLIENT_CHESTS+"?opened=eq.true&order=opened_at.desc&limit=50&select=*");
+  if(!chestLogs||!chestLogs.length){chestsList.innerHTML='<div class="empty-state">Aucun coffre ouvert</div>';}
+  else{
+    const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
+    chestsList.innerHTML=chestLogs.map(c=>`
+      <div class="spin-row">
+        <div><div class="spin-reward">🎁 ${c.reward_name||"—"}</div><div class="spin-meta">${clientMap[c.client_id]||"Client inconnu"}</div></div>
+        <div class="spin-meta">${fmtDate(c.opened_at||c.created_at)}</div>
+      </div>`).join("");
+  }
 }
 
 // ── WHEEL ──
