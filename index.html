@@ -153,7 +153,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .filter-btn{padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
 .filter-btn.active{background:linear-gradient(135deg,rgba(109,95,245,0.3),rgba(139,92,246,0.2));color:var(--text);border-color:rgba(124,111,247,0.4)}
 
-/* ── ORDER MODAL (client) ── */
+/* ── CLIENT ORDER CARDS ── */
+.cv-order-card{background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.15);border-radius:14px;padding:12px 14px;margin-bottom:8px;backdrop-filter:blur(10px)}
+.cv-order-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.cv-order-name{font-size:14px;font-weight:500}
+.cv-order-price{font-size:13px;color:var(--accent3);font-family:'DM Mono',monospace;flex-shrink:0}
+.cv-order-meta{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;flex-direction:column;gap:3px}
+.cv-order-actions{display:flex;gap:6px}
 .order-overlay{position:fixed;inset:0;background:rgba(4,3,16,.88);display:none;align-items:flex-end;justify-content:center;z-index:200;backdrop-filter:blur(6px)}
 .order-overlay.open{display:flex}
 .order-sheet{background:rgba(14,12,32,0.98);border:1px solid rgba(124,111,247,0.2);border-radius:22px 22px 0 0;padding:1.5rem;width:100%;max-width:460px;box-shadow:0 -8px 40px rgba(0,0,0,.6)}
@@ -563,6 +569,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="cv-products-title">📦 Nos produits</div>
       <div id="cv-products-list"></div>
     </div>
+
+    <!-- MES COMMANDES -->
+    <div class="cv-products" id="cv-orders" style="display:none">
+      <div class="cv-products-title">🛍 Mes réservations</div>
+      <div id="cv-orders-list"></div>
+    </div>
   </div>
 </div>
 
@@ -609,6 +621,33 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div id="qr-canvas"></div>
     <div class="qr-url" id="qr-url"></div>
     <button class="btn" style="width:100%;justify-content:center" onclick="closeQR()">Fermer</button>
+  </div>
+</div>
+
+<!-- EDIT ORDER MODAL -->
+<div class="order-overlay" id="edit-order-overlay" onclick="closeEditOrder()">
+  <div class="order-sheet" onclick="event.stopPropagation()">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-title">Modifier la réservation</div>
+    <div class="order-sheet-product" id="eo-product"></div>
+    <input type="hidden" id="eo-id" />
+
+    <label class="modal-label">Adresse de livraison</label>
+    <input class="input" id="eo-address" placeholder="ex: 12 rue de la Paix, Paris" />
+
+    <label class="modal-label">Créneau de retrait</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <input class="input" id="eo-date" type="date" style="margin-bottom:0" />
+      <input class="input" id="eo-time" type="time" style="margin-bottom:0" />
+    </div>
+
+    <label class="modal-label">Note</label>
+    <input class="input" id="eo-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
+
+    <div style="display:flex;gap:8px">
+      <button class="btn-spin" style="flex:1;justify-content:center;font-size:13px;padding:11px" onclick="saveEditOrder()">Enregistrer</button>
+      <button class="btn" onclick="closeEditOrder()">Annuler</button>
+    </div>
   </div>
 </div>
 
@@ -1024,6 +1063,67 @@ async function setOrderStatus(id,status){
   toast(labels[status]||"Statut mis à jour");loadOrders();
 }
 
+// ── CLIENT ORDERS ──
+async function loadClientOrders(clientId){
+  const ow=document.getElementById("cv-orders");
+  const ol=document.getElementById("cv-orders-list");
+  const orders=await dbGet(T_ORDERS+"?client_id=eq."+clientId+"&order=created_at.desc&limit=10");
+  if(!orders||!orders.length){ow.style.display="none";return;}
+  ow.style.display="block";
+  const statusLabel={pending:"⏳ En attente",confirmed:"✓ Confirmée",ready:"📦 Prête",cancelled:"✕ Annulée"};
+  const statusColor={pending:"var(--amber)",confirmed:"var(--green)",ready:"var(--blue)",cancelled:"var(--danger)"};
+  ol.innerHTML=orders.map(o=>`
+    <div class="cv-order-card">
+      <div class="cv-order-top">
+        <div>
+          <div class="cv-order-name">${o.product_name}</div>
+          <div style="font-size:11px;color:${statusColor[o.status]||"var(--muted)"};font-family:'DM Mono',monospace;margin-top:2px">${statusLabel[o.status]||o.status}</div>
+        </div>
+        ${o.product_price?`<div class="cv-order-price">${o.product_price.toFixed(2)} €</div>`:""}
+      </div>
+      <div class="cv-order-meta">
+        ${o.delivery_address?`<div>📍 ${o.delivery_address}</div>`:""}
+        ${o.pickup_slot?`<div>🕐 ${o.pickup_slot}</div>`:""}
+        ${o.note?`<div>💬 ${o.note}</div>`:""}
+        <div style="color:var(--muted2)">${fmtDate(o.created_at)}</div>
+      </div>
+      ${o.status==="pending"?`
+      <div class="cv-order-actions">
+        <button class="btn btn-sm btn-accent" onclick="openEditOrder('${o.id}','${o.product_name.replace(/'/g,"\\'")}',${o.product_price||0},'${(o.delivery_address||"").replace(/'/g,"\\'")}','${(o.note||"").replace(/'/g,"\\'")}','${(o.pickup_slot||"").replace(/'/g,"\\'")}')">✎ Modifier</button>
+        <button class="btn btn-sm btn-danger" onclick="cancelClientOrder('${o.id}')">Annuler</button>
+      </div>`:""}
+    </div>`).join("");
+}
+
+function openEditOrder(id,productName,price,address,note,slot){
+  document.getElementById("eo-id").value=id;
+  document.getElementById("eo-product").innerHTML=`<span class="order-sheet-price">${price?price.toFixed(2)+" €":"—"}</span> · ${productName}`;
+  document.getElementById("eo-address").value=address;
+  document.getElementById("eo-note").value=note;
+  // Parse slot back to date/time
+  document.getElementById("eo-date").value="";document.getElementById("eo-time").value="";
+  if(slot&&slot.includes(" à ")){const [d,t]=slot.split(" à ");document.getElementById("eo-time").value=t||"";}
+  document.getElementById("edit-order-overlay").classList.add("open");
+}
+function closeEditOrder(){document.getElementById("edit-order-overlay").classList.remove("open");}
+async function saveEditOrder(){
+  const id=document.getElementById("eo-id").value;
+  const address=document.getElementById("eo-address").value.trim();
+  const date=document.getElementById("eo-date").value;
+  const time=document.getElementById("eo-time").value;
+  const note=document.getElementById("eo-note").value.trim();
+  const pickup_slot=date&&time?`${new Date(date).toLocaleDateString("fr-FR")} à ${time}`:date?new Date(date).toLocaleDateString("fr-FR"):null;
+  await dbPatch(T_ORDERS+"?id=eq."+id,{delivery_address:address||null,pickup_slot:pickup_slot||null,note:note||null});
+  closeEditOrder();toast("Réservation modifiée ✓");
+  if(currentClientId)loadClientOrders(currentClientId);
+}
+async function cancelClientOrder(id){
+  if(!confirm("Annuler cette réservation ?"))return;
+  await dbPatch(T_ORDERS+"?id=eq."+id,{status:"cancelled"});
+  toast("Réservation annulée");
+  if(currentClientId)loadClientOrders(currentClientId);
+}
+
 // ── ORDER MODAL (client) ──
 function openOrderModal(productId,productName,price,stock){
   // Pré-remplir avec les infos du client si dispo
@@ -1416,6 +1516,9 @@ async function loadClientView(id){
       </div>`;
     }).join("");
   } else pw.style.display="none";
+
+  // Client orders
+  await loadClientOrders(id);
 }
 
 function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
