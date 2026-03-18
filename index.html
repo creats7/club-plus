@@ -287,7 +287,45 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .product-status.rupture{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
 
 /* ── PRODUCTS CLIENT ── */
-/* ── CLIENT BOTTOM NAV ── */
+/* ── XP / LEVEL SYSTEM ── */
+.cv-xp-card{width:100%;max-width:460px;background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.2);border-radius:22px;padding:1.5rem;animation:fadeUp .5s ease .1s both;position:relative;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px)}
+.cv-xp-card::before{content:'';position:absolute;top:-60px;left:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(109,95,245,0.12) 0%,transparent 70%);pointer-events:none}
+.cv-xp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.cv-xp-level-badge{display:flex;flex-direction:column;align-items:center;gap:2px}
+.cv-xp-level-num{font-size:32px;font-weight:700;font-family:'DM Mono',monospace;line-height:1}
+.cv-xp-level-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.cv-xp-tokens{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.cv-xp-token-row{display:flex;align-items:center;gap:6px}
+.cv-xp-token-count{font-family:'DM Mono',monospace;font-size:20px;font-weight:600;color:var(--token);text-shadow:0 0 12px var(--token-glow)}
+.cv-xp-token-label{font-size:11px;color:var(--muted)}
+.cv-xp-bar-section{margin-bottom:.75rem}
+.cv-xp-bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cv-xp-bar-label{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
+.cv-xp-bar-val{font-size:12px;color:var(--accent3);font-family:'DM Mono',monospace;font-weight:500}
+.cv-xp-track{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative}
+.cv-xp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#6d5ff5,#a78bfa,#c4b5fd);transition:width 1s cubic-bezier(.4,0,.2,1);position:relative}
+.cv-xp-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:4px;background:rgba(255,255,255,.6);border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.4)}
+.cv-xp-next{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;font-family:'DM Mono',monospace}
+.cv-xp-next strong{color:var(--accent3)}
+.cv-stamp-row{display:flex;align-items:center;justify-content:space-between;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.07)}
+.cv-stamp-info{font-size:12px;color:var(--muted)}
+.cv-stamp-info strong{color:var(--text);font-size:14px}
+/* Chest shop */
+.cv-chest-shop{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.cv-chest-buy-card{background:rgba(18,16,38,0.75);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px);position:relative;overflow:hidden}
+.cv-chest-buy-card:active{transform:scale(.97)}
+.cv-chest-buy-card.bronze{border:1px solid rgba(205,127,50,0.4)}
+.cv-chest-buy-card.bronze::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(205,127,50,0.08),transparent);pointer-events:none}
+.cv-chest-buy-card.silver{border:1px solid rgba(192,192,192,0.4)}
+.cv-chest-buy-card.silver::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(192,192,192,0.08),transparent);pointer-events:none}
+.cv-chest-buy-card.gold{border:1px solid rgba(255,215,0,0.4)}
+.cv-chest-buy-card.gold::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,215,0,0.1),transparent);pointer-events:none}
+.cv-chest-buy-icon{font-size:36px;flex-shrink:0}
+.cv-chest-buy-info{flex:1}
+.cv-chest-buy-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.cv-chest-buy-desc{font-size:12px;color:var(--muted)}
+.cv-chest-buy-price{display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--token);flex-shrink:0}
+.cv-chest-buy-card.disabled{opacity:.4;cursor:not-allowed}
 .cv-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;background:rgba(8,8,15,0.97);border-top:1px solid rgba(124,111,247,0.2);backdrop-filter:blur(16px);z-index:50;display:none}
 .cv-nav.visible{display:flex}
 .cv-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px 11px;cursor:pointer;border:none;background:transparent;color:rgba(200,190,255,0.35);transition:color .15s;font-family:'DM Sans',sans-serif;position:relative}
@@ -803,32 +841,33 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
       <div id="cv-offer-banner"></div>
 
-      <div class="cv-card">
-        <span id="cv-avatar" style="display:none"></span>
-        <span id="cv-name" style="display:none"></span>
-        <div class="cv-stamps-grid" id="cv-stamps"></div>
-        <div class="cv-progress-section">
-          <div class="cv-progress-header">
-            <span class="cv-progress-label">Progression</span>
-            <span class="cv-progress-count" id="cv-count">0<span>/10</span></span>
+      <!-- XP CARD -->
+      <div class="cv-xp-card">
+        <div class="cv-xp-top">
+          <div class="cv-xp-level-badge">
+            <div class="cv-xp-level-num" id="cv-level">1</div>
+            <div class="cv-xp-level-label">Niveau</div>
           </div>
-          <div class="cv-track"><div class="cv-fill" id="cv-fill" style="width:0%"></div></div>
-          <div class="cv-countdown" id="cv-countdown"></div>
-        </div>
-        <div class="cv-complete-banner" id="cv-complete">
-          <div id="cv-confetti"></div>
-          <div class="cv-complete-title">✦ Carte complète !</div>
-          <div class="cv-complete-sub">Token ajouté — lance la roue !</div>
-        </div>
-        <div class="cv-token-section" id="cv-token-section" style="display:none">
-          <div class="cv-token-info">
-            <div class="cv-token-icon">🪙</div>
-            <div>
-              <div class="cv-token-count" id="cv-token-count">0</div>
-              <div class="cv-token-label">token(s)</div>
+          <div style="flex:1;margin:0 16px">
+            <div class="cv-xp-bar-header">
+              <span class="cv-xp-bar-label" id="cv-xp-label">XP</span>
+              <span class="cv-xp-bar-val" id="cv-xp-val">0 / 10</span>
             </div>
+            <div class="cv-xp-track"><div class="cv-xp-fill" id="cv-xp-fill" style="width:0%"></div></div>
+            <div class="cv-xp-next" id="cv-xp-next"></div>
           </div>
-          <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled>🎡 Lancer la roue — 1 token</button>
+          <div class="cv-xp-tokens">
+            <div class="cv-xp-token-row">
+              <div class="cv-xp-token-count" id="cv-token-count">0</div>
+              <div class="cv-xp-token-label">🪙</div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">tokens</div>
+          </div>
+        </div>
+
+        <div class="cv-stamp-row">
+          <div class="cv-stamp-info">Total tampons : <strong id="cv-total-stamps">0</strong></div>
+          <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled style="font-size:12px;padding:8px 14px">🎡 Roue — 1 token</button>
         </div>
       </div>
 
@@ -854,12 +893,42 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
     <!-- ── SECTION COFFRES ── -->
     <div class="cv-section" id="cvs-coffres">
-      <div class="cv-section-header">🎁 Tes coffres</div>
-      <div id="cv-coffres-empty" style="text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun coffre à ouvrir<br><span style="font-size:11px;opacity:.6">Reviens après un tampon !</span></div>
-      <div style="display:none" id="cv-coffres-content">
-        <div class="cv-chest-intro" id="cv-chest-intro-text"></div>
-        <div class="cv-chests-grid" id="cv-chests-grid"></div>
-        <button class="cv-open-btn" id="cv-open-btn" onclick="openSelectedChest()">Ouvrir ce coffre ✨</button>
+      <div class="cv-section-header">🎁 Boutique coffres</div>
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;font-family:'DM Mono',monospace">Dépense tes tokens pour ouvrir un coffre</div>
+      <div class="cv-chest-shop">
+        <div class="cv-chest-buy-card bronze" id="chest-bronze" onclick="buyChest('bronze',1)">
+          <div class="cv-chest-buy-icon">🟫</div>
+          <div class="cv-chest-buy-info">
+            <div class="cv-chest-buy-name" style="color:#cd7f32">Coffre Bronze</div>
+            <div class="cv-chest-buy-desc">Lot commun · Bonne chance !</div>
+          </div>
+          <div class="cv-chest-buy-price">1 🪙</div>
+        </div>
+        <div class="cv-chest-buy-card silver" id="chest-silver" onclick="buyChest('silver',2)">
+          <div class="cv-chest-buy-icon">⬜</div>
+          <div class="cv-chest-buy-info">
+            <div class="cv-chest-buy-name" style="color:#c0c0c0">Coffre Argent</div>
+            <div class="cv-chest-buy-desc">Meilleurs lots · Plus rare</div>
+          </div>
+          <div class="cv-chest-buy-price">2 🪙</div>
+        </div>
+        <div class="cv-chest-buy-card gold" id="chest-gold" onclick="buyChest('gold',3)">
+          <div class="cv-chest-buy-icon">🟡</div>
+          <div class="cv-chest-buy-info">
+            <div class="cv-chest-buy-name" style="color:#ffd700">Coffre Or</div>
+            <div class="cv-chest-buy-desc">Lots exclusifs · Très rare</div>
+          </div>
+          <div class="cv-chest-buy-price">3 🪙</div>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="cv-section-header" style="margin-bottom:12px">Coffres à ouvrir</div>
+        <div id="cv-coffres-empty" style="text-align:center;color:var(--muted);font-size:13px;padding:1rem 0">Aucun coffre en attente</div>
+        <div id="cv-coffres-content" style="display:none">
+          <div class="cv-chest-intro" id="cv-chest-intro-text" style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:12px"></div>
+          <div class="cv-chests-grid" id="cv-chests-grid"></div>
+          <button class="cv-open-btn" id="cv-open-btn" onclick="openSelectedChest()">Ouvrir ce coffre ✨</button>
+        </div>
       </div>
     </div>
 
@@ -1219,7 +1288,7 @@ function renderDash(cl){
   dbGet(T_SPINS+"?select=id").then(d=>{document.getElementById("s-spins").textContent=d?d.length:0;});
 
   // Top clients actifs (par tampons totaux accumulés = stamps actuels + historique)
-  const sorted=[...cl].sort((a,b)=>b.stamps-a.stamps);
+  const sorted=[...cl].sort((a,b)=>(b.total_stamps||0)-(a.total_stamps||0));
   const medals=["🥇","🥈","🥉"];
   document.getElementById("top-clients").innerHTML=sorted.length?sorted.slice(0,5).map((c,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
@@ -1229,7 +1298,7 @@ function renderDash(cl){
         <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
         ${c.phone?`<div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${c.phone}</div>`:""}
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${c.stamps}/10</div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">Niv.${calcLevel(c.total_stamps||0)} · ${c.total_stamps||0} XP</div>
     </div>`).join(""):'<div style="color:var(--muted);font-size:13px">Aucun client</div>';
 }
 
@@ -1311,7 +1380,9 @@ function renderList(cl){
   if(!cl||!cl.length){list.innerHTML='<div class="empty-state">Aucun client</div>';return;}
   list.innerHTML="";
   cl.forEach(c=>{
-    const full=c.stamps>=10,div=document.createElement("div");div.className="client-card";
+    const totalStamps=c.total_stamps||0;
+    const level=calcLevel(totalStamps);
+    const div=document.createElement("div");div.className="client-card";
     div.innerHTML=`
       <div class="client-top">
         <div class="client-info">
@@ -1321,22 +1392,21 @@ function renderList(cl){
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
               ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
               ${(c.tokens||0)>0?`<div class="token-badge">🪙 ${c.tokens}</div>`:""}
+              <div style="font-size:10px;color:var(--accent3);font-family:'DM Mono',monospace">Niv.${level} · ${totalStamps} XP</div>
             </div>
           </div>
         </div>
         <div class="client-actions">
-          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${c.stamps},${c.tokens||0})">✎</button>
+          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${totalStamps},${c.tokens||0})">✎</button>
           <button class="btn btn-sm" onclick="showQR('${c.id}','${c.name.replace(/'/g,"\\'")}')">QR</button>
           <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
       </div>
-      <div class="stamps-row">${[...Array(10)].map((_,i)=>`<div class="stamp ${i<c.stamps?"on":""}">${i<c.stamps?`<svg viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:""}</div>`).join("")}</div>
       <div class="stamp-controls">
-        <div class="stamp-count"><span class="n">${c.stamps}</span>/10${full?' &nbsp;<span class="complete-tag">COMPLET</span>':""}</div>
+        <div class="stamp-count"><span class="n">${totalStamps}</span> tampons</div>
         <div class="stamp-btns">
-          <button class="btn btn-sm" onclick="chg('${c.id}',${c.stamps},${c.tokens||0},-1)" ${c.stamps===0?"disabled":""}>−</button>
-          <button class="btn btn-sm" onclick="rst('${c.id}','${c.name.replace(/'/g,"\\'")}')">Reset</button>
-          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${c.stamps},${c.tokens||0},1)" ${full?"disabled":""}>+ Tampon</button>
+          <button class="btn btn-sm" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},-1)" ${totalStamps===0?"disabled":""}>−</button>
+          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},1)">+ Tampon</button>
           <button class="btn btn-sm" style="color:var(--token);border-color:var(--token-border);background:var(--token-dim)" onclick="giveToken('${c.id}',${c.tokens||0})">🪙 +1</button>
         </div>
       </div>`;
@@ -1362,31 +1432,25 @@ function closeEdit(){document.getElementById("edit-modal").classList.remove("ope
 async function saveEdit(){
   const id=document.getElementById("edit-id").value,name=document.getElementById("edit-name").value.trim();
   const phone=document.getElementById("edit-phone").value.trim();
-  const stamps=Math.max(0,Math.min(10,parseInt(document.getElementById("edit-stamps").value)||0));
+  const total_stamps=Math.max(0,parseInt(document.getElementById("edit-stamps").value)||0);
   const tokens=Math.max(0,parseInt(document.getElementById("edit-tokens").value)||0);
   if(!name)return;
-  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps,tokens});
+  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,total_stamps,tokens});
   closeEdit();toast("Client modifié ✓");await loadAll();
 }
 async function chg(id,curStamps,curTokens,d){
-  let newStamps=Math.max(0,Math.min(10,curStamps+d));
-  let newTokens=curTokens;
-  if(d===1&&newStamps===10){
-    newStamps=0;newTokens=curTokens+1;
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens});
+  if(d===1){
+    // 1 tampon = 1 token direct
+    const newTokens=curTokens+1;
+    const newTotal=(curStamps||0)+1; // total_stamps = XP
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{tokens:newTokens,total_stamps:newTotal});
     await dbPost(T_STAMP_LOGS,{client_id:id});
     await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-    const chestRes=await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
-    console.log("coffre carte complete:",JSON.stringify(chestRes));
-    toast("🎉 Carte complète ! +1 token + 🎁 coffre offert !");
-  } else if(d===1){
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
-    await dbPost(T_STAMP_LOGS,{client_id:id});
-    const chestRes=await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
-    console.log("coffre tampon:",JSON.stringify(chestRes));
-    toast("Tampon ajouté ✓ · 🎁 coffre offert !");
-  } else {
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
+    toast("✦ Tampon ajouté · +1 🪙 token !");
+  } else if(d===-1){
+    const newTokens=Math.max(0,curTokens-1);
+    const newTotal=Math.max(0,(curStamps||0)-1);
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{tokens:newTokens,total_stamps:newTotal});
     toast("Tampon retiré");
   }
   await loadAll();
@@ -2222,6 +2286,70 @@ async function showWheelResult(){
   isSpinning=false;
 }
 
+// ── XP LEVEL SYSTEM ──
+// Niveau = floor(sqrt(total_stamps)) — croissance progressive infinie
+function calcLevel(totalStamps){return Math.floor(Math.sqrt(Math.max(0,totalStamps)))+1;}
+function calcLevelProgress(totalStamps){
+  const lvl=calcLevel(totalStamps)-1; // 0-based
+  const xpForCurrentLevel=lvl*lvl;
+  const xpForNextLevel=(lvl+1)*(lvl+1);
+  const progress=totalStamps-xpForCurrentLevel;
+  const needed=xpForNextLevel-xpForCurrentLevel;
+  return{current:progress,needed,pct:Math.round((progress/needed)*100)};
+}
+
+function updateXPDisplay(totalStamps,tokens){
+  const level=calcLevel(totalStamps);
+  const prog=calcLevelProgress(totalStamps);
+  document.getElementById("cv-level").textContent=level;
+  document.getElementById("cv-xp-val").textContent=`${prog.current} / ${prog.needed}`;
+  document.getElementById("cv-xp-fill").style.width=prog.pct+"%";
+  document.getElementById("cv-xp-next").innerHTML=`<strong>${prog.needed-prog.current}</strong> tampon${prog.needed-prog.current>1?"s":""} pour le niveau ${level+1}`;
+  document.getElementById("cv-total-stamps").textContent=totalStamps;
+  document.getElementById("cv-token-count").textContent=tokens;
+  // Colorer le niveau selon progression
+  const colors=["#cd7f32","#cd7f32","#c0c0c0","#c0c0c0","#c0c0c0","#ffd700","#ffd700","#a78bfa","#a78bfa","#38bdf8"];
+  const col=colors[Math.min(level-1,colors.length-1)]||"#c4b5fd";
+  document.getElementById("cv-level").style.color=col;
+  document.getElementById("cv-xp-fill").style.background=`linear-gradient(90deg,${col}99,${col})`;
+  // Coffres — activer/désactiver selon tokens
+  updateChestShop(tokens);
+  // Roue
+  const spinBtn=document.getElementById("btn-spin");
+  if(spinBtn)spinBtn.disabled=tokens<1;
+}
+
+function updateChestShop(tokens){
+  ["bronze","silver","gold"].forEach((t,i)=>{
+    const cost=i+1;
+    const el=document.getElementById("chest-"+t);
+    if(el)el.classList.toggle("disabled",tokens<cost);
+  });
+}
+
+async function buyChest(type,cost){
+  if(!currentClientId)return;
+  const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
+  if(!cData||!cData.length)return;
+  const tokens=cData[0].tokens||0;
+  if(tokens<cost){toast("Pas assez de tokens 🪙");return;}
+  // Chercher un coffre de ce type dans la DB
+  const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
+  if(!chests||!chests.length){toast("Aucun coffre configuré par l'admin");return;}
+  // Associer bronze=1er, silver=2ème, gold=3ème coffre
+  const idx={bronze:0,silver:1,gold:2}[type]||0;
+  const chest=chests[Math.min(idx,chests.length-1)];
+  // Débiter les tokens + créer un client_chest
+  await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
+  await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
+  await dbPost(T_CLIENT_CHESTS,{client_id:currentClientId,chest_id:chest.id,opened:false});
+  toast(`🎁 Coffre ${type} acheté ! Ouvre-le maintenant`);
+  // Refresh
+  updateChestShop(tokens-cost);
+  document.getElementById("cv-token-count").textContent=tokens-cost;
+  loadClientChests(currentClientId);
+}
+
 // ── CLIENT VIEW ──
 function puffSvg(){return`<svg viewBox="0 0 18 18" fill="none"><path d="M5 10.5C3.6 10.5 2.5 9.4 2.5 8 2.5 6.7 3.5 5.7 4.7 5.5 4.9 4.1 6.1 3 7.5 3c.8 0 1.5.3 2 .9C9.9 3.3 10.6 3 11.4 3 12.8 3 14 4.1 14 5.5c0 .1 0 .2 0 .3.9.3 1.5 1.1 1.5 2.2 0 1.4-1.1 2.5-2.5 2.5H5Z" fill="white" opacity=".95"/><rect x="8.2" y="10.5" width="1.6" height="4" rx=".8" fill="white" opacity=".7"/><rect x="6.5" y="13.5" width="5" height="1.2" rx=".6" fill="white" opacity=".5"/></svg>`;}
 function spawnConfetti(){const w=document.getElementById("cv-confetti");w.innerHTML="";const cols=["#a78bfa","#7c6ff7","#60a5fa","#38bdf8","#c4b5fd"];for(let i=0;i<20;i++){const e=document.createElement("div");e.className="confetti-piece";e.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*20}%;background:${cols[i%cols.length]};animation-delay:${Math.random()*.6}s;animation-duration:${.9+Math.random()*.7}s;transform:rotate(${Math.random()*360}deg)`;w.appendChild(e);}}
@@ -2242,27 +2370,15 @@ async function loadClientView(id){
   ]);
   if(!Array.isArray(cData)||!cData.length){
     if(Array.isArray(cData)&&cData.length===0){
-      // Client vraiment supprimé
       localStorage.removeItem("clubplus_client_id");
       showView("register");
     }
-    // Sinon erreur réseau — on ne fait rien, on garde la session
     return;
   }
-  const c=cData[0],full=c.stamps>=10,rem=10-c.stamps,tokens=c.tokens||0;
-  document.getElementById("cv-count").innerHTML=c.stamps+'<span>/10</span>';
-  document.getElementById("cv-fill").style.width=(c.stamps*10)+"%";
-  const cd=document.getElementById("cv-countdown");
-  if(full)cd.innerHTML="";
-  else if(rem===1)cd.innerHTML=`<strong>Plus qu'1 tampon</strong> pour un token !`;
-  else cd.innerHTML=`Plus que <strong>${rem} tampons</strong> pour un token !`;
-  document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>`<div class="cv-stamp ${i<c.stamps?"on":""}" ${i<c.stamps?`style="animation-delay:${i*.06}s"`:""}>${i<c.stamps?puffSvg():`<span class="cv-stamp-num">${i+1}</span>`}</div>`).join("");
-  const banner=document.getElementById("cv-complete");
-  if(c.stamps===0&&tokens>0){banner.classList.add("show");spawnConfetti();setTimeout(()=>banner.classList.remove("show"),4000);}
-  else banner.classList.remove("show");
-  const tokenSection=document.getElementById("cv-token-section"),spinBtn=document.getElementById("btn-spin");
-  if(tokens>0){tokenSection.style.display="flex";document.getElementById("cv-token-count").textContent=tokens;spinBtn.disabled=false;}
-  else{tokenSection.style.display="none";}
+  const c=cData[0];
+  const totalStamps=c.total_stamps||0;
+  const tokens=c.tokens||0;
+  updateXPDisplay(totalStamps,tokens);
 
   // Offer
   const ob=document.getElementById("cv-offer-banner");
