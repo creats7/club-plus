@@ -562,7 +562,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled>🎡 Lancer la roue — 1 token</button>
       </div>
     </div>
-    <div class="cv-footer">Seul l'admin peut modifier ta carte</div>
+    <div class="cv-footer">
+      Seul l'admin peut modifier ta carte &nbsp;·&nbsp;
+      <span onclick="clientLogout()" style="cursor:pointer;text-decoration:underline;opacity:0.6">Changer de compte</span>
+    </div>
 
     <!-- STOCK CLIENT -->
     <div class="cv-products" id="cv-products" style="display:none">
@@ -1063,6 +1066,12 @@ async function setOrderStatus(id,status){
   toast(labels[status]||"Statut mis à jour");loadOrders();
 }
 
+function clientLogout(){
+  localStorage.removeItem("clubplus_client_id");
+  currentClientId=null;
+  showView("register");
+}
+
 // ── CLIENT ORDERS ──
 async function loadClientOrders(clientId){
   const ow=document.getElementById("cv-orders");
@@ -1451,7 +1460,9 @@ function puffSvg(){return`<svg viewBox="0 0 18 18" fill="none"><path d="M5 10.5C
 function spawnConfetti(){const w=document.getElementById("cv-confetti");w.innerHTML="";const cols=["#a78bfa","#7c6ff7","#60a5fa","#38bdf8","#c4b5fd"];for(let i=0;i<20;i++){const e=document.createElement("div");e.className="confetti-piece";e.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*20}%;background:${cols[i%cols.length]};animation-delay:${Math.random()*.6}s;animation-duration:${.9+Math.random()*.7}s;transform:rotate(${Math.random()*360}deg)`;w.appendChild(e);}}
 
 async function loadClientView(id){
-  currentClientId=id;showView("client");
+  currentClientId=id;
+  localStorage.setItem("clubplus_client_id",id); // persist
+  showView("client");
   const [cData,oData,pData]=await Promise.all([
     dbGet(T_CLIENTS+"?id=eq."+id),
     dbGet(T_OFFERS+"?active=eq.true&order=created_at.desc&limit=1"),
@@ -1529,7 +1540,11 @@ buildOfferColors();
 
 const cid=new URLSearchParams(window.location.search).get("client");
 if(cid) loadClientView(cid);
-else showView("register");
+else{
+  const saved=localStorage.getItem("clubplus_client_id");
+  if(saved) loadClientView(saved);
+  else showView("register");
+}
 
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("/club-plus/sw.js",{scope:"/club-plus/"})
