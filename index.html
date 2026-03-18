@@ -4,17 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Club+ · Fidélité</title>
-
-<!-- PWA -->
 <link rel="manifest" href="/club-plus/manifest.json">
 <meta name="theme-color" content="#7c6ff7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Club+">
 <link rel="apple-touch-icon" href="/club-plus/icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -30,49 +28,54 @@
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:1.5rem;position:relative;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(99,88,210,0.18) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 110%,rgba(60,50,180,0.12) 0%,transparent 60%);pointer-events:none;z-index:0}
 .view{display:none;width:100%;max-width:460px;position:relative;z-index:1}.view.active{display:block}
-
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--rs);border:1px solid var(--border2);background:rgba(255,255,255,0.04);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.btn:hover{background:rgba(255,255,255,0.08);border-color:var(--border3)}
-.btn:active{transform:scale(.97)}.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn:hover{background:rgba(255,255,255,0.08);border-color:var(--border3)}.btn:active{transform:scale(.97)}.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .btn-accent{background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border-color:rgba(124,111,247,0.5);color:#fff;font-weight:600;box-shadow:0 2px 16px var(--glow)}
-.btn-accent:hover{background:linear-gradient(135deg,#7c6ff7,#9d6ef8);box-shadow:0 4px 20px var(--glow)}
+.btn-accent:hover{background:linear-gradient(135deg,#7c6ff7,#9d6ef8)}
 .btn-danger{color:var(--danger);border-color:rgba(248,113,113,.2)}.btn-danger:hover{background:var(--danger-dim)}
 .btn-sm{padding:5px 10px;font-size:12px}.btn-icon{padding:5px 8px;font-size:13px}
 
-/* PIN */
+/* ── PIN ── */
 .pin-wrap{text-align:center;padding-top:4rem}
 .pin-logo{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:2.5rem}
-.pin-title{font-size:22px;font-weight:600;margin-bottom:6px}
-.pin-sub{font-size:14px;color:var(--muted);margin-bottom:2rem}
+.pin-title{font-size:22px;font-weight:600;margin-bottom:6px}.pin-sub{font-size:14px;color:var(--muted);margin-bottom:2rem}
 .pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:2rem}
 .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;transition:all .2s}
-.pin-dot.filled{background:var(--accent2);border-color:var(--accent2);box-shadow:0 0 10px var(--glow)}
-.pin-dot.error{background:var(--danger);border-color:var(--danger)}
+.pin-dot.filled{background:var(--accent2);border-color:var(--accent2);box-shadow:0 0 10px var(--glow)}.pin-dot.error{background:var(--danger);border-color:var(--danger)}
 .pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto 1rem}
 .pin-key{padding:16px;border-radius:var(--rs);border:1px solid var(--border2);background:rgba(255,255,255,0.04);font-size:20px;font-weight:500;cursor:pointer;transition:all .15s;color:var(--text)}
-.pin-key:hover{background:rgba(124,111,247,0.12);border-color:rgba(124,111,247,0.4)}
-.pin-key:active{transform:scale(.95)}.pin-key.del{font-size:14px;color:var(--muted)}
+.pin-key:hover{background:rgba(124,111,247,0.12);border-color:rgba(124,111,247,0.4)}.pin-key:active{transform:scale(.95)}.pin-key.del{font-size:14px;color:var(--muted)}
 .pin-error{font-size:13px;color:var(--danger);min-height:20px}
 
-/* ADMIN LAYOUT */
+/* ── INSCRIPTION CLIENT ── */
+.reg-wrap{text-align:center;padding-top:3rem}
+.reg-logo{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:2rem}
+.reg-title{font-size:22px;font-weight:600;margin-bottom:6px}
+.reg-sub{font-size:14px;color:var(--muted);margin-bottom:2rem}
+.reg-card{background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.2);border-radius:20px;padding:1.75rem;text-align:left}
+.reg-tabs{display:flex;gap:2px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);padding:3px;margin-bottom:1.5rem}
+.reg-tab{flex:1;padding:8px 4px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-align:center}
+.reg-tab.active{background:linear-gradient(135deg,rgba(109,95,245,0.3),rgba(139,92,246,0.2));color:var(--text);font-weight:500}
+.reg-error{font-size:13px;color:var(--danger);min-height:18px;margin-bottom:8px}
+.reg-success{font-size:13px;color:var(--green);min-height:18px;margin-bottom:8px}
+
+/* ── ADMIN ── */
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
 .topbar-brand{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--accent3)}
 .tabs{display:flex;gap:2px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);padding:3px;margin-bottom:1.5rem;width:100%}
-.tab{flex:1;padding:7px 4px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-align:center}
+.tab{flex:1;padding:7px 2px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-align:center}
 .tab.active{background:linear-gradient(135deg,rgba(109,95,245,0.3),rgba(139,92,246,0.2));color:var(--text);font-weight:500}
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .panel-title{font-size:18px;font-weight:600}
 
-/* STATS */
+/* ── STATS ── */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
 .stat-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;position:relative;overflow:hidden}
 .stat-card::before{content:'';position:absolute;top:-30px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.15;filter:blur(20px)}
-.stat-card.blue::before{background:var(--blue)}.stat-card.purple::before{background:var(--accent)}
-.stat-card.amber::before{background:var(--amber)}.stat-card.danger::before{background:var(--danger)}
+.stat-card.blue::before{background:var(--blue)}.stat-card.purple::before{background:var(--accent)}.stat-card.token::before{background:var(--token)}.stat-card.danger::before{background:var(--danger)}
 .stat-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 .stat-value{font-size:28px;font-weight:600;line-height:1;margin-bottom:4px}.stat-sub{font-size:12px;color:var(--muted)}
-.stat-card.blue .stat-value{color:var(--blue)}.stat-card.purple .stat-value{color:var(--accent3)}.stat-card.amber .stat-value{color:var(--token)}.stat-card.danger .stat-value{color:var(--danger)}
+.stat-card.blue .stat-value{color:var(--blue)}.stat-card.purple .stat-value{color:var(--accent3)}.stat-card.token .stat-value{color:var(--token)}.stat-card.danger .stat-value{color:var(--danger)}
 .section-title{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
 .progress-item{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .progress-name{font-size:13px;width:100px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -80,20 +83,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
 .progress-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);width:30px;text-align:right;flex-shrink:0}
 
-/* FORMS */
+/* ── CHARTS ── */
+.chart-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem}
+.chart-title{font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem}
+.chart-wrap{position:relative;height:160px}
+
+/* ── FORMS ── */
 .add-form-wrap{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
 .add-form-wrap.open{display:block}
 .input{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:var(--rs);padding:9px 12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:8px;display:block;transition:border-color .15s}
 .input:focus{border-color:rgba(124,111,247,0.6);box-shadow:0 0 0 2px rgba(124,111,247,0.1)}
 .input::placeholder{color:var(--muted2)}.input[type=date],.input[type=time]{color-scheme:dark}
-.modal-label{font-size:12px;color:var(--muted);margin-bottom:5px;font-family:'DM Mono',monospace;display:block}
-.modal-field{margin-bottom:12px}
+.modal-label{font-size:12px;color:var(--muted);margin-bottom:5px;font-family:'DM Mono',monospace;display:block}.modal-field{margin-bottom:12px}
 .search-wrap{position:relative;margin-bottom:1rem}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .search-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px 9px 32px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none}
 .search-input::placeholder{color:var(--muted2)}
 
-/* CLIENT CARDS ADMIN */
+/* ── CLIENT CARDS ADMIN ── */
 .clients-list{display:flex;flex-direction:column;gap:10px}
 .client-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem}
 .client-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
@@ -104,45 +111,43 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .client-actions{display:flex;gap:4px;flex-shrink:0}
 .stamps-row{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
 .stamp{width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center}
-.stamp.on{background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border-color:rgba(124,111,247,0.5);box-shadow:0 0 6px var(--glow2)}
+.stamp.on{background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border-color:rgba(124,111,247,0.5)}
 .stamp svg{width:11px;height:11px}
 .stamp-controls{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .stamp-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-shrink:0}
 .stamp-count .n{color:var(--accent3);font-weight:500}
 .complete-tag{font-size:10px;font-weight:600;color:#fff;background:linear-gradient(135deg,#6d5ff5,#8b5cf6);border-radius:99px;padding:2px 8px}
 .stamp-btns{display:flex;gap:4px}
-.token-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:'DM Mono',monospace;color:var(--token);background:var(--token-dim);border:1px solid var(--token-border);border-radius:99px;padding:2px 8px;animation:tokenPulse 2s ease-in-out infinite}
+.token-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:'DM Mono',monospace;color:var(--token);background:var(--token-dim);border:1px solid var(--token-border);border-radius:99px;padding:2px 8px}
 .empty-state{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
 .loader{text-align:center;padding:2rem;color:var(--muted);font-size:13px;font-family:'DM Mono',monospace}
 
-/* ── REWARDS ADMIN ── */
-.reward-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px;transition:border-color .15s}
-.reward-row.inactive{opacity:.45}
-.reward-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* ── REWARDS ── */
+.reward-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px}
+.reward-row.inactive{opacity:.45}.reward-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .reward-name{flex:1;font-size:14px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .reward-prob{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent3);width:36px;text-align:right;flex-shrink:0}
 .prob-bar-wrap{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:6px}
-.prob-bar{height:100%;border-radius:2px;transition:width .3s}
+.prob-bar{height:100%;border-radius:2px}
 .prob-total{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .prob-total.ok{color:var(--green)}.prob-total.err{color:var(--danger)}
 .reward-form{background:rgba(20,18,40,0.8);border:1px solid var(--border2);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
 .reward-form.open{display:block}
-.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.color-btn{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s;flex-shrink:0}
-.color-btn.sel{border-color:#fff;transform:scale(1.2)}
 
-/* SPIN HISTORY */
-.spin-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-.spin-row:last-child{border-bottom:none}
-.spin-reward{font-weight:500}
-.spin-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+/* ── OFFERS ── */
+.offer-active-box{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem}
+.offer-colors{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.offer-color-btn{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s;flex-shrink:0}
+.offer-color-btn.selected{border-color:#fff;transform:scale(1.15)}
+.offer-form-wrap{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:none}
+.offer-form-wrap.open{display:block}
+.datetime-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}.datetime-row .input{margin-bottom:0}
 
-/* MODALS */
+/* ── MODALS ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(4,3,16,.85);display:none;align-items:center;justify-content:center;z-index:100;padding:1.5rem;backdrop-filter:blur(4px)}
 .modal-overlay.open{display:flex}
 .modal-box{background:rgba(18,16,38,0.97);border:1px solid var(--border2);border-radius:var(--r);padding:1.5rem;width:100%;max-width:340px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
-.modal-title{font-size:16px;font-weight:600;margin-bottom:1rem}
-.modal-actions{display:flex;gap:8px;margin-top:1rem}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1rem}.modal-actions{display:flex;gap:8px;margin-top:1rem}
 .qr-overlay{position:fixed;inset:0;background:rgba(4,3,16,.85);display:none;align-items:center;justify-content:center;z-index:100;padding:1.5rem;backdrop-filter:blur(4px)}
 .qr-overlay.open{display:flex}
 .qr-box{background:rgba(18,16,38,0.97);border:1px solid var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;max-width:300px;width:100%}
@@ -150,35 +155,32 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 #qr-canvas{background:#fff;border-radius:8px;padding:12px;display:inline-block;margin-bottom:1rem}
 .qr-url{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all;margin-bottom:1rem;line-height:1.5}
 
-/* OFFERS ADMIN */
-.offer-active-box{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem}
-.offer-colors{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.offer-color-btn{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s;flex-shrink:0}
-.offer-color-btn.selected{border-color:#fff;transform:scale(1.15)}
-.offer-form-wrap{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:none}
-.offer-form-wrap.open{display:block}
-.datetime-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.datetime-row .input{margin-bottom:0}
+/* ── SPIN WHEEL ── */
+.wheel-overlay{position:fixed;inset:0;background:rgba(4,3,16,.92);display:none;align-items:center;justify-content:center;z-index:200;padding:1.5rem;backdrop-filter:blur(8px)}
+.wheel-overlay.open{display:flex}
+.wheel-box{background:rgba(18,16,38,0.97);border:1px solid rgba(124,111,247,0.3);border-radius:22px;padding:1.75rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 60px rgba(0,0,0,.8)}
+.wheel-title{font-size:18px;font-weight:600;margin-bottom:4px}.wheel-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem}
+.wheel-wrap{position:relative;width:280px;height:280px;margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center}
+.wheel-canvas{border-radius:50%;box-shadow:0 0 0 1px rgba(124,111,247,0.2),0 4px 30px rgba(0,0,0,.6)}
+.wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:24px solid rgba(196,181,253,0.9);filter:drop-shadow(0 2px 6px rgba(124,111,247,0.6));z-index:10}
+.wheel-center{position:absolute;width:32px;height:32px;border-radius:50%;background:rgba(8,8,15,0.98);border:2px solid rgba(124,111,247,0.3);z-index:10}
+.wheel-result{font-size:20px;font-weight:700;margin-bottom:6px;display:none}
+.wheel-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem;display:none}
 
-/* ══════════════════════════════
-   CLIENT VIEW
-══════════════════════════════ */
-@keyframes tokenGlow{0%,100%{box-shadow:0 0 6px rgba(56,189,248,0.2),0 0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 16px rgba(56,189,248,0.5),0 0 0 4px rgba(56,189,248,0.08)}}
-@keyframes tokenPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 8px 2px rgba(56,189,248,0.2)}}0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+/* ── CLIENT VIEW ── */
+@keyframes stampPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
 @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(90px) rotate(720deg);opacity:0}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes offerIn{0%{opacity:0;transform:translateY(-8px) scale(.98)}100%{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes slotSpin{0%{transform:translateY(0)}100%{transform:translateY(-2000px)}}
+@keyframes tokenGlow{0%,100%{box-shadow:0 0 6px rgba(56,189,248,0.2)}50%{box-shadow:0 0 16px rgba(56,189,248,0.5),0 0 0 4px rgba(56,189,248,0.08)}}
+@keyframes tokenPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 8px 2px rgba(56,189,248,0.2)}}
 @keyframes slotBounce{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
-@keyframes tokenPop{0%{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
-@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
 .cv-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;width:100%;gap:16px;position:relative;z-index:1}
 .cv-brand{display:flex;flex-direction:column;align-items:center;animation:fadeUp .5s ease both}
 .cv-brand-icon{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
 .cv-brand-name{font-size:28px;font-weight:600;letter-spacing:-.02em;background:linear-gradient(135deg,#c4b5fd 0%,#a78bfa 40%,#7c6ff7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 16px rgba(167,139,250,0.4))}
 .cv-brand-sub{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;margin-top:4px}
-
 .cv-offer-banner{width:100%;max-width:460px;border-radius:18px;padding:18px 20px;position:relative;overflow:hidden;animation:offerIn .5s cubic-bezier(.34,1.2,.64,1) .1s both;border:1px solid rgba(255,255,255,0.1)}
 .cv-offer-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 60%);pointer-events:none}
 .cv-offer-glow{position:absolute;top:-40px;right:-20px;width:120px;height:120px;border-radius:50%;filter:blur(30px);opacity:.5;pointer-events:none}
@@ -188,75 +190,39 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cv-offer-desc{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:12px;line-height:1.5}
 .cv-offer-footer{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,.5)}
 .cv-offer-footer strong{color:rgba(255,255,255,.9);font-size:13px}
-
 .cv-card{width:100%;max-width:460px;background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.2);border-radius:22px;padding:1.75rem;animation:fadeUp .5s ease .1s both;position:relative;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px)}
 .cv-card::before{content:'';position:absolute;top:-60px;left:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(109,95,245,0.12) 0%,transparent 70%);pointer-events:none}
-
 .cv-stamps-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:1.5rem;position:relative;z-index:1}
 .cv-stamp{aspect-ratio:1;border-radius:11px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center}
 .cv-stamp.on{background:linear-gradient(135deg,#6d5ff5 0%,#8b5cf6 100%);border-color:rgba(139,92,246,0.6);box-shadow:0 0 14px rgba(109,95,245,0.5),inset 0 1px 0 rgba(255,255,255,.2);animation:stampPop .45s cubic-bezier(.34,1.56,.64,1) both}
 .cv-stamp.on svg{width:18px;height:18px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
 .cv-stamp-num{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.18)}
-
 .cv-progress-section{margin-bottom:1.25rem;position:relative;z-index:1}
 .cv-progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .cv-progress-label{font-size:13px;color:var(--muted)}
 .cv-progress-count{font-family:'DM Mono',monospace;font-size:20px;font-weight:600;color:var(--accent3)}
 .cv-progress-count span{font-size:13px;color:var(--muted);font-weight:400}
 .cv-track{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
-.cv-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#6d5ff5,#a78bfa,#c4b5fd);transition:width .9s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px rgba(124,111,247,.5)}
+.cv-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#6d5ff5,#a78bfa,#c4b5fd);transition:width .9s cubic-bezier(.4,0,.2,1)}
 .cv-countdown{margin-top:10px;text-align:center;font-size:13px;color:var(--muted);font-family:'DM Mono',monospace}
 .cv-countdown strong{color:var(--token);font-size:14px;text-shadow:0 0 8px var(--token-glow)}
-
 .cv-complete-banner{margin-top:1.25rem;background:linear-gradient(135deg,rgba(109,95,245,0.15),rgba(139,92,246,0.1));border:1px solid rgba(124,111,247,0.3);border-radius:14px;padding:14px;text-align:center;display:none;position:relative;overflow:hidden}
 .cv-complete-banner.show{display:block;animation:fadeUp .4s ease both}
 .cv-complete-title{font-size:16px;font-weight:600;color:var(--accent3);margin-bottom:4px}
 .cv-complete-sub{font-size:12px;color:var(--muted)}
 .confetti-piece{position:absolute;width:6px;height:6px;border-radius:2px;animation:confettiFall 1.3s ease forwards}
-
-/* TOKEN DISPLAY */
 .cv-token-section{display:flex;align-items:center;justify-content:space-between;margin-top:1.1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.07);position:relative;z-index:1}
 .cv-token-info{display:flex;align-items:center;gap:10px}
 .cv-token-icon{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,rgba(56,189,248,0.2),rgba(56,189,248,0.06));border:1px solid var(--token-border);display:flex;align-items:center;justify-content:center;font-size:16px;animation:tokenGlow 2s ease-in-out infinite}
 .cv-token-count{font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--token);text-shadow:0 0 14px var(--token-glow)}
 .cv-token-label{font-size:12px;color:var(--muted)}
-.btn-spin{
-  display:inline-flex;align-items:center;gap:8px;
-  background:linear-gradient(135deg,rgba(109,95,245,0.25),rgba(139,92,246,0.15));
-  border:1px solid rgba(124,111,247,0.45);
-  color:var(--accent3);font-weight:600;font-size:14px;
-  padding:11px 22px;border-radius:var(--rs);
-  cursor:pointer;transition:all .2s;
-  font-family:'DM Sans',sans-serif;
-  box-shadow:0 0 20px rgba(124,111,247,0.2),inset 0 1px 0 rgba(255,255,255,0.08);
-  backdrop-filter:blur(8px);
-}
-.btn-spin:hover{
-  background:linear-gradient(135deg,rgba(109,95,245,0.4),rgba(139,92,246,0.28));
-  border-color:rgba(124,111,247,0.7);
-  box-shadow:0 0 28px rgba(124,111,247,0.35),inset 0 1px 0 rgba(255,255,255,0.12);
-  transform:translateY(-1px);
-}
-.btn-spin:active{transform:scale(.97)}
-.btn-spin:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
-
-/* SPIN WHEEL */
-.wheel-overlay{position:fixed;inset:0;background:rgba(4,3,16,.92);display:none;align-items:center;justify-content:center;z-index:200;padding:1.5rem;backdrop-filter:blur(8px)}
-.wheel-overlay.open{display:flex}
-.wheel-box{background:rgba(18,16,38,0.97);border:1px solid rgba(124,111,247,0.3);border-radius:22px;padding:1.75rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 60px rgba(0,0,0,.8),0 0 40px rgba(124,111,247,0.15)}
-.wheel-title{font-size:18px;font-weight:600;margin-bottom:4px;color:var(--text)}
-.wheel-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem}
-.wheel-wrap{position:relative;width:280px;height:280px;margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center}
-.wheel-canvas{border-radius:50%;box-shadow:0 0 0 1px rgba(124,111,247,0.2),0 4px 30px rgba(0,0,0,.6)}
-.wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:24px solid rgba(196,181,253,0.9);filter:drop-shadow(0 2px 6px rgba(124,111,247,0.6));z-index:10}
-.wheel-center{position:absolute;width:32px;height:32px;border-radius:50%;background:rgba(8,8,15,0.98);border:2px solid rgba(124,111,247,0.3);box-shadow:0 0 10px rgba(124,111,247,0.2);z-index:10}
-.wheel-result{font-size:20px;font-weight:700;margin-bottom:6px;animation:slotBounce .5s ease both;display:none}
-.wheel-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem;display:none}
-
+.btn-spin{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(109,95,245,0.25),rgba(139,92,246,0.15));border:1px solid rgba(124,111,247,0.45);color:var(--accent3);font-weight:600;font-size:14px;padding:11px 22px;border-radius:var(--rs);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;box-shadow:0 0 20px rgba(124,111,247,0.2);backdrop-filter:blur(8px)}
+.btn-spin:hover{background:linear-gradient(135deg,rgba(109,95,245,0.4),rgba(139,92,246,0.28));border-color:rgba(124,111,247,0.7);transform:translateY(-1px)}
+.btn-spin:active{transform:scale(.97)}.btn-spin:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .cv-footer{font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;animation:fadeUp .5s ease .2s both}
-
-/* TOAST */
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(18,16,38,0.95);border:1px solid rgba(124,111,247,0.3);border-radius:var(--rs);padding:10px 18px;font-size:13px;color:var(--text);opacity:0;transition:opacity .3s;pointer-events:none;z-index:400;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.spin-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.spin-row:last-child{border-bottom:none}.spin-reward{font-weight:500}.spin-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(18,16,38,0.95);border:1px solid rgba(124,111,247,0.3);border-radius:var(--rs);padding:10px 18px;font-size:13px;color:var(--text);opacity:0;transition:opacity .3s;pointer-events:none;z-index:400;white-space:nowrap}
 .toast.show{opacity:1}
 </style>
 </head>
@@ -277,6 +243,40 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
+<!-- ══ INSCRIPTION CLIENT ══ -->
+<div class="view" id="view-register">
+  <div class="reg-wrap">
+    <div class="reg-logo">Club+ · Fidélité</div>
+    <div class="reg-title">Bienvenue 👋</div>
+    <div class="reg-sub">Crée ta carte ou accède à la tienne</div>
+    <div class="reg-card">
+      <div class="reg-tabs">
+        <button class="reg-tab active" id="rtab-login" onclick="switchRegTab('login')">Se connecter</button>
+        <button class="reg-tab" id="rtab-signup" onclick="switchRegTab('signup')">S'inscrire</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="rpanel-login">
+        <label class="modal-label">Numéro de téléphone</label>
+        <input class="input" id="login-phone" placeholder="06 12 34 56 78" type="tel" />
+        <div class="reg-error" id="login-error"></div>
+        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doLogin()">Accéder à ma carte</button>
+      </div>
+
+      <!-- SIGNUP -->
+      <div id="rpanel-signup" style="display:none">
+        <label class="modal-label">Prénom Nom</label>
+        <input class="input" id="signup-name" placeholder="ex: Lucas Martin" />
+        <label class="modal-label">Numéro de téléphone</label>
+        <input class="input" id="signup-phone" placeholder="06 12 34 56 78" type="tel" />
+        <div class="reg-error" id="signup-error"></div>
+        <div class="reg-success" id="signup-success"></div>
+        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doSignup()">Créer ma carte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ ADMIN ══ -->
 <div class="view" id="view-admin">
   <div class="topbar">
@@ -284,23 +284,45 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <button class="btn btn-sm" onclick="logout()">Déconnexion</button>
   </div>
   <div class="tabs">
-    <button class="tab active" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab active" id="tab-dashboard" onclick="switchTab('dashboard')">Stats</button>
     <button class="tab" id="tab-clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" id="tab-offers" onclick="switchTab('offers')">Offres</button>
     <button class="tab" id="tab-rewards" onclick="switchTab('rewards')">Roue</button>
     <button class="tab" id="tab-history" onclick="switchTab('history')">Historique</button>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- STATS / DASHBOARD -->
   <div id="panel-dashboard">
     <div class="stats-grid">
       <div class="stat-card blue"><div class="stat-label">Clients</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">inscrits</div></div>
       <div class="stat-card purple"><div class="stat-label">Tampons</div><div class="stat-value" id="s-stamps">—</div><div class="stat-sub">distribués</div></div>
-      <div class="stat-card amber"><div class="stat-label">Tokens actifs</div><div class="stat-value" id="s-tokens">—</div><div class="stat-sub">en circulation</div></div>
-      <div class="stat-card danger"><div class="stat-label">Cartes complètes</div><div class="stat-value" id="s-full">—</div><div class="stat-sub">récompensées</div></div>
+      <div class="stat-card token"><div class="stat-label">Tokens actifs</div><div class="stat-value" id="s-tokens">—</div><div class="stat-sub">en circulation</div></div>
+      <div class="stat-card danger"><div class="stat-label">Spins total</div><div class="stat-value" id="s-spins">—</div><div class="stat-sub">roues lancées</div></div>
     </div>
-    <div style="margin-bottom:1.5rem"><div class="section-title">Progression des clients</div><div id="progress-bars"></div></div>
-    <div><div class="section-title">Top clients</div><div id="top-clients"></div></div>
+
+    <!-- Graphique tampons par semaine -->
+    <div class="chart-card">
+      <div class="chart-title">Tampons distribués — 8 dernières semaines</div>
+      <div class="chart-wrap"><canvas id="chart-stamps"></canvas></div>
+    </div>
+
+    <!-- Graphique tokens -->
+    <div class="chart-card">
+      <div class="chart-title">Tokens gagnés vs utilisés — 8 semaines</div>
+      <div class="chart-wrap"><canvas id="chart-tokens"></canvas></div>
+    </div>
+
+    <!-- Top clients actifs -->
+    <div style="margin-bottom:1.5rem">
+      <div class="section-title">Clients les plus actifs</div>
+      <div id="top-clients"></div>
+    </div>
+
+    <!-- Récompenses les plus gagnées -->
+    <div>
+      <div class="section-title">Récompenses les plus gagnées</div>
+      <div id="top-rewards"></div>
+    </div>
   </div>
 
   <!-- CLIENTS -->
@@ -311,7 +333,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div class="add-form-wrap" id="add-form">
       <input class="input" id="new-name" placeholder="Prénom Nom" />
-      <input class="input" id="new-phone" placeholder="Téléphone (optionnel)" style="margin-bottom:8px" />
+      <input class="input" id="new-phone" placeholder="Téléphone" style="margin-bottom:8px" />
       <div style="display:flex;gap:8px">
         <button class="btn btn-accent" onclick="addClient()">Ajouter</button>
         <button class="btn" onclick="toggleAddForm()">Annuler</button>
@@ -359,28 +381,23 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 
-  <!-- REWARDS / ROUE -->
+  <!-- REWARDS -->
   <div id="panel-rewards" style="display:none">
     <div class="panel-header">
-      <div class="panel-title">Roue de récompenses</div>
+      <div class="panel-title">Roue</div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-sm btn-danger" onclick="resetRewards()" title="Réinitialiser">↺ Reset</button>
+        <button class="btn btn-sm btn-danger" onclick="resetRewards()">↺ Reset</button>
         <button class="btn btn-accent btn-sm" onclick="toggleRewardForm()">+ Ajouter</button>
       </div>
     </div>
-
-    <!-- Total probabilités -->
     <div class="prob-total" id="prob-total-display">
       <span id="prob-total-val">—</span><span style="font-size:11px;color:var(--muted)">/100%</span>
       <span id="prob-total-msg" style="font-size:12px"></span>
     </div>
-
-    <!-- Formulaire ajout/édition récompense -->
     <div class="reward-form" id="reward-form">
       <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="reward-form-title">Nouvelle récompense</div>
       <input type="hidden" id="rf-id" />
-      <label class="modal-label">Nom</label>
-      <input class="input" id="rf-name" placeholder="ex: Puff gratuite" />
+      <label class="modal-label">Nom</label><input class="input" id="rf-name" placeholder="ex: Puff gratuite" />
       <label class="modal-label">Probabilité (%)</label>
       <input class="input" id="rf-prob" type="number" min="1" max="100" placeholder="ex: 25" style="margin-bottom:8px" />
       <div style="display:flex;gap:8px;margin-top:12px">
@@ -388,12 +405,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <button class="btn" onclick="toggleRewardForm()">Annuler</button>
       </div>
     </div>
-
-    <!-- Liste récompenses -->
     <div id="rewards-list"></div>
   </div>
 
-  <!-- HISTORIQUE SPINS -->
+  <!-- HISTORIQUE -->
   <div id="panel-history" style="display:none">
     <div class="panel-header">
       <div class="panel-title">Historique des spins</div>
@@ -410,9 +425,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="cv-brand-icon">✦ fidélité</div>
       <div class="cv-brand-name">Club+</div>
     </div>
-
     <div id="cv-offer-banner"></div>
-
     <div class="cv-card">
       <span id="cv-avatar" style="display:none"></span>
       <span id="cv-name" style="display:none"></span>
@@ -430,8 +443,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="cv-complete-title">✦ Carte complète !</div>
         <div class="cv-complete-sub">Token ajouté — lance la roue !</div>
       </div>
-
-      <!-- TOKEN + SPIN -->
       <div class="cv-token-section" id="cv-token-section" style="display:none">
         <div class="cv-token-info">
           <div class="cv-token-icon">🪙</div>
@@ -440,11 +451,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <div class="cv-token-label">token(s)</div>
           </div>
         </div>
-        <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled>🎡 Lancer la roue</button>
+        <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled>🎡 Lancer la roue — 1 token</button>
       </div>
     </div>
-
-    <div class="cv-footer">Vue lecture seule · Seul l'admin peut modifier</div>
+    <div class="cv-footer">Seul l'admin peut modifier ta carte</div>
   </div>
 </div>
 
@@ -497,58 +507,47 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div class="toast" id="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════
-   CONFIG
-═══════════════════════════════════════════ */
 const SUPA_URL="https://lfpkmempuvggxcdpfdrk.supabase.co";
 const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmcGttZW1wdXZnZ3hjZHBmZHJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzIwNTUsImV4cCI6MjA4OTM0ODA1NX0.db8OBcAQYU6vAJzsa-UaXB6iZzkcJSobyxmMhwX7pbI";
 const ADMIN_PIN="1234";
 const H={"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json","Prefer":"return=representation"};
 const T_CLIENTS=SUPA_URL+"/rest/v1/clients";
-const T_OFFERS =SUPA_URL+"/rest/v1/offers";
+const T_OFFERS=SUPA_URL+"/rest/v1/offers";
 const T_REWARDS=SUPA_URL+"/rest/v1/rewards";
-const T_SPINS  =SUPA_URL+"/rest/v1/spins";
+const T_SPINS=SUPA_URL+"/rest/v1/spins";
+const T_STAMP_LOGS=SUPA_URL+"/rest/v1/stamp_logs";
+const T_TOKEN_LOGS=SUPA_URL+"/rest/v1/token_logs";
 
-let pinBuf="",allClients=[],selOfferColor="#7c6ff7",selRewardColor="#7c6ff7";
-let curOfferId=null,offerTick=null,clientOfferTick=null;
-let currentClientId=null; // pour la vue client
+let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
+let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
+let chartStamps=null,chartTokens=null;
 
-/* ═══════════════════════════════════════════
-   DB HELPERS
-═══════════════════════════════════════════ */
-const dbGet   =(u)=>fetch(u,{headers:H}).then(r=>r.json());
-const dbPost  =(u,d)=>fetch(u,{method:"POST",headers:H,body:JSON.stringify(d)}).then(r=>r.json());
-const dbPatch =(u,d)=>fetch(u,{method:"PATCH",headers:{...H,"Prefer":"return=minimal"},body:JSON.stringify(d)});
+// ── DB ──
+const dbGet=(u)=>fetch(u,{headers:H}).then(r=>r.json());
+const dbPost=(u,d)=>fetch(u,{method:"POST",headers:H,body:JSON.stringify(d)}).then(r=>r.json());
+const dbPatch=(u,d)=>fetch(u,{method:"PATCH",headers:{...H,"Prefer":"return=minimal"},body:JSON.stringify(d)});
 const dbDelete=(u)=>fetch(u,{method:"DELETE",headers:H});
 
-/* ═══════════════════════════════════════════
-   UI HELPERS
-═══════════════════════════════════════════ */
+// ── UI ──
 function toast(msg,d=2500){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),d);}
 function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));document.getElementById("view-"+id).classList.add("active");}
 function ini(n){return n.trim().split(" ").slice(0,2).map(w=>w[0]?.toUpperCase()||"").join("");}
+function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris"});}
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
-function fmtDate(iso){
-  const d=new Date(iso);
-  return d.toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris"});
-}
 
-/* ═══════════════════════════════════════════
-   TABS
-═══════════════════════════════════════════ */
+// ── TABS ──
 function switchTab(tab){
   ["dashboard","clients","offers","rewards","history"].forEach(t=>{
     document.getElementById("tab-"+t).classList.toggle("active",t===tab);
     document.getElementById("panel-"+t).style.display=t===tab?"block":"none";
   });
+  if(tab==="dashboard")loadCharts();
   if(tab==="offers")loadOffer();
   if(tab==="rewards")loadRewards();
   if(tab==="history")loadHistory();
 }
 
-/* ═══════════════════════════════════════════
-   PIN
-═══════════════════════════════════════════ */
+// ── PIN ──
 function buildPin(){
   const g=document.getElementById("pin-grid");
   ["1","2","3","4","5","6","7","8","9","","0","⌫"].forEach(k=>{
@@ -566,54 +565,162 @@ function checkPin(){
 }
 function logout(){pinBuf="";dots(false);showView("pin");}
 
-/* ═══════════════════════════════════════════
-   LOAD ALL (admin)
-═══════════════════════════════════════════ */
+// ── INSCRIPTION / CONNEXION CLIENT ──
+function switchRegTab(tab){
+  document.getElementById("rtab-login").classList.toggle("active",tab==="login");
+  document.getElementById("rtab-signup").classList.toggle("active",tab==="signup");
+  document.getElementById("rpanel-login").style.display=tab==="login"?"block":"none";
+  document.getElementById("rpanel-signup").style.display=tab==="signup"?"block":"none";
+  document.getElementById("login-error").textContent="";
+  document.getElementById("signup-error").textContent="";
+  document.getElementById("signup-success").textContent="";
+}
+
+function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
+
+async function doLogin(){
+  const raw=document.getElementById("login-phone").value.trim();
+  if(!raw){document.getElementById("login-error").textContent="Entre ton numéro";return;}
+  const phone=normalizePhone(raw);
+  const data=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+  if(!data||!data.length){
+    document.getElementById("login-error").textContent="Numéro introuvable — inscris-toi !";
+    return;
+  }
+  document.getElementById("login-error").textContent="";
+  loadClientView(data[0].id);
+}
+
+async function doSignup(){
+  const name=document.getElementById("signup-name").value.trim();
+  const raw=document.getElementById("signup-phone").value.trim();
+  document.getElementById("signup-error").textContent="";
+  document.getElementById("signup-success").textContent="";
+  if(!name){document.getElementById("signup-error").textContent="Entre ton nom";return;}
+  if(!raw){document.getElementById("signup-error").textContent="Entre ton numéro";return;}
+  const phone=normalizePhone(raw);
+  // Vérifie si déjà inscrit
+  const existing=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+  if(existing&&existing.length){
+    document.getElementById("signup-error").textContent="Ce numéro est déjà inscrit — connecte-toi !";
+    return;
+  }
+  const res=await dbPost(T_CLIENTS,{name,phone,stamps:0,tokens:0});
+  if(res&&res.length){
+    document.getElementById("signup-success").textContent="Carte créée ! Redirection...";
+    setTimeout(()=>loadClientView(res[0].id),1200);
+  } else {
+    document.getElementById("signup-error").textContent="Erreur — réessaie";
+  }
+}
+
+// ── LOAD ALL ──
 async function loadAll(){
   document.getElementById("clients-list").innerHTML='<div class="loader">Chargement...</div>';
   allClients=await dbGet(T_CLIENTS+"?order=created_at.asc");
   renderDash(allClients);renderList(allClients);
 }
 
-/* ═══════════════════════════════════════════
-   DASHBOARD
-═══════════════════════════════════════════ */
+// ── DASHBOARD ──
 function renderDash(cl){
-  const tot=cl.length,st=cl.reduce((s,c)=>s+c.stamps,0),fu=cl.filter(c=>c.stamps>=10).length;
-  const tk=cl.reduce((s,c)=>s+(c.tokens||0),0);
+  const tot=cl.length,st=cl.reduce((s,c)=>s+c.stamps,0),tk=cl.reduce((s,c)=>s+(c.tokens||0),0);
   document.getElementById("s-total").textContent=tot;
   document.getElementById("s-stamps").textContent=st;
   document.getElementById("s-tokens").textContent=tk;
-  document.getElementById("s-full").textContent=fu;
+  // s-spins chargé séparément
+  dbGet(T_SPINS+"?select=id").then(d=>{document.getElementById("s-spins").textContent=d?d.length:0;});
+
+  // Top clients actifs (par tampons totaux accumulés = stamps actuels + historique)
   const sorted=[...cl].sort((a,b)=>b.stamps-a.stamps);
-  document.getElementById("progress-bars").innerHTML=sorted.length?sorted.map(c=>`
-    <div class="progress-item">
-      <div class="progress-name">${c.name}</div>
-      <div class="progress-track"><div class="progress-fill" style="width:${c.stamps*10}%"></div></div>
-      <div class="progress-count">${c.stamps}/10</div>
-    </div>`).join(""):'<div style="color:var(--muted);font-size:13px">Aucun client</div>';
   const medals=["🥇","🥈","🥉"];
-  document.getElementById("top-clients").innerHTML=sorted.length?sorted.slice(0,3).map((c,i)=>`
+  document.getElementById("top-clients").innerHTML=sorted.length?sorted.slice(0,5).map((c,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:18px;width:28px;text-align:center">${medals[i]||""}</div>
+      <div style="font-size:16px;width:24px;text-align:center">${medals[i]||""}</div>
       <div class="avatar">${ini(c.name)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
         ${c.phone?`<div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${c.phone}</div>`:""}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${c.stamps}/10</div>
-        ${(c.tokens||0)>0?`<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--token)">🪙${c.tokens}</div>`:""}
-      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${c.stamps}/10</div>
     </div>`).join(""):'<div style="color:var(--muted);font-size:13px">Aucun client</div>';
 }
 
-/* ═══════════════════════════════════════════
-   CLIENTS LIST
-═══════════════════════════════════════════ */
+// ── CHARTS ──
+async function loadCharts(){
+  const now=new Date();
+  // Génère les 8 dernières semaines (labels)
+  const weekLabels=[];
+  const weekStarts=[];
+  for(let i=7;i>=0;i--){
+    const d=new Date(now);
+    d.setDate(d.getDate()-i*7-d.getDay());
+    d.setHours(0,0,0,0);
+    weekStarts.push(new Date(d));
+    const end=new Date(d);end.setDate(end.getDate()+6);
+    weekLabels.push(`S${8-i}`);
+  }
+
+  // Tampons par semaine
+  const stampLogs=await dbGet(T_STAMP_LOGS+"?order=created_at.asc");
+  const stampData=weekStarts.map((ws,i)=>{
+    const we=i<weekStarts.length-1?weekStarts[i+1]:new Date(now.getTime()+86400000);
+    return (stampLogs||[]).filter(l=>new Date(l.created_at)>=ws&&new Date(l.created_at)<we).length;
+  });
+
+  // Tokens earned vs spent
+  const tokenLogs=await dbGet(T_TOKEN_LOGS+"?order=created_at.asc");
+  const tokenEarned=weekStarts.map((ws,i)=>{
+    const we=i<weekStarts.length-1?weekStarts[i+1]:new Date(now.getTime()+86400000);
+    return (tokenLogs||[]).filter(l=>l.type==="earned"&&new Date(l.created_at)>=ws&&new Date(l.created_at)<we).length;
+  });
+  const tokenSpent=weekStarts.map((ws,i)=>{
+    const we=i<weekStarts.length-1?weekStarts[i+1]:new Date(now.getTime()+86400000);
+    return (tokenLogs||[]).filter(l=>l.type==="spent"&&new Date(l.created_at)>=ws&&new Date(l.created_at)<we).length;
+  });
+
+  const chartDefaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"rgba(18,16,38,0.95)",titleColor:"#c4b5fd",bodyColor:"#f0eeff",borderColor:"rgba(124,111,247,0.3)",borderWidth:1}},scales:{x:{grid:{color:"rgba(255,255,255,0.05)"},ticks:{color:"rgba(200,190,255,0.55)",font:{size:11}}},y:{grid:{color:"rgba(255,255,255,0.05)"},ticks:{color:"rgba(200,190,255,0.55)",font:{size:11}},beginAtZero:true}}};
+
+  // Chart tampons
+  if(chartStamps)chartStamps.destroy();
+  chartStamps=new Chart(document.getElementById("chart-stamps"),{
+    type:"bar",
+    data:{labels:weekLabels,datasets:[{data:stampData,backgroundColor:"rgba(124,111,247,0.5)",borderColor:"rgba(196,181,253,0.8)",borderWidth:1,borderRadius:4}]},
+    options:{...chartDefaults}
+  });
+
+  // Chart tokens
+  if(chartTokens)chartTokens.destroy();
+  chartTokens=new Chart(document.getElementById("chart-tokens"),{
+    type:"bar",
+    data:{labels:weekLabels,datasets:[
+      {label:"Gagnés",data:tokenEarned,backgroundColor:"rgba(56,189,248,0.4)",borderColor:"rgba(56,189,248,0.8)",borderWidth:1,borderRadius:4},
+      {label:"Utilisés",data:tokenSpent,backgroundColor:"rgba(248,113,113,0.3)",borderColor:"rgba(248,113,113,0.7)",borderWidth:1,borderRadius:4}
+    ]},
+    options:{...chartDefaults,plugins:{...chartDefaults.plugins,legend:{display:true,labels:{color:"rgba(200,190,255,0.7)",font:{size:11},boxWidth:12}}}}
+  });
+
+  // Top récompenses
+  const spins=await dbGet(T_SPINS+"?order=created_at.desc");
+  if(spins&&spins.length){
+    const counts={};
+    spins.forEach(s=>{counts[s.reward_name]=(counts[s.reward_name]||0)+1;});
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const max=sorted[0][1];
+    document.getElementById("top-rewards").innerHTML=sorted.map(([name,count])=>`
+      <div class="progress-item">
+        <div class="progress-name">${name}</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${(count/max*100).toFixed(0)}%"></div></div>
+        <div class="progress-count">${count}x</div>
+      </div>`).join("");
+  } else {
+    document.getElementById("top-rewards").innerHTML='<div style="color:var(--muted);font-size:13px">Aucun spin encore</div>';
+  }
+}
+
+// ── CLIENT LIST ──
 function renderList(cl){
   const list=document.getElementById("clients-list");
-  if(!cl||!cl.length){list.innerHTML='<div class="empty-state">Aucun client trouvé</div>';return;}
+  if(!cl||!cl.length){list.innerHTML='<div class="empty-state">Aucun client</div>';return;}
   list.innerHTML="";
   cl.forEach(c=>{
     const full=c.stamps>=10,div=document.createElement("div");div.className="client-card";
@@ -625,7 +732,7 @@ function renderList(cl){
             <div class="client-name-text">${c.name}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
               ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
-              ${(c.tokens||0)>0?`<div class="token-badge">🪙 ${c.tokens} token${c.tokens>1?"s":""}</div>`:""}
+              ${(c.tokens||0)>0?`<div class="token-badge">🪙 ${c.tokens}</div>`:""}
             </div>
           </div>
         </div>
@@ -635,9 +742,7 @@ function renderList(cl){
           <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
       </div>
-      <div class="stamps-row">${[...Array(10)].map((_,i)=>`
-        <div class="stamp ${i<c.stamps?"on":""}">${i<c.stamps?`<svg viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:""}</div>`).join("")}
-      </div>
+      <div class="stamps-row">${[...Array(10)].map((_,i)=>`<div class="stamp ${i<c.stamps?"on":""}">${i<c.stamps?`<svg viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:""}</div>`).join("")}</div>
       <div class="stamp-controls">
         <div class="stamp-count"><span class="n">${c.stamps}</span>/10${full?' &nbsp;<span class="complete-tag">COMPLET</span>':""}</div>
         <div class="stamp-btns">
@@ -656,7 +761,7 @@ async function addClient(){
   const name=document.getElementById("new-name").value.trim(),phone=document.getElementById("new-phone").value.trim();if(!name)return;
   document.getElementById("new-name").value="";document.getElementById("new-phone").value="";
   document.getElementById("add-form").classList.remove("open");
-  await dbPost(T_CLIENTS,{name,phone:phone||null,stamps:0,tokens:0});
+  await dbPost(T_CLIENTS,{name,phone:phone?normalizePhone(phone):null,stamps:0,tokens:0});
   toast("Client ajouté ✓");await loadAll();
 }
 function openEdit(id,name,phone,stamps,tokens){
@@ -672,27 +777,32 @@ async function saveEdit(){
   const stamps=Math.max(0,Math.min(10,parseInt(document.getElementById("edit-stamps").value)||0));
   const tokens=Math.max(0,parseInt(document.getElementById("edit-tokens").value)||0);
   if(!name)return;
-  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone||null,stamps,tokens});
+  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps,tokens});
   closeEdit();toast("Client modifié ✓");await loadAll();
 }
-
-/* Ajouter tampon : si 10 → reset + +1 token */
 async function chg(id,curStamps,curTokens,d){
   let newStamps=Math.max(0,Math.min(10,curStamps+d));
   let newTokens=curTokens;
   if(d===1&&newStamps===10){
-    // Card complete: reset stamps to 0 + add 1 token
     newStamps=0;newTokens=curTokens+1;
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens});
+    // Log stamp + token earned
+    await dbPost(T_STAMP_LOGS,{client_id:id});
+    await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
     toast("🎉 Carte complète ! +1 token ajouté");
+  } else if(d===1){
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
+    await dbPost(T_STAMP_LOGS,{client_id:id});
+    toast("Tampon ajouté ✓");
   } else {
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
-    toast(d>0?"Tampon ajouté ✓":"Tampon retiré");
+    toast("Tampon retiré");
   }
   await loadAll();
 }
 async function giveToken(id,curTokens){
   await dbPatch(T_CLIENTS+"?id=eq."+id,{tokens:curTokens+1});
+  await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
   toast("🪙 Token ajouté ✓");await loadAll();
 }
 async function rst(id,name){
@@ -704,9 +814,7 @@ async function delClient(id,name){
   await dbDelete(T_CLIENTS+"?id=eq."+id);toast("Client supprimé");await loadAll();
 }
 
-/* ═══════════════════════════════════════════
-   QR
-═══════════════════════════════════════════ */
+// ── QR ──
 function showQR(id,name){
   const url=window.location.href.split("?")[0]+"?client="+id;
   document.getElementById("qr-name").textContent=name;document.getElementById("qr-url").textContent=url;
@@ -716,9 +824,7 @@ function showQR(id,name){
 }
 function closeQR(){document.getElementById("qr-modal").classList.remove("open");}
 
-/* ═══════════════════════════════════════════
-   OFFERS
-═══════════════════════════════════════════ */
+// ── OFFERS ──
 const OFFER_COLORS=["#7c6ff7","#a78bfa","#60a5fa","#34d399","#38bdf8","#f87171","#f472b6","#fb923c"];
 function buildOfferColors(){
   const w=document.getElementById("offer-colors");
@@ -752,95 +858,60 @@ async function saveOffer(){
 }
 async function deleteOffer(){if(!curOfferId||!confirm("Supprimer l'offre ?"))return;await dbDelete(T_OFFERS+"?id=eq."+curOfferId);curOfferId=null;toast("Offre supprimée");loadOffer();}
 
-/* ═══════════════════════════════════════════
-   REWARDS ADMIN
-═══════════════════════════════════════════ */
-const REWARD_COLORS=["#7c6ff7","#a78bfa","#60a5fa","#34d399","#38bdf8","#f87171","#f472b6","#fb923c","#555577"];
-
-function buildRewardColors(){
-  const w=document.getElementById("reward-colors");w.innerHTML="";
-  REWARD_COLORS.forEach(c=>{
-    const b=document.createElement("div");b.className="color-btn"+(c===selRewardColor?" sel":"");
-    b.style.background=c;b.onclick=()=>{selRewardColor=c;document.querySelectorAll(".color-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");};
-    w.appendChild(b);
-  });
-}
-
+// ── REWARDS ──
 async function loadRewards(){
   const rewards=await dbGet(T_REWARDS+"?order=created_at.asc");
   renderRewards(rewards);
 }
-
 function renderRewards(rewards){
   const total=rewards.filter(r=>r.active).reduce((s,r)=>s+r.probability,0);
   const display=document.getElementById("prob-total-display");
-  const val=document.getElementById("prob-total-val");
-  const msg=document.getElementById("prob-total-msg");
-  val.textContent=total+"%";
+  document.getElementById("prob-total-val").textContent=total+"%";
   display.className="prob-total "+(total===100?"ok":"err");
-  msg.textContent=total===100?"✓ Parfait":total<100?"⚠ Manque "+(100-total)+"%":"⚠ Dépasse de "+(total-100)+"%";
-
+  document.getElementById("prob-total-msg").textContent=total===100?"✓ Parfait":total<100?"⚠ Manque "+(100-total)+"%":"⚠ Dépasse de "+(total-100)+"%";
   const list=document.getElementById("rewards-list");
   if(!rewards||!rewards.length){list.innerHTML='<div class="empty-state">Aucune récompense</div>';return;}
   list.innerHTML="";
   rewards.forEach(r=>{
     const div=document.createElement("div");div.className="reward-row"+(r.active?"":" inactive");
     div.innerHTML=`
-      <div class="reward-dot" style="background:${r.color||"#7c6ff7"}"></div>
+      <div class="reward-dot" style="background:rgba(124,111,247,0.6)"></div>
       <div style="flex:1;min-width:0">
         <div class="reward-name">${r.name}</div>
-        <div class="prob-bar-wrap"><div class="prob-bar" style="width:${r.probability}%;background:${r.color||"#7c6ff7"}"></div></div>
+        <div class="prob-bar-wrap"><div class="prob-bar" style="width:${r.probability}%;background:linear-gradient(90deg,#7c6ff7,#a78bfa)"></div></div>
       </div>
       <div class="reward-prob">${r.probability}%</div>
       <div style="display:flex;gap:4px;flex-shrink:0">
-        <button class="btn btn-sm" onclick="toggleReward('${r.id}',${r.active})" title="${r.active?"Désactiver":"Activer"}">${r.active?"●":"○"}</button>
+        <button class="btn btn-sm" onclick="toggleReward('${r.id}',${r.active})">${r.active?"●":"○"}</button>
         <button class="btn btn-icon" onclick="editReward('${r.id}','${r.name.replace(/'/g,"\\'")}',${r.probability})">✎</button>
         <button class="btn btn-icon btn-danger" onclick="deleteReward('${r.id}','${r.name.replace(/'/g,"\\'")}')">✕</button>
       </div>`;
     list.appendChild(div);
   });
 }
-
 function toggleRewardForm(edit=false){
   const f=document.getElementById("reward-form");
   if(!edit){document.getElementById("rf-id").value="";document.getElementById("rf-name").value="";document.getElementById("rf-prob").value="";document.getElementById("reward-form-title").textContent="Nouvelle récompense";}
-  f.classList.toggle("open");
-  if(f.classList.contains("open"))document.getElementById("rf-name").focus();
+  f.classList.toggle("open");if(f.classList.contains("open"))document.getElementById("rf-name").focus();
 }
 function editReward(id,name,prob){
-  document.getElementById("rf-id").value=id;document.getElementById("rf-name").value=name;
-  document.getElementById("rf-prob").value=prob;
+  document.getElementById("rf-id").value=id;document.getElementById("rf-name").value=name;document.getElementById("rf-prob").value=prob;
   document.getElementById("reward-form-title").textContent="Modifier la récompense";
-  document.getElementById("reward-form").classList.add("open");
-  document.getElementById("rf-name").focus();
+  document.getElementById("reward-form").classList.add("open");document.getElementById("rf-name").focus();
 }
 async function saveReward(){
-  const name=document.getElementById("rf-name").value.trim();
-  const prob=parseInt(document.getElementById("rf-prob").value)||0;
-  const id=document.getElementById("rf-id").value;
+  const name=document.getElementById("rf-name").value.trim(),prob=parseInt(document.getElementById("rf-prob").value)||0,id=document.getElementById("rf-id").value;
   if(!name||prob<1||prob>100){toast("Nom et probabilité requis (1-100)");return;}
-  if(id){
-    await dbPatch(T_REWARDS+"?id=eq."+id,{name,probability:prob});
-    toast("Récompense modifiée ✓");
-  } else {
-    await dbPost(T_REWARDS,{name,probability:prob,color:"#7c6ff7",active:true});
-    toast("Récompense ajoutée ✓");
-  }
-  document.getElementById("reward-form").classList.remove("open");
-  loadRewards();
+  if(id){await dbPatch(T_REWARDS+"?id=eq."+id,{name,probability:prob});toast("Récompense modifiée ✓");}
+  else{await dbPost(T_REWARDS,{name,probability:prob,color:"#7c6ff7",active:true});toast("Récompense ajoutée ✓");}
+  document.getElementById("reward-form").classList.remove("open");loadRewards();
 }
-async function toggleReward(id,active){
-  await dbPatch(T_REWARDS+"?id=eq."+id,{active:!active});
-  toast(active?"Récompense désactivée":"Récompense activée");loadRewards();
-}
-async function deleteReward(id,name){
-  if(!confirm("Supprimer \""+name+"\" ?"))return;
-  await dbDelete(T_REWARDS+"?id=eq."+id);toast("Récompense supprimée");loadRewards();
-}
+async function toggleReward(id,active){await dbPatch(T_REWARDS+"?id=eq."+id,{active:!active});toast(active?"Désactivée":"Activée");loadRewards();}
+async function deleteReward(id,name){if(!confirm("Supprimer \""+name+"\" ?"))return;await dbDelete(T_REWARDS+"?id=eq."+id);toast("Supprimée");loadRewards();}
 async function resetRewards(){
-  if(!confirm("Réinitialiser toutes les récompenses aux valeurs par défaut ?"))return;
+  if(!confirm("Réinitialiser les récompenses par défaut ?"))return;
   const existing=await dbGet(T_REWARDS+"?select=id");
-  for(const r of existing) await dbDelete(T_REWARDS+"?id=eq."+r.id);
+  for(const r of existing)await dbDelete(T_REWARDS+"?id=eq."+r.id);
   const defaults=[
     {name:"Rien",probability:35,active:true,color:"#555577"},
     {name:"+1 tampon",probability:25,active:true,color:"#7c6ff7"},
@@ -848,124 +919,52 @@ async function resetRewards(){
     {name:"Puff à 5€",probability:12,active:true,color:"#38bdf8"},
     {name:"Puff gratuite",probability:8,active:true,color:"#4ade80"}
   ];
-  for(const d of defaults) await dbPost(T_REWARDS,d);
+  for(const d of defaults)await dbPost(T_REWARDS,d);
   toast("Récompenses réinitialisées ✓");loadRewards();
 }
 
-/* ═══════════════════════════════════════════
-   SPIN HISTORY
-═══════════════════════════════════════════ */
+// ── HISTORY ──
 async function loadHistory(){
   const list=document.getElementById("history-list");
   list.innerHTML='<div class="loader">Chargement...</div>';
   const spins=await dbGet(T_SPINS+"?order=created_at.desc&limit=50");
   if(!spins||!spins.length){list.innerHTML='<div class="empty-state">Aucun spin enregistré</div>';return;}
-  // Charger noms clients
   const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
   list.innerHTML=spins.map(s=>`
     <div class="spin-row">
-      <div>
-        <div class="spin-reward">${s.reward_name}</div>
-        <div class="spin-meta">${clientMap[s.client_id]||"Client inconnu"}</div>
-      </div>
+      <div><div class="spin-reward">${s.reward_name}</div><div class="spin-meta">${clientMap[s.client_id]||"Client inconnu"}</div></div>
       <div class="spin-meta">${fmtDate(s.created_at)}</div>
     </div>`).join("");
 }
 
-/* ═══════════════════════════════════════════
-   SPIN WHEEL (client)
-═══════════════════════════════════════════ */
-let activeRewards=[];
-let spinResult=null;
-let isSpinning=false;
-let wheelAngle=0; // current rotation in radians
-
-/* Draw the wheel on canvas */
-function drawWheel(rewards, angle){
-  const canvas=document.getElementById("wheel-canvas");
-  if(!canvas)return;
-  const ctx=canvas.getContext("2d");
-  const W=canvas.width, cx=W/2, cy=W/2, R=cx-4;
-  const n=rewards.length;
+// ── WHEEL ──
+function drawWheel(rewards,angle){
+  const canvas=document.getElementById("wheel-canvas");if(!canvas)return;
+  const ctx=canvas.getContext("2d"),W=canvas.width,cx=W/2,cy=W/2,R=cx-4,n=rewards.length;
   if(n===0)return;
   const arc=2*Math.PI/n;
   ctx.clearRect(0,0,W,W);
-
-  // Find rarest active reward (lowest probability)
+  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.fillStyle="rgba(14,12,32,0.95)";ctx.fill();
   const minProb=Math.min(...rewards.map(r=>r.probability));
   const rarestIdx=rewards.findIndex(r=>r.probability===minProb);
-
-  // Alternating dark shades for segments — no bright colors
-  const segFills=[
-    "rgba(109,95,245,0.18)",
-    "rgba(255,255,255,0.04)",
-    "rgba(109,95,245,0.10)",
-    "rgba(255,255,255,0.07)",
-    "rgba(109,95,245,0.14)",
-    "rgba(255,255,255,0.05)",
-    "rgba(109,95,245,0.08)",
-    "rgba(255,255,255,0.06)",
-  ];
-
-  // Background fill (full circle first)
-  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);
-  ctx.fillStyle="rgba(14,12,32,0.95)";ctx.fill();
-
+  const segFills=["rgba(109,95,245,0.18)","rgba(255,255,255,0.04)","rgba(109,95,245,0.10)","rgba(255,255,255,0.07)","rgba(109,95,245,0.14)","rgba(255,255,255,0.05)","rgba(109,95,245,0.08)","rgba(255,255,255,0.06)"];
   rewards.forEach((r,i)=>{
-    const start=angle+i*arc;
-    const end=start+arc;
-    const mid=start+arc/2;
-    const isRarest=(i===rarestIdx);
-
-    // Segment fill
+    const start=angle+i*arc,end=start+arc,mid=start+arc/2,isRarest=(i===rarestIdx);
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,start,end);ctx.closePath();
-    if(isRarest){
-      // Golden shimmer for rarest — still subtle
-      const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,R);
-      grad.addColorStop(0,"rgba(56,189,248,0.08)");
-      grad.addColorStop(1,"rgba(56,189,248,0.22)");
-      ctx.fillStyle=grad;
-    } else {
-      ctx.fillStyle=segFills[i%segFills.length];
-    }
+    if(isRarest){const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R);g.addColorStop(0,"rgba(56,189,248,0.08)");g.addColorStop(1,"rgba(56,189,248,0.22)");ctx.fillStyle=g;}
+    else{ctx.fillStyle=segFills[i%segFills.length];}
     ctx.fill();
-
-    // Segment border
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,start,end);ctx.closePath();
-    ctx.strokeStyle=isRarest?"rgba(56,189,248,0.35)":"rgba(124,111,247,0.15)";
-    ctx.lineWidth=1;ctx.stroke();
-
-    // Rarest: outer arc glow
-    if(isRarest){
-      ctx.beginPath();ctx.arc(cx,cy,R-1,start,end);
-      ctx.strokeStyle="rgba(56,189,248,0.5)";ctx.lineWidth=2;ctx.stroke();
-    }
-
-    // Text
-    ctx.save();
-    ctx.translate(cx,cy);ctx.rotate(mid);
-    ctx.textAlign="right";
-    ctx.shadowBlur=0;
+    ctx.strokeStyle=isRarest?"rgba(56,189,248,0.35)":"rgba(124,111,247,0.15)";ctx.lineWidth=1;ctx.stroke();
+    if(isRarest){ctx.beginPath();ctx.arc(cx,cy,R-1,start,end);ctx.strokeStyle="rgba(56,189,248,0.5)";ctx.lineWidth=2;ctx.stroke();}
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(mid);ctx.textAlign="right";ctx.shadowBlur=0;
     const name=r.name.length>14?r.name.slice(0,13)+"…":r.name;
-    const fontSize=n>6?10:12;
-    ctx.font=`500 ${fontSize}px 'DM Sans',sans-serif`;
+    const fontSize=n>6?10:12;ctx.font=`500 ${fontSize}px 'DM Sans',sans-serif`;
     ctx.fillStyle=isRarest?"rgba(56,189,248,0.95)":"rgba(196,181,253,0.85)";
-    ctx.fillText(name, R-12, 4);
-    ctx.restore();
+    ctx.fillText(name,R-12,4);ctx.restore();
   });
-
-  // Outer ring
-  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);
-  ctx.strokeStyle="rgba(124,111,247,0.25)";ctx.lineWidth=1.5;ctx.stroke();
-
-  // Subtle inner glow ring
-  ctx.beginPath();ctx.arc(cx,cy,R-6,0,2*Math.PI);
-  ctx.strokeStyle="rgba(124,111,247,0.08)";ctx.lineWidth=1;ctx.stroke();
-
-  // Center circle
-  ctx.beginPath();ctx.arc(cx,cy,16,0,2*Math.PI);
-  ctx.fillStyle="rgba(8,8,15,0.98)";ctx.fill();
-  ctx.strokeStyle="rgba(124,111,247,0.3)";ctx.lineWidth=1.5;ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.strokeStyle="rgba(124,111,247,0.25)";ctx.lineWidth=1.5;ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,16,0,2*Math.PI);ctx.fillStyle="rgba(8,8,15,0.98)";ctx.fill();ctx.strokeStyle="rgba(124,111,247,0.3)";ctx.lineWidth=1.5;ctx.stroke();
 }
 
 async function openWheel(){
@@ -975,163 +974,91 @@ async function openWheel(){
   document.getElementById("wheel-spin-btn").style.display="inline-flex";
   document.getElementById("wheel-spin-btn").disabled=false;
   document.getElementById("wheel-close-btn").style.display="none";
-  document.getElementById("wheel-sub").textContent="1 token sera utilisé";
   isSpinning=false;
-  // Load rewards & draw
   activeRewards=await dbGet(T_REWARDS+"?active=eq.true&order=created_at.asc");
-  wheelAngle=-Math.PI/2; // pointer at top = start of first segment
-  drawWheel(activeRewards, wheelAngle);
+  wheelAngle=-Math.PI/2;
+  drawWheel(activeRewards,wheelAngle);
 }
-
-function closeWheel(){
-  document.getElementById("wheel-overlay").classList.remove("open");
-}
-
+function closeWheel(){document.getElementById("wheel-overlay").classList.remove("open");}
 function pickReward(){
-  const total=activeRewards.reduce((s,r)=>s+r.probability,0);
-  if(total===0)return{reward:activeRewards[0],index:0};
+  const total=activeRewards.reduce((s,r)=>s+r.probability,0);if(total===0)return{reward:activeRewards[0],index:0};
   let rand=Math.random()*total,cumul=0;
   for(let i=0;i<activeRewards.length;i++){cumul+=activeRewards[i].probability;if(rand<=cumul)return{reward:activeRewards[i],index:i};}
   return{reward:activeRewards[activeRewards.length-1],index:activeRewards.length-1};
 }
-
 async function doSpin(){
   if(isSpinning||!activeRewards.length)return;
-  isSpinning=true;
-  document.getElementById("wheel-spin-btn").disabled=true;
-
-  const {reward,index}=pickReward();
-  spinResult=reward;
-
-  const n=activeRewards.length;
-  const arc=(2*Math.PI)/n;
-  const extraTurns=5;
-
-  // Segments are drawn starting at wheelAngle, going clockwise.
-  // Segment i spans: [wheelAngle + i*arc, wheelAngle + (i+1)*arc]
-  // The pointer sits at angle 0 on the canvas (RIGHT side, 3 o'clock).
-  // BUT our drawWheel starts segments from wheelAngle with pointer at top.
-  // Pointer is at canvas angle = -PI/2 (top of circle).
-  // To land segment[index] center under pointer:
-  //   finalAngle + index*arc + arc/2 = -PI/2  (mod 2PI)
-  //   finalAngle = -PI/2 - (index + 0.5) * arc
-
-  const targetFinal = -Math.PI/2 - (index + 0.5) * arc;
-
-  // Compute how much to rotate clockwise (subtract from wheelAngle)
-  // We need to go from wheelAngle to targetFinal, always spinning clockwise (decreasing angle)
-  let spinAmount = wheelAngle - targetFinal;
-  // Normalize to [0, 2PI]
-  spinAmount = ((spinAmount % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
-  if(spinAmount < 0.01) spinAmount += 2*Math.PI;
-
-  const totalRotation = extraTurns * 2*Math.PI + spinAmount;
-  const finalAngle = wheelAngle - totalRotation;
-
-  const duration = 4500;
-  const startAngle = wheelAngle;
-  const startTime = performance.now();
-
-  function easeOut(t){ return 1 - Math.pow(1-t, 4); }
-
+  isSpinning=true;document.getElementById("wheel-spin-btn").disabled=true;
+  const {reward,index}=pickReward();spinResult=reward;
+  const n=activeRewards.length,arc=2*Math.PI/n,extraTurns=5;
+  const targetFinal=-Math.PI/2-(index+0.5)*arc;
+  let spinAmount=wheelAngle-targetFinal;
+  spinAmount=((spinAmount%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+  if(spinAmount<0.01)spinAmount+=2*Math.PI;
+  const totalRotation=extraTurns*2*Math.PI+spinAmount;
+  const finalAngle=wheelAngle-totalRotation;
+  const duration=4500,startAngle=wheelAngle,startTime=performance.now();
+  function easeOut(t){return 1-Math.pow(1-t,4);}
   function animate(now){
-    const t = Math.min((now-startTime)/duration, 1);
-    const cur = startAngle - totalRotation * easeOut(t);
-    wheelAngle = cur;
-    drawWheel(activeRewards, cur);
-    if(t < 1){ requestAnimationFrame(animate); }
-    else{
-      wheelAngle = finalAngle;
-      drawWheel(activeRewards, finalAngle);
-      showWheelResult();
-    }
+    const t=Math.min((now-startTime)/duration,1);
+    const cur=startAngle-totalRotation*easeOut(t);
+    wheelAngle=cur;drawWheel(activeRewards,cur);
+    if(t<1){requestAnimationFrame(animate);}
+    else{wheelAngle=finalAngle;drawWheel(activeRewards,finalAngle);showWheelResult();}
   }
   requestAnimationFrame(animate);
 }
-
 async function showWheelResult(){
-  // Noms considérés comme "perdants" (insensible à la casse et aux espaces)
-  const LOSING_NAMES=["rien","nothing","nada","perdu","0","no prize"];
-  const isLosing=LOSING_NAMES.includes(spinResult.name.trim().toLowerCase());
-
+  const LOSING=["rien","nothing","nada","perdu","0","no prize"];
+  const isLosing=LOSING.includes(spinResult.name.trim().toLowerCase());
   const res=document.getElementById("wheel-result");
-  res.textContent="✦ "+spinResult.name;
-  res.style.color=spinResult.color||"var(--accent3)";
-  res.style.display="block";
-
-  const sub=document.getElementById("wheel-result-sub");
-  sub.textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Écris-moi pour le récupérer 🎁";
-  sub.style.display="block";
-
+  res.textContent="✦ "+spinResult.name;res.style.color=spinResult.color||"var(--accent3)";res.style.display="block";
+  document.getElementById("wheel-result-sub").textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Écris-moi pour le récupérer 🎁";
+  document.getElementById("wheel-result-sub").style.display="block";
   document.getElementById("wheel-spin-btn").style.display="none";
   document.getElementById("wheel-close-btn").style.display="inline-flex";
-
-  // Deduct token + save spin
   const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId);
   if(cData&&cData.length){
     const newTokens=Math.max(0,(cData[0].tokens||0)-1);
     await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:newTokens});
     await dbPost(T_SPINS,{client_id:currentClientId,reward_name:spinResult.name});
+    await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
     await loadClientView(currentClientId);
   }
   isSpinning=false;
 }
 
-/* ═══════════════════════════════════════════
-   CLIENT VIEW
-═══════════════════════════════════════════ */
+// ── CLIENT VIEW ──
 function puffSvg(){return`<svg viewBox="0 0 18 18" fill="none"><path d="M5 10.5C3.6 10.5 2.5 9.4 2.5 8 2.5 6.7 3.5 5.7 4.7 5.5 4.9 4.1 6.1 3 7.5 3c.8 0 1.5.3 2 .9C9.9 3.3 10.6 3 11.4 3 12.8 3 14 4.1 14 5.5c0 .1 0 .2 0 .3.9.3 1.5 1.1 1.5 2.2 0 1.4-1.1 2.5-2.5 2.5H5Z" fill="white" opacity=".95"/><rect x="8.2" y="10.5" width="1.6" height="4" rx=".8" fill="white" opacity=".7"/><rect x="6.5" y="13.5" width="5" height="1.2" rx=".6" fill="white" opacity=".5"/></svg>`;}
 function spawnConfetti(){const w=document.getElementById("cv-confetti");w.innerHTML="";const cols=["#a78bfa","#7c6ff7","#60a5fa","#38bdf8","#c4b5fd"];for(let i=0;i<20;i++){const e=document.createElement("div");e.className="confetti-piece";e.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*20}%;background:${cols[i%cols.length]};animation-delay:${Math.random()*.6}s;animation-duration:${.9+Math.random()*.7}s;transform:rotate(${Math.random()*360}deg)`;w.appendChild(e);}}
 
 async function loadClientView(id){
-  currentClientId=id;
-  showView("client");
-  const [cData,oData]=await Promise.all([
-    dbGet(T_CLIENTS+"?id=eq."+id),
-    dbGet(T_OFFERS+"?active=eq.true&order=created_at.desc&limit=1")
-  ]);
+  currentClientId=id;showView("client");
+  const [cData,oData]=await Promise.all([dbGet(T_CLIENTS+"?id=eq."+id),dbGet(T_OFFERS+"?active=eq.true&order=created_at.desc&limit=1")]);
   if(!cData||!cData.length)return;
-  const c=cData[0],full=c.stamps>=10,rem=10-c.stamps;
-  const tokens=c.tokens||0;
-
+  const c=cData[0],full=c.stamps>=10,rem=10-c.stamps,tokens=c.tokens||0;
   document.getElementById("cv-count").innerHTML=c.stamps+'<span>/10</span>';
   document.getElementById("cv-fill").style.width=(c.stamps*10)+"%";
-
   const cd=document.getElementById("cv-countdown");
   if(full)cd.innerHTML="";
   else if(rem===1)cd.innerHTML=`<strong>Plus qu'1 tampon</strong> pour un token !`;
   else cd.innerHTML=`Plus que <strong>${rem} tampons</strong> pour un token !`;
-
-  document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>`
-    <div class="cv-stamp ${i<c.stamps?"on":""}" ${i<c.stamps?`style="animation-delay:${i*.06}s"`:""}>${i<c.stamps?puffSvg():`<span class="cv-stamp-num">${i+1}</span>`}</div>`).join("");
-
+  document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>`<div class="cv-stamp ${i<c.stamps?"on":""}" ${i<c.stamps?`style="animation-delay:${i*.06}s"`:""}>${i<c.stamps?puffSvg():`<span class="cv-stamp-num">${i+1}</span>`}</div>`).join("");
   const banner=document.getElementById("cv-complete");
-  if(c.stamps===0&&tokens>0){
-    // Just got a token (stamps reset)
-    banner.classList.add("show");spawnConfetti();
-    setTimeout(()=>banner.classList.remove("show"),4000);
-  } else {
-    banner.classList.remove("show");
-  }
-
-  // Token section
-  const tokenSection=document.getElementById("cv-token-section");
-  const spinBtn=document.getElementById("btn-spin");
+  if(c.stamps===0&&tokens>0){banner.classList.add("show");spawnConfetti();setTimeout(()=>banner.classList.remove("show"),4000);}
+  else banner.classList.remove("show");
+  const tokenSection=document.getElementById("cv-token-section"),spinBtn=document.getElementById("btn-spin");
   if(tokens>0){
     tokenSection.style.display="flex";
     document.getElementById("cv-token-count").textContent=tokens;
     spinBtn.disabled=false;
-    spinBtn.textContent="🎡 Lancer la roue  —  1 token";
-  } else {
-    tokenSection.style.display="none";
-  }
-
-  // Offer banner
+  } else {tokenSection.style.display="none";}
+  // Offer
   const ob=document.getElementById("cv-offer-banner");
   const o=oData&&oData.length?oData[0]:null;
   if(o&&(!o.expires_at||new Date(o.expires_at)>new Date())){
     const col=o.badge_color||"#7c6ff7";
-    const hex2rgb=h=>{try{const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`${r},${g},${b}`}catch{return"124,111,247"}};
+    const hex2rgb=h=>{try{return`${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)}`}catch{return"124,111,247"}};
     const rgb=hex2rgb(col);
     ob.innerHTML=`<div class="cv-offer-banner" style="background:linear-gradient(135deg,rgba(${rgb},0.22) 0%,rgba(${rgb},0.12) 100%)">
       <div class="cv-offer-glow" style="background:${col}"></div>
@@ -1142,29 +1069,23 @@ async function loadClientView(id){
         ${o.expires_at?`<div class="cv-offer-footer"><span>Expire dans</span>&nbsp;<strong id="cot">...</strong></div>`:""}
       </div>
     </div>`;
-    if(o.expires_at){
-      if(clientOfferTick)clearInterval(clientOfferTick);
-      const upd=()=>{const el=document.getElementById("cot");if(el)el.textContent=fmtTimer(new Date(o.expires_at)-new Date());};
-      upd();clientOfferTick=setInterval(upd,1000);
-    }
-  } else ob.innerHTML="";
+    if(o.expires_at){if(clientOfferTick)clearInterval(clientOfferTick);const upd=()=>{const el=document.getElementById("cot");if(el)el.textContent=fmtTimer(new Date(o.expires_at)-new Date());};upd();clientOfferTick=setInterval(upd,1000);}
+  }else ob.innerHTML="";
 }
 
-/* ═══════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════ */
+function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
+
+// ── INIT ──
 buildPin();
 buildOfferColors();
 
 const cid=new URLSearchParams(window.location.search).get("client");
 if(cid) loadClientView(cid);
-else showView("pin");
+else showView("register");
 
-// PWA - Enregistrement du Service Worker
 if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("/club-plus/sw.js", {scope: "/club-plus/"})
-    .then(()=>console.log("SW enregistré ✓"))
-    .catch(e=>console.log("SW erreur:",e));
+  navigator.serviceWorker.register("/club-plus/sw.js",{scope:"/club-plus/"})
+    .then(()=>console.log("SW ✓")).catch(e=>console.log("SW:",e));
 }
 </script>
 </body>
