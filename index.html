@@ -287,6 +287,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .product-status.rupture{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
 
 /* ── PRODUCTS CLIENT ── */
+/* ── CLIENT BOTTOM NAV ── */
+.cv-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;background:rgba(8,8,15,0.97);border-top:1px solid rgba(124,111,247,0.2);backdrop-filter:blur(16px);z-index:50;display:none}
+.cv-nav.visible{display:flex}
+.cv-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px 11px;cursor:pointer;border:none;background:transparent;color:rgba(200,190,255,0.35);transition:color .15s;font-family:'DM Sans',sans-serif;position:relative}
+.cv-nav-item.active{color:var(--accent3)}
+.cv-nav-item:active{transform:scale(.9)}
+.cv-nav-icon{font-size:20px;margin-bottom:2px;line-height:1}
+.cv-nav-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase}
+.cv-nav-badge{position:absolute;top:5px;right:calc(50% - 16px);background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:1px 5px;min-width:16px;text-align:center}
+.cv-section{display:none;width:100%;animation:fadeUp .3s ease both}
+.cv-section.active{display:block}
+.cv-section-header{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px;text-align:center}
+
 .cv-products{width:100%;max-width:460px;animation:fadeUp .5s ease .2s both}
 .cv-products-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;text-align:center}
 .cv-product-card{background:rgba(18,16,38,0.75);border:1px solid rgba(124,111,247,0.15);border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:8px;backdrop-filter:blur(10px)}
@@ -343,7 +356,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 @keyframes tokenPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 8px 2px rgba(56,189,248,0.2)}}
 @keyframes slotBounce{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
 
-.cv-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;width:100%;gap:16px;position:relative;z-index:1}
+.cv-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:1.5rem 1.5rem 80px;width:100%;gap:16px;position:relative;z-index:1}
 .cv-brand{display:flex;flex-direction:column;align-items:center;animation:fadeUp .5s ease both}
 .cv-brand-icon{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
 .cv-brand-name{font-size:28px;font-weight:600;letter-spacing:-.02em;background:linear-gradient(135deg,#c4b5fd 0%,#a78bfa 40%,#7c6ff7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 16px rgba(167,139,250,0.4))}
@@ -774,71 +787,104 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div class="view" id="view-client">
   <div class="cv-wrap">
 
-    <!-- COMMANDE EN COURS — tout en haut -->
-    <div class="cv-products" id="cv-orders" style="display:none">
-      <div class="cv-products-title">🛍 Commande en cours</div>
-      <div id="cv-orders-list"></div>
-    </div>
-
+    <!-- Header commun -->
     <div class="cv-brand">
       <div class="cv-brand-icon">✦ fidélité</div>
       <div class="cv-brand-name">Club+</div>
     </div>
-    <div id="cv-offer-banner"></div>
-    <div class="cv-card">
-      <span id="cv-avatar" style="display:none"></span>
-      <span id="cv-name" style="display:none"></span>
-      <div class="cv-stamps-grid" id="cv-stamps"></div>
-      <div class="cv-progress-section">
-        <div class="cv-progress-header">
-          <span class="cv-progress-label">Progression</span>
-          <span class="cv-progress-count" id="cv-count">0<span>/10</span></span>
-        </div>
-        <div class="cv-track"><div class="cv-fill" id="cv-fill" style="width:0%"></div></div>
-        <div class="cv-countdown" id="cv-countdown"></div>
+
+    <!-- ── SECTION CARTE ── -->
+    <div class="cv-section active" id="cvs-carte">
+      <!-- Commande en cours -->
+      <div id="cv-orders" style="display:none;margin-bottom:12px">
+        <div class="cv-section-header">🛍 Commande en cours</div>
+        <div id="cv-orders-list"></div>
       </div>
-      <div class="cv-complete-banner" id="cv-complete">
-        <div id="cv-confetti"></div>
-        <div class="cv-complete-title">✦ Carte complète !</div>
-        <div class="cv-complete-sub">Token ajouté — lance la roue !</div>
-      </div>
-      <div class="cv-token-section" id="cv-token-section" style="display:none">
-        <div class="cv-token-info">
-          <div class="cv-token-icon">🪙</div>
-          <div>
-            <div class="cv-token-count" id="cv-token-count">0</div>
-            <div class="cv-token-label">token(s)</div>
+
+      <div id="cv-offer-banner"></div>
+
+      <div class="cv-card">
+        <span id="cv-avatar" style="display:none"></span>
+        <span id="cv-name" style="display:none"></span>
+        <div class="cv-stamps-grid" id="cv-stamps"></div>
+        <div class="cv-progress-section">
+          <div class="cv-progress-header">
+            <span class="cv-progress-label">Progression</span>
+            <span class="cv-progress-count" id="cv-count">0<span>/10</span></span>
           </div>
+          <div class="cv-track"><div class="cv-fill" id="cv-fill" style="width:0%"></div></div>
+          <div class="cv-countdown" id="cv-countdown"></div>
         </div>
-        <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled>🎡 Lancer la roue — 1 token</button>
+        <div class="cv-complete-banner" id="cv-complete">
+          <div id="cv-confetti"></div>
+          <div class="cv-complete-title">✦ Carte complète !</div>
+          <div class="cv-complete-sub">Token ajouté — lance la roue !</div>
+        </div>
+        <div class="cv-token-section" id="cv-token-section" style="display:none">
+          <div class="cv-token-info">
+            <div class="cv-token-icon">🪙</div>
+            <div>
+              <div class="cv-token-count" id="cv-token-count">0</div>
+              <div class="cv-token-label">token(s)</div>
+            </div>
+          </div>
+          <button class="btn-spin" id="btn-spin" onclick="openWheel()" disabled>🎡 Lancer la roue — 1 token</button>
+        </div>
+      </div>
+
+      <div class="cv-footer">
+        Seul l'admin peut modifier ta carte &nbsp;·&nbsp;
+        <span onclick="clientLogout()" style="cursor:pointer;text-decoration:underline;opacity:0.6">Changer de compte</span>
       </div>
     </div>
-    <div class="cv-footer">
-      Seul l'admin peut modifier ta carte &nbsp;·&nbsp;
-      <span onclick="clientLogout()" style="cursor:pointer;text-decoration:underline;opacity:0.6">Changer de compte</span>
-    </div>
 
-    <!-- STOCK CLIENT -->
-    <div class="cv-products" id="cv-products" style="display:none">
-      <div class="cv-products-title">📦 Nos produits</div>
+    <!-- ── SECTION SHOP ── -->
+    <div class="cv-section" id="cvs-shop">
+      <div class="cv-section-header">📦 Nos produits</div>
       <div id="cv-products-list"></div>
+      <div id="cv-shop-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun produit disponible</div>
     </div>
 
-    <!-- DÉFIS CLIENT -->
-    <div class="cv-products" id="cv-challenges" style="display:none">
-      <div class="cv-products-title">🎯 Défis en cours</div>
+    <!-- ── SECTION DÉFIS ── -->
+    <div class="cv-section" id="cvs-defis">
+      <div class="cv-section-header">🎯 Défis en cours</div>
       <div id="cv-challenges-list"></div>
+      <div id="cv-defis-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun défi actif pour le moment</div>
     </div>
 
-    <!-- COFFRES CLIENT -->
-    <div class="cv-chests-section" id="cv-chests" style="display:none">
-      <div class="cv-chests-title">🎁 Tes coffres à ouvrir</div>
-      <div class="cv-chest-intro">Tu as gagné un coffre après ta dernière commande livrée.<br>Choisis-en un à ouvrir !</div>
-      <div class="cv-chests-grid" id="cv-chests-grid"></div>
-      <button class="cv-open-btn" id="cv-open-btn" onclick="openSelectedChest()">Ouvrir ce coffre ✨</button>
+    <!-- ── SECTION COFFRES ── -->
+    <div class="cv-section" id="cvs-coffres">
+      <div class="cv-section-header">🎁 Tes coffres</div>
+      <div id="cv-coffres-empty" style="text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun coffre à ouvrir<br><span style="font-size:11px;opacity:.6">Reviens après un tampon !</span></div>
+      <div style="display:none" id="cv-coffres-content">
+        <div class="cv-chest-intro" id="cv-chest-intro-text"></div>
+        <div class="cv-chests-grid" id="cv-chests-grid"></div>
+        <button class="cv-open-btn" id="cv-open-btn" onclick="openSelectedChest()">Ouvrir ce coffre ✨</button>
+      </div>
     </div>
 
   </div>
+
+  <!-- BOTTOM NAV CLIENT -->
+  <nav class="cv-nav" id="cv-nav">
+    <button class="cv-nav-item active" id="cvnav-carte" onclick="switchClientTab('carte')">
+      <div class="cv-nav-icon">🃏</div>
+      <div class="cv-nav-label">Carte</div>
+    </button>
+    <button class="cv-nav-item" id="cvnav-shop" onclick="switchClientTab('shop')">
+      <div class="cv-nav-icon">🛍</div>
+      <div class="cv-nav-label">Shop</div>
+    </button>
+    <button class="cv-nav-item" id="cvnav-defis" onclick="switchClientTab('defis')">
+      <div class="cv-nav-icon">🎯</div>
+      <div class="cv-nav-label">Défis</div>
+    </button>
+    <button class="cv-nav-item" id="cvnav-coffres" onclick="switchClientTab('coffres')">
+      <div class="cv-nav-icon">🎁</div>
+      <div class="cv-nav-label">Coffres</div>
+      <div class="cv-nav-badge" id="cvnav-badge-coffres" style="display:none"></div>
+    </button>
+  </nav>
 </div>
 
 <!-- ══ SPIN WHEEL ══ -->
@@ -1437,6 +1483,13 @@ async function setOrderStatus(id,status){
   toast(labels[status]||"Statut mis à jour");loadOrders();
 }
 
+function switchClientTab(tab){
+  ["carte","shop","defis","coffres"].forEach(t=>{
+    document.getElementById("cvs-"+t).classList.toggle("active",t===tab);
+    document.getElementById("cvnav-"+t).classList.toggle("active",t===tab);
+  });
+}
+
 function clientLogout(){
   localStorage.removeItem("clubplus_client_id");
   currentClientId=null;
@@ -1715,16 +1768,16 @@ function getPeriodStart(period){
 }
 
 async function loadClientChallenges(clientId){
-  const cw=document.getElementById("cv-challenges");
   const cl=document.getElementById("cv-challenges-list");
+  const empty=document.getElementById("cv-defis-empty");
   const [challenges,completions,orders]=await Promise.all([
     dbGet(T_CHALLENGES+"?active=eq.true&order=created_at.asc"),
     dbGet(T_COMPLETIONS+"?client_id=eq."+clientId),
     dbGet(T_ORDERS+"?client_id=eq."+clientId+"&status=neq.cancelled&select=created_at")
   ]);
-  if(!challenges||!challenges.length){cw.style.display="none";return;}
+  if(!challenges||!challenges.length){if(empty)empty.style.display="block";return;}
+  if(empty)empty.style.display="none";
   const completedIds=new Set((completions||[]).map(c=>c.challenge_id));
-  cw.style.display="block";
   const items=await Promise.all(challenges.map(async ch=>{
     const done=completedIds.has(ch.id);
     const start=getPeriodStart(ch.period);
@@ -1878,17 +1931,27 @@ let selectedChestId=null;
 let pendingClientChestId=null;
 
 async function loadClientChests(clientId){
-  const cw=document.getElementById("cv-chests");
-  // Récupère tous les coffres du client et filtre côté JS
+  const empty=document.getElementById("cv-coffres-empty");
+  const content=document.getElementById("cv-coffres-content");
+  const badge=document.getElementById("cvnav-badge-coffres");
   const allClientChests=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&order=created_at.desc&limit=20");
   const clientChests=(allClientChests||[]).filter(c=>!c.opened);
-  if(!clientChests.length){cw.style.display="none";return;}
+  if(!clientChests.length){
+    empty.style.display="block";content.style.display="none";
+    if(badge)badge.style.display="none";
+    return;
+  }
   const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
-  if(!chests||!chests.length){cw.style.display="none";return;}
-  cw.style.display="block";
+  if(!chests||!chests.length){
+    empty.style.display="block";content.style.display="none";
+    if(badge)badge.style.display="none";
+    return;
+  }
+  empty.style.display="none";content.style.display="block";
   const unopened=clientChests.length;
-  const intro=cw.querySelector(".cv-chest-intro");
-  if(intro)intro.textContent=unopened>1?`Tu as ${unopened} coffres à ouvrir ! Choisis-en un.`:"Tu as gagné un coffre ! Choisis-en un à ouvrir.";
+  if(badge){badge.textContent=unopened;badge.style.display="block";}
+  const intro=document.getElementById("cv-chest-intro-text");
+  if(intro)intro.textContent=unopened>1?`Tu as ${unopened} coffres à ouvrir ! Choisis-en un.`:"Tu as un coffre à ouvrir ! Choisis-en un.";
   const grid=document.getElementById("cv-chests-grid");
   grid.innerHTML=chests.map(ch=>`
     <div class="cv-chest-item" id="chest-item-${ch.id}" onclick="selectChest('${ch.id}','${clientChests[0].id}')">
@@ -2220,11 +2283,15 @@ async function loadClientView(id){
     if(o.expires_at){if(clientOfferTick)clearInterval(clientOfferTick);const upd=()=>{const el=document.getElementById("cot");if(el)el.textContent=fmtTimer(new Date(o.expires_at)-new Date());};upd();clientOfferTick=setInterval(upd,1000);}
   }else ob.innerHTML="";
 
-  // Products
-  const pw=document.getElementById("cv-products");
+  // Show bottom nav
+  document.getElementById("cv-nav").classList.add("visible");
+  switchClientTab("carte");
+
+  // Products → section shop
   const pl=document.getElementById("cv-products-list");
+  const shopEmpty=document.getElementById("cv-shop-empty");
   if(pData&&pData.length){
-    pw.style.display="block";
+    shopEmpty.style.display="none";
     pl.innerHTML=pData.map(p=>{
       const stockClass=p.stock===0?"out":p.stock<=5?"low":"ok";
       const dispo=p.stock>0;
@@ -2243,7 +2310,10 @@ async function loadClientView(id){
         </div>
       </div>`;
     }).join("");
-  } else pw.style.display="none";
+  } else {
+    shopEmpty.style.display="block";
+    pl.innerHTML="";
+  }
 
   // Client orders
   await loadClientOrders(id);
