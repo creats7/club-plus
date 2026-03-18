@@ -1330,14 +1330,14 @@ async function chg(id,curStamps,curTokens,d){
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens});
     await dbPost(T_STAMP_LOGS,{client_id:id});
     await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-    // Coffre offert à chaque tampon
-    await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+    const chestRes=await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+    console.log("coffre carte complete:",JSON.stringify(chestRes));
     toast("🎉 Carte complète ! +1 token + 🎁 coffre offert !");
   } else if(d===1){
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
     await dbPost(T_STAMP_LOGS,{client_id:id});
-    // Coffre offert à chaque tampon
-    await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+    const chestRes=await dbPost(T_CLIENT_CHESTS,{client_id:id,opened:false});
+    console.log("coffre tampon:",JSON.stringify(chestRes));
     toast("Tampon ajouté ✓ · 🎁 coffre offert !");
   } else {
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps});
@@ -2275,9 +2275,11 @@ document.addEventListener("DOMContentLoaded", function(){
     else showView("register");
   }
 
+  // Service worker désactivé — cause des problèmes de cache
   if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("/club-plus/sw.js",{scope:"/club-plus/"})
-      .then(()=>console.log("SW ✓")).catch(e=>console.log("SW:",e));
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+    });
   }
 });
 </script>
