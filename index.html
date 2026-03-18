@@ -749,10 +749,20 @@ function dots(err){for(let i=0;i<4;i++){const d=document.getElementById("d"+i);d
 function pinAdd(k){if(pinBuf.length>=4)return;pinBuf+=k;dots(false);if(pinBuf.length===4)checkPin();}
 function pinDel(){pinBuf=pinBuf.slice(0,-1);dots(false);document.getElementById("pin-error").textContent="";}
 function checkPin(){
-  if(pinBuf===ADMIN_PIN){pinBuf="";dots(false);showView("admin");loadAll();}
-  else{dots(true);document.getElementById("pin-error").textContent="Code incorrect";setTimeout(()=>{pinBuf="";dots(false);document.getElementById("pin-error").textContent="";},900);}
+  if(pinBuf===ADMIN_PIN){
+    pinBuf="";dots(false);
+    localStorage.setItem("clubplus_admin","1");
+    showView("admin");loadAll();
+  } else {
+    dots(true);document.getElementById("pin-error").textContent="Code incorrect";
+    setTimeout(()=>{pinBuf="";dots(false);document.getElementById("pin-error").textContent="";},900);
+  }
 }
-function logout(){pinBuf="";dots(false);showView("pin");}
+function logout(){
+  pinBuf="";dots(false);
+  localStorage.removeItem("clubplus_admin");
+  showView("pin");
+}
 
 // ── INSCRIPTION / CONNEXION CLIENT ──
 function switchRegTab(tab){
@@ -1540,6 +1550,7 @@ buildOfferColors();
 
 const cid=new URLSearchParams(window.location.search).get("client");
 if(cid) loadClientView(cid);
+else if(localStorage.getItem("clubplus_admin")==="1"){showView("admin");loadAll();}
 else{
   const saved=localStorage.getItem("clubplus_client_id");
   if(saved) loadClientView(saved);
