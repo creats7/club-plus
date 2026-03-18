@@ -134,7 +134,33 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .reward-form{background:rgba(20,18,40,0.8);border:1px solid var(--border2);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
 .reward-form.open{display:block}
 
-/* ── PRODUCTS ADMIN ── */
+/* ── ORDERS ADMIN ── */
+.order-card{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:10px}
+.order-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px}
+.order-product{font-size:15px;font-weight:500}
+.order-client{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px}
+.order-price{font-size:14px;font-weight:600;color:var(--accent3);font-family:'DM Mono',monospace;flex-shrink:0}
+.order-meta{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.order-meta-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.order-meta-row span{color:var(--text)}
+.order-status{display:inline-block;font-size:11px;font-weight:600;border-radius:99px;padding:3px 10px;font-family:'DM Mono',monospace}
+.order-status.pending{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.25)}
+.order-status.confirmed{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.order-status.cancelled{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
+.order-status.ready{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25)}
+.order-actions{display:flex;gap:6px;flex-wrap:wrap}
+.orders-filter{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.filter-btn.active{background:linear-gradient(135deg,rgba(109,95,245,0.3),rgba(139,92,246,0.2));color:var(--text);border-color:rgba(124,111,247,0.4)}
+
+/* ── ORDER MODAL (client) ── */
+.order-overlay{position:fixed;inset:0;background:rgba(4,3,16,.88);display:none;align-items:flex-end;justify-content:center;z-index:200;backdrop-filter:blur(6px)}
+.order-overlay.open{display:flex}
+.order-sheet{background:rgba(14,12,32,0.98);border:1px solid rgba(124,111,247,0.2);border-radius:22px 22px 0 0;padding:1.5rem;width:100%;max-width:460px;box-shadow:0 -8px 40px rgba(0,0,0,.6)}
+.order-sheet-handle{width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:0 auto 1.25rem}
+.order-sheet-title{font-size:17px;font-weight:600;margin-bottom:4px}
+.order-sheet-product{font-size:13px;color:var(--muted);margin-bottom:1.25rem}
+.order-sheet-price{color:var(--accent3);font-weight:600;font-family:'DM Mono',monospace}
 .product-form-wrap{background:rgba(20,18,40,0.6);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1rem;display:none}
 .product-form-wrap.open{display:block}
 .products-list{display:flex;flex-direction:column;gap:10px}
@@ -321,6 +347,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <button class="tab" id="tab-clients" onclick="switchTab('clients')">Clients</button>
     <button class="tab" id="tab-offers" onclick="switchTab('offers')">Offres</button>
     <button class="tab" id="tab-products" onclick="switchTab('products')">Stock</button>
+    <button class="tab" id="tab-orders" onclick="switchTab('orders')">Commandes</button>
     <button class="tab" id="tab-rewards" onclick="switchTab('rewards')">Roue</button>
     <button class="tab" id="tab-history" onclick="switchTab('history')">Historique</button>
   </div>
@@ -467,6 +494,22 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="products-list" id="products-list"></div>
   </div>
 
+  <!-- ORDERS -->
+  <div id="panel-orders" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Commandes</div>
+      <button class="btn btn-sm" onclick="loadOrders()">↻ Actualiser</button>
+    </div>
+    <div class="orders-filter">
+      <button class="filter-btn active" id="of-all" onclick="filterOrders('all')">Toutes</button>
+      <button class="filter-btn" id="of-pending" onclick="filterOrders('pending')">En attente</button>
+      <button class="filter-btn" id="of-confirmed" onclick="filterOrders('confirmed')">Confirmées</button>
+      <button class="filter-btn" id="of-ready" onclick="filterOrders('ready')">Prêtes</button>
+      <button class="filter-btn" id="of-cancelled" onclick="filterOrders('cancelled')">Annulées</button>
+    </div>
+    <div id="orders-list"><div class="loader">Chargement...</div></div>
+  </div>
+
   <!-- HISTORIQUE -->
   <div id="panel-history" style="display:none">
     <div class="panel-header">
@@ -569,6 +612,41 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
+<!-- ORDER MODAL (bottom sheet) -->
+<div class="order-overlay" id="order-overlay" onclick="closeOrderModal()">
+  <div class="order-sheet" onclick="event.stopPropagation()">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-title" id="os-title">Réserver</div>
+    <div class="order-sheet-product" id="os-product"></div>
+    <input type="hidden" id="os-product-id" />
+    <input type="hidden" id="os-product-price" />
+
+    <label class="modal-label">Nom complet</label>
+    <input class="input" id="os-name" placeholder="Prénom Nom" />
+
+    <label class="modal-label">Téléphone</label>
+    <input class="input" id="os-phone" placeholder="06 12 34 56 78" type="tel" />
+
+    <label class="modal-label">Adresse de livraison</label>
+    <input class="input" id="os-address" placeholder="ex: 12 rue de la Paix, Paris" />
+
+    <label class="modal-label">Créneau de retrait souhaité</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <input class="input" id="os-date" type="date" style="margin-bottom:0" />
+      <input class="input" id="os-time" type="time" style="margin-bottom:0" />
+    </div>
+
+    <label class="modal-label">Note (optionnel)</label>
+    <input class="input" id="os-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
+
+    <div class="reg-error" id="os-error"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-spin" style="flex:1;justify-content:center;font-size:13px;padding:11px" onclick="submitOrder()">Confirmer la réservation</button>
+      <button class="btn" onclick="closeOrderModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -583,6 +661,7 @@ const T_SPINS=SUPA_URL+"/rest/v1/spins";
 const T_STAMP_LOGS=SUPA_URL+"/rest/v1/stamp_logs";
 const T_TOKEN_LOGS=SUPA_URL+"/rest/v1/token_logs";
 const T_PRODUCTS=SUPA_URL+"/rest/v1/products";
+const T_ORDERS=SUPA_URL+"/rest/v1/orders";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -603,13 +682,14 @@ function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Ma
 
 // ── TABS ──
 function switchTab(tab){
-  ["dashboard","clients","offers","products","rewards","history"].forEach(t=>{
+  ["dashboard","clients","offers","products","orders","rewards","history"].forEach(t=>{
     document.getElementById("tab-"+t).classList.toggle("active",t===tab);
     document.getElementById("panel-"+t).style.display=t===tab?"block":"none";
   });
   if(tab==="dashboard")loadCharts();
   if(tab==="offers")loadOffer();
   if(tab==="products")loadProducts();
+  if(tab==="orders")loadOrders();
   if(tab==="rewards")loadRewards();
   if(tab==="history")loadHistory();
 }
@@ -890,6 +970,116 @@ function showQR(id,name){
   document.getElementById("qr-modal").classList.add("open");
 }
 function closeQR(){document.getElementById("qr-modal").classList.remove("open");}
+
+// ── ORDERS ADMIN ──
+let currentOrderFilter="all";
+async function loadOrders(){
+  const list=document.getElementById("orders-list");
+  list.innerHTML='<div class="loader">Chargement...</div>';
+  const orders=await dbGet(T_ORDERS+"?order=created_at.desc");
+  if(!orders||!orders.length){list.innerHTML='<div class="empty-state">Aucune commande</div>';return;}
+  const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
+  const filtered=currentOrderFilter==="all"?orders:orders.filter(o=>o.status===currentOrderFilter);
+  if(!filtered.length){list.innerHTML='<div class="empty-state">Aucune commande dans cette catégorie</div>';return;}
+  const statusLabel={pending:"En attente",confirmed:"Confirmée",ready:"Prête",cancelled:"Annulée"};
+  list.innerHTML="";
+  filtered.forEach(o=>{
+    const div=document.createElement("div");div.className="order-card";
+    div.innerHTML=`
+      <div class="order-header">
+        <div>
+          <div class="order-product">${o.product_name}${o.quantity>1?" ×"+o.quantity:""}</div>
+          <div class="order-client">${clientMap[o.client_id]||o.customer_name||"Client"} · ${fmtDate(o.created_at)}</div>
+        </div>
+        <div>${o.product_price!=null?`<div class="order-price">${(o.product_price*(o.quantity||1)).toFixed(2)} €</div>`:""}</div>
+      </div>
+      <div class="order-meta">
+        ${o.customer_name?`<div class="order-meta-row">👤 <span>${o.customer_name}</span></div>`:""}
+        ${o.customer_phone?`<div class="order-meta-row">📞 <span>${o.customer_phone}</span></div>`:""}
+        ${o.delivery_address?`<div class="order-meta-row">📍 <span>${o.delivery_address}</span></div>`:""}
+        ${o.pickup_slot?`<div class="order-meta-row">🕐 <span>${o.pickup_slot}</span></div>`:""}
+        ${o.note?`<div class="order-meta-row">💬 <span>${o.note}</span></div>`:""}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div class="order-status ${o.status}">${statusLabel[o.status]||o.status}</div>
+        <div class="order-actions">
+          ${o.status==="pending"?`<button class="btn btn-sm btn-accent" onclick="setOrderStatus('${o.id}','confirmed')">✓ Confirmer</button>`:""}
+          ${o.status==="confirmed"?`<button class="btn btn-sm" style="color:var(--blue);border-color:rgba(96,165,250,0.3)" onclick="setOrderStatus('${o.id}','ready')">📦 Prête</button>`:""}
+          ${o.status!=="cancelled"?`<button class="btn btn-sm btn-danger" onclick="setOrderStatus('${o.id}','cancelled')">✕ Annuler</button>`:""}
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+function filterOrders(status){
+  currentOrderFilter=status;
+  ["all","pending","confirmed","ready","cancelled"].forEach(s=>{
+    document.getElementById("of-"+s).classList.toggle("active",s===status);
+  });
+  loadOrders();
+}
+async function setOrderStatus(id,status){
+  await dbPatch(T_ORDERS+"?id=eq."+id,{status});
+  const labels={confirmed:"Commande confirmée ✓",ready:"Commande prête 📦",cancelled:"Commande annulée"};
+  toast(labels[status]||"Statut mis à jour");loadOrders();
+}
+
+// ── ORDER MODAL (client) ──
+function openOrderModal(productId,productName,price,stock){
+  // Pré-remplir avec les infos du client si dispo
+  document.getElementById("os-product-id").value=productId;
+  document.getElementById("os-product-price").value=price;
+  document.getElementById("os-title").textContent="Réserver · "+productName;
+  document.getElementById("os-product").innerHTML=`<span class="order-sheet-price">${price?price.toFixed(2)+" €":"—"}</span> · ${stock} unité${stock!==1?"s":""} disponible${stock!==1?"s":""}`;
+  document.getElementById("os-error").textContent="";
+  document.getElementById("os-note").value="";
+  document.getElementById("os-address").value="";
+  document.getElementById("os-date").value="";
+  document.getElementById("os-time").value="";
+  // Pré-remplir nom et téléphone depuis le client connecté
+  if(currentClientId){
+    const c=allClients.find(x=>x.id===currentClientId);
+    if(c){document.getElementById("os-name").value=c.name;document.getElementById("os-phone").value=c.phone||"";}
+  }
+  document.getElementById("order-overlay").classList.add("open");
+}
+function closeOrderModal(){document.getElementById("order-overlay").classList.remove("open");}
+async function submitOrder(){
+  const name=document.getElementById("os-name").value.trim();
+  const phone=document.getElementById("os-phone").value.trim();
+  const address=document.getElementById("os-address").value.trim();
+  const date=document.getElementById("os-date").value;
+  const time=document.getElementById("os-time").value;
+  const note=document.getElementById("os-note").value.trim();
+  const productId=document.getElementById("os-product-id").value;
+  const price=parseFloat(document.getElementById("os-product-price").value)||null;
+  const err=document.getElementById("os-error");
+
+  if(!name){err.textContent="Entre ton nom";return;}
+  if(!phone){err.textContent="Entre ton téléphone";return;}
+  err.textContent="";
+
+  const pickup_slot=date&&time?`${new Date(date).toLocaleDateString("fr-FR")} à ${time}`:date?new Date(date).toLocaleDateString("fr-FR"):null;
+  // Get product name
+  const products=await dbGet(T_PRODUCTS+"?id=eq."+productId+"&select=name,price");
+  const productName=products&&products.length?products[0].name:"Produit";
+
+  await dbPost(T_ORDERS,{
+    client_id:currentClientId||null,
+    product_id:productId,
+    product_name:productName,
+    product_price:price,
+    quantity:1,
+    customer_name:name,
+    customer_phone:normalizePhone(phone),
+    delivery_address:address||null,
+    pickup_slot:pickup_slot||null,
+    note:note||null,
+    status:"pending"
+  });
+  closeOrderModal();
+  toast("Réservation envoyée ! On te confirme ça 🎉");
+}
 
 // ── PRODUCTS ADMIN ──
 async function loadProducts(){
@@ -1218,9 +1408,10 @@ async function loadClientView(id){
           <div class="cv-product-name">${p.name}</div>
           <div class="cv-product-price">${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
         </div>
-        <div class="cv-product-right">
+        <div class="cv-product-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <div class="cv-product-stock ${stockClass}">${p.stock} unité${p.stock!==1?"s":""}</div>
           <div class="cv-product-badge ${dispo?"dispo":"rupture"}">${dispo?"Dispo":"Rupture"}</div>
+          ${dispo?`<button class="btn-spin" style="font-size:12px;padding:7px 12px" onclick="openOrderModal('${p.id}','${p.name.replace(/'/g,"\\'")}',${p.price||0},${p.stock})">Réserver</button>`:""}
         </div>
       </div>`;
     }).join("");
