@@ -550,6 +550,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <!-- ══ CLIENT VIEW ══ -->
 <div class="view" id="view-client">
   <div class="cv-wrap">
+
+    <!-- COMMANDE EN COURS — tout en haut -->
+    <div class="cv-products" id="cv-orders" style="display:none">
+      <div class="cv-products-title">🛍 Commande en cours</div>
+      <div id="cv-orders-list"></div>
+    </div>
+
     <div class="cv-brand">
       <div class="cv-brand-icon">✦ fidélité</div>
       <div class="cv-brand-name">Club+</div>
@@ -594,11 +601,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div id="cv-products-list"></div>
     </div>
 
-    <!-- MES COMMANDES -->
-    <div class="cv-products" id="cv-orders" style="display:none">
-      <div class="cv-products-title">🛍 Mes réservations</div>
-      <div id="cv-orders-list"></div>
-    </div>
   </div>
 </div>
 
@@ -1143,8 +1145,11 @@ async function loadClientOrders(clientId){
   const ol=document.getElementById("cv-orders-list");
   const orders=await dbGet(T_ORDERS+"?client_id=eq."+clientId+"&order=created_at.desc&limit=10");
   if(!orders||!orders.length){ow.style.display="none";return;}
+  // Affiche uniquement les commandes actives (pas livrées ni annulées)
+  const active=orders.filter(o=>o.status!=="delivered"&&o.status!=="cancelled");
+  if(!active.length){ow.style.display="none";return;}
   ow.style.display="block";
-  ol.innerHTML=orders.map(o=>`
+  ol.innerHTML=active.map(o=>`
     <div class="delivery-tracker">
       <div class="tracker-product">
         <span>${o.product_name}${o.quantity>1?" ×"+o.quantity:""}</span>
