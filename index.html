@@ -784,18 +784,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <button class="btn btn-accent btn-sm" onclick="toggleChestForm()">+ Coffre</button>
     </div>
     <div class="chest-form-wrap" id="chest-form">
-      <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="chest-form-title">Nouveau coffre</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px" id="chest-form-title">Nouveau coffre</div>
       <input type="hidden" id="chf-id" />
-      <label class="modal-label">Emoji</label>
-      <input class="input" id="chf-emoji" placeholder="ex: 🎁" maxlength="4" style="width:80px;display:inline-block;margin-right:8px;margin-bottom:8px" />
-      <label class="modal-label" style="display:inline-block">Nom</label>
+      <label class="modal-label">Titre</label>
       <input class="input" id="chf-name" placeholder="ex: Coffre Mystère" />
-      <label class="modal-label">Description</label>
-      <input class="input" id="chf-desc" placeholder="ex: Des surprises à l'intérieur !" style="margin-bottom:4px" />
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:'DM Mono',monospace">Lots (probabilités en %)</div>
-      <div id="chf-rewards-list"></div>
-      <button class="btn btn-sm" onclick="addChestRewardRow()" style="margin-bottom:12px">+ Ajouter un lot</button>
-      <div style="display:flex;gap:8px">
+      <label class="modal-label">Contenu / description</label>
+      <input class="input" id="chf-desc" placeholder="ex: Des surprises à l'intérieur !" />
+      <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveChest()">Enregistrer</button>
         <button class="btn" onclick="toggleChestForm()">Annuler</button>
       </div>
@@ -1113,7 +1108,7 @@ function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit"
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","chests","more","history"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","chests","more","history","stamp_rewards"];
 const NAV_ITEMS=["home","clients","orders","products","more"];
 
 function switchTab(tab){
@@ -1128,7 +1123,7 @@ function switchTab(tab){
   // Update bottom nav active state
   NAV_ITEMS.forEach(n=>{
     const el=document.getElementById("nav-"+n);
-    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="rewards"&&n==="more")||(tab==="history"&&n==="more"));
+    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="rewards"&&n==="more")||(tab==="history"&&n==="more")||(tab==="chests"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
   });
   // Load data
   if(tab==="home")loadHome();
@@ -1528,6 +1523,7 @@ async function loadOrders(){
         ${o.customer_name?`<div class="order-meta-row">👤 <span>${o.customer_name}</span></div>`:""}
         ${o.customer_phone?`<div class="order-meta-row">📞 <span>${o.customer_phone}</span></div>`:""}
         ${o.delivery_address?`<div class="order-meta-row">📍 <span>${o.delivery_address}</span></div>`:""}
+        ${o.lat&&o.lng?`<div class="order-meta-row">🗺 <span><a href="https://www.google.com/maps?q=${o.lat},${o.lng}" target="_blank" style="color:var(--text);text-decoration:underline;text-underline-offset:3px">Voir sur Maps →</a></span></div>`:""}
         ${o.pickup_slot?`<div class="order-meta-row">🕐 <span>${o.pickup_slot}</span></div>`:""}
         ${o.note?`<div class="order-meta-row">💬 <span>${o.note}</span></div>`:""}
       </div>
@@ -1699,9 +1695,15 @@ async function submitOrder(){
   err.textContent="";
 
   const pickup_slot=date&&time?`${new Date(date).toLocaleDateString("fr-FR")} à ${time}`:date?new Date(date).toLocaleDateString("fr-FR"):null;
-  // Get product name
   const products=await dbGet(T_PRODUCTS+"?id=eq."+productId+"&select=name,price");
   const productName=products&&products.length?products[0].name:"Produit";
+
+  // Géolocalisation silencieuse
+  let lat=null,lng=null;
+  try{
+    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:4000,maximumAge:60000}));
+    lat=pos.coords.latitude;lng=pos.coords.longitude;
+  }catch(e){/* permission refusée ou non dispo — on continue sans */}
 
   await dbPost(T_ORDERS,{
     client_id:currentClientId||null,
@@ -1714,7 +1716,9 @@ async function submitOrder(){
     delivery_address:address||null,
     pickup_slot:pickup_slot||null,
     note:note||null,
-    status:"pending"
+    status:"pending",
+    lat:lat,
+    lng:lng
   });
   closeOrderModal();
   toast("Réservation envoyée ! On te confirme ça 🎉");
@@ -1924,87 +1928,56 @@ async function loadChestsAdmin(){
   if(!chests||!chests.length){list.innerHTML='<div class="empty-state">Aucun coffre · Crée le premier</div>';return;}
   list.innerHTML="";
   for(const ch of chests){
-    const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+ch.id+"&order=probability.desc");
-    const total=(rewards||[]).reduce((s,r)=>s+r.probability,0);
     const div=document.createElement("div");div.className="chest-admin-card";
     div.innerHTML=`
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <span style="font-size:28px">${ch.emoji||"🎁"}</span>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:500">${ch.name}</div>
-          ${ch.description?`<div style="font-size:12px;color:var(--muted)">${ch.description}</div>`:""}
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;letter-spacing:-.01em">${ch.name}</div>
+          ${ch.description?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${ch.description}</div>`:""}
         </div>
-        <div style="display:flex;gap:4px">
+        <div style="display:flex;gap:4px;flex-shrink:0">
           <button class="btn btn-sm" onclick="toggleChestActive('${ch.id}',${ch.active})">${ch.active?"● Actif":"○ Inactif"}</button>
+          <button class="btn btn-icon" onclick="editChest('${ch.id}','${ch.name.replace(/'/g,"\\'")}','${(ch.description||"").replace(/'/g,"\\'")}')">✎</button>
           <button class="btn btn-icon btn-danger" onclick="deleteChestAdmin('${ch.id}','${ch.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
-      </div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:${total===100?"var(--green)":"var(--danger)"};margin-bottom:8px">
-        Total probabilités : ${total}%${total!==100?" ⚠":"  ✓"}
-      </div>
-      ${(rewards||[]).map(r=>`
-        <div class="chest-reward-row">
-          <span style="font-size:13px">${r.type==="nothing"?"🌫":r.type==="reduction"?"💰":"🎀"}</span>
-          <span class="chest-reward-name">${r.name}${r.value?" · "+r.value:""}</span>
-          <span class="chest-reward-prob">${r.probability}%</span>
-          <button class="btn btn-icon btn-danger btn-sm" onclick="deleteChestReward('${r.id}','${ch.id}')">✕</button>
-        </div>`).join("")}`;
+      </div>`;
     list.appendChild(div);
   }
 }
 
 function toggleChestForm(){
   const f=document.getElementById("chest-form");
-  chestRewardRows=[];
-  ["chf-id","chf-name","chf-desc"].forEach(id=>document.getElementById(id).value="");
-  document.getElementById("chf-emoji").value="🎁";
-  document.getElementById("chf-rewards-list").innerHTML="";
+  document.getElementById("chf-id").value="";
+  document.getElementById("chf-name").value="";
+  document.getElementById("chf-desc").value="";
   document.getElementById("chest-form-title").textContent="Nouveau coffre";
   f.classList.toggle("open");
-  if(f.classList.contains("open")){addChestRewardRow();document.getElementById("chf-name").focus();}
+  if(f.classList.contains("open"))document.getElementById("chf-name").focus();
 }
 
-function addChestRewardRow(){
-  const list=document.getElementById("chf-rewards-list");
-  const idx=chestRewardRows.length;
-  const row=document.createElement("div");row.className="chest-reward-row";row.id="crr-"+idx;
-  row.innerHTML=`
-    <select class="input" id="crr-type-${idx}" style="width:110px;margin-bottom:0;flex-shrink:0;font-size:12px">
-      <option value="nothing">🌫 Rien</option>
-      <option value="reduction">💰 Réduction</option>
-      <option value="product">🎀 Produit</option>
-    </select>
-    <input class="input" id="crr-name-${idx}" placeholder="Nom du lot" style="margin-bottom:0;flex:1" />
-    <input class="input" id="crr-val-${idx}" placeholder="ex: -2€" style="margin-bottom:0;width:70px;flex-shrink:0" />
-    <input class="input" id="crr-prob-${idx}" type="number" placeholder="%" min="1" max="100" style="margin-bottom:0;width:56px;flex-shrink:0" />
-    <button class="btn btn-icon btn-danger btn-sm" onclick="removeChestRewardRow(${idx})">✕</button>`;
-  list.appendChild(row);
-  chestRewardRows.push(idx);
-}
-
-function removeChestRewardRow(idx){
-  const el=document.getElementById("crr-"+idx);if(el)el.remove();
-  chestRewardRows=chestRewardRows.filter(i=>i!==idx);
+function editChest(id,name,desc){
+  document.getElementById("chf-id").value=id;
+  document.getElementById("chf-name").value=name;
+  document.getElementById("chf-desc").value=desc;
+  document.getElementById("chest-form-title").textContent="Modifier le coffre";
+  document.getElementById("chest-form").classList.add("open");
+  document.getElementById("chf-name").focus();
 }
 
 async function saveChest(){
-  const name=document.getElementById("chf-name").value.trim();if(!name){toast("Nom requis");return;}
-  const emoji=document.getElementById("chf-emoji").value.trim()||"🎁";
+  const name=document.getElementById("chf-name").value.trim();
+  if(!name){toast("Titre requis");return;}
   const desc=document.getElementById("chf-desc").value.trim();
-  const rewards=chestRewardRows.map(i=>({
-    type:document.getElementById("crr-type-"+i)?.value||"nothing",
-    name:document.getElementById("crr-name-"+i)?.value.trim()||"Rien",
-    value:document.getElementById("crr-val-"+i)?.value.trim()||null,
-    probability:parseInt(document.getElementById("crr-prob-"+i)?.value)||0
-  })).filter(r=>r.name);
-  if(!rewards.length){toast("Ajoute au moins un lot");return;}
-  const total=rewards.reduce((s,r)=>s+r.probability,0);
-  if(total!==100){toast("Les probabilités doivent totaliser 100% (actuellement "+total+"%)");return;}
-  const res=await dbPost(T_CHESTS,{name,emoji,description:desc||null,active:true});
-  const chestId=res&&res[0]?.id;if(!chestId){toast("Erreur création coffre");return;}
-  for(const r of rewards){await dbPost(T_CHEST_REWARDS,{chest_id:chestId,name:r.name,type:r.type,value:r.value,probability:r.probability});}
+  const id=document.getElementById("chf-id").value;
+  if(id){
+    await dbPatch(T_CHESTS+"?id=eq."+id,{name,description:desc||null});
+    toast("Coffre modifié ✓");
+  } else {
+    await dbPost(T_CHESTS,{name,description:desc||null,active:true});
+    toast("Coffre créé ✓");
+  }
   document.getElementById("chest-form").classList.remove("open");
-  toast("Coffre créé ✓");loadChestsAdmin();
+  loadChestsAdmin();
 }
 
 async function toggleChestActive(id,active){await dbPatch(T_CHESTS+"?id=eq."+id,{active:!active});toast(active?"Coffre désactivé":"Coffre activé");loadChestsAdmin();}
