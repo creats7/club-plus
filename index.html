@@ -1150,6 +1150,122 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 
 
+<!-- ══ MODALS ══ -->
+
+<!-- EDIT CLIENT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-title">Modifier le client</div>
+    <input type="hidden" id="edit-id" />
+    <div class="modal-field"><label class="modal-label">Nom</label><input class="input" id="edit-name" style="margin-bottom:0" /></div>
+    <div class="modal-field"><label class="modal-label">Téléphone</label><input class="input" id="edit-phone" style="margin-bottom:0" /></div>
+    <div class="modal-field"><label class="modal-label">Tampons (0–10)</label><input class="input" id="edit-stamps" type="number" min="0" max="10" style="margin-bottom:0" /></div>
+    <div class="modal-field"><label class="modal-label">Tokens</label><input class="input" id="edit-tokens" type="number" min="0" style="margin-bottom:0" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveEdit()">Enregistrer</button>
+      <button class="btn" onclick="closeEdit()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div class="qr-overlay" id="qr-modal">
+  <div class="qr-box">
+    <div class="qr-title" id="qr-name"></div>
+    <div class="qr-sub">QR code à scanner par le client</div>
+    <div id="qr-canvas"></div>
+    <div class="qr-url" id="qr-url"></div>
+    <button class="btn" style="width:100%;justify-content:center" onclick="closeQR()">Fermer</button>
+  </div>
+</div>
+
+<!-- EDIT ORDER MODAL -->
+<div class="order-overlay" id="edit-order-overlay" onclick="closeEditOrder()">
+  <div class="order-sheet" onclick="event.stopPropagation()">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-title">Modifier la réservation</div>
+    <div class="order-sheet-product" id="eo-product"></div>
+    <input type="hidden" id="eo-id" />
+    <label class="modal-label">Adresse de livraison</label>
+    <input class="input" id="eo-address" placeholder="ex: 12 rue de la Paix, Paris" />
+    <label class="modal-label">Créneau de retrait</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <input class="input" id="eo-date" type="date" style="margin-bottom:0" />
+      <input class="input" id="eo-time" type="time" style="margin-bottom:0" />
+    </div>
+    <label class="modal-label">Note</label>
+    <input class="input" id="eo-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
+    <div style="display:flex;gap:8px">
+      <button class="btn-spin" style="flex:1;justify-content:center;font-size:13px;padding:11px" onclick="saveEditOrder()">Enregistrer</button>
+      <button class="btn" onclick="closeEditOrder()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL (bottom sheet) -->
+<div class="order-overlay" id="order-overlay" onclick="closeOrderModal()">
+  <div class="order-sheet" onclick="event.stopPropagation()">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-title" id="os-title">Réserver</div>
+    <div class="order-sheet-product" id="os-product"></div>
+    <input type="hidden" id="os-product-id" />
+    <input type="hidden" id="os-product-price" />
+
+    <label class="modal-label">Nom complet</label>
+    <input class="input" id="os-name" placeholder="Prénom Nom" />
+    <label class="modal-label">Téléphone</label>
+    <input class="input" id="os-phone" placeholder="06 12 34 56 78" type="tel" />
+
+    <!-- Toggle livraison / retrait -->
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button id="os-btn-livraison" onclick="setDeliveryMode('livraison')"
+        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,.08);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+        🚚 Livraison
+      </button>
+      <button id="os-btn-retrait" onclick="setDeliveryMode('retrait')"
+        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+        📍 Retrait
+      </button>
+    </div>
+
+    <div id="os-livraison-block">
+      <label class="modal-label">Adresse de livraison</label>
+      <input class="input" id="os-address-livraison" placeholder="ex: 12 rue de la Paix, Melun" oninput="resetDeliveryFee()" />
+      <div id="os-fee-box" style="display:none;background:var(--surface);border:1px solid var(--border2);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:13px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--muted)">Frais de livraison</span>
+          <span id="os-fee-val" style="font-family:'DM Mono',monospace;font-weight:700">—</span>
+        </div>
+        <div id="os-fee-detail" style="font-size:11px;color:var(--muted2);margin-top:3px;font-family:'DM Mono',monospace"></div>
+      </div>
+      <button onclick="calcDeliveryFee()" id="os-calc-btn"
+        style="width:100%;padding:9px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px">
+        📍 Utiliser ma position pour calculer les frais
+      </button>
+    </div>
+
+    <div id="os-retrait-block" style="display:none">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:var(--muted)">
+        📍 Retrait gratuit — on te prépare ta commande
+      </div>
+    </div>
+
+    <label class="modal-label">Créneau souhaité</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <input class="input" id="os-date" type="date" style="margin-bottom:0" />
+      <input class="input" id="os-time" type="time" style="margin-bottom:0" />
+    </div>
+    <label class="modal-label">Note (optionnel)</label>
+    <input class="input" id="os-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
+
+    <div class="reg-error" id="os-error"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-spin" style="flex:1;justify-content:center;font-size:13px;padding:11px" onclick="submitOrder()">Confirmer la réservation</button>
+      <button class="btn" onclick="closeOrderModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ SPIN WHEEL ══ -->
 <div class="wheel-overlay" id="wheel-overlay">
   <div class="wheel-box">
@@ -1830,7 +1946,7 @@ function openOrderModal(productId,productName,price,stock){
   document.getElementById("os-product").innerHTML=`<span class="order-sheet-price">${price?price.toFixed(2)+" €":"—"}</span> · ${stock} unité${stock!==1?"s":""} disponible${stock!==1?"s":""}`;
   document.getElementById("os-error").textContent="";
   document.getElementById("os-note").value="";
-  document.getElementById("os-address").value="";
+  document.getElementById("os-address-livraison").value="";
   document.getElementById("os-date").value="";
   document.getElementById("os-time").value="";
   // Reset livraison
@@ -1847,7 +1963,7 @@ function closeOrderModal(){document.getElementById("order-overlay").classList.re
 async function submitOrder(){
   const name=document.getElementById("os-name").value.trim();
   const phone=document.getElementById("os-phone").value.trim();
-  const address=currentDeliveryMode==="livraison"?(document.getElementById("os-address")?.value.trim()||""):"Retrait sur place";
+  const address=currentDeliveryMode==="livraison"?(document.getElementById("os-address-livraison")?.value.trim()||""):"Retrait sur place";
   const date=document.getElementById("os-date").value;
   const time=document.getElementById("os-time").value;
   const userNote=document.getElementById("os-note").value.trim();
