@@ -946,8 +946,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <button class="btn-spin" onclick="switchClientTab('shop')" style="font-size:13px;padding:9px 16px">🎮 Dépenser →</button>
         </div>
       </div>
-      <!-- Rewards preview per slot -->
-      <div id="cv-stamp-rewards-preview" style="margin-top:12px"></div>
+      <!-- CTA Commander -->
+      <button onclick="switchClientTab('commandes')" style="width:100%;padding:15px;border-radius:12px;background:#fff;color:#0a0a0a;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;transition:opacity .2s;margin-top:4px">
+        📦 Commander
+      </button>
       <div class="cv-footer">
         Seul l'admin peut modifier ta carte &nbsp;·&nbsp;
         <span onclick="clientLogout()" style="cursor:pointer;text-decoration:underline;opacity:0.6">Changer de compte</span>
@@ -957,7 +959,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <!-- ── SECTION SHOP (dépense de tokens) ── -->
     <div class="cv-section" id="cvs-shop">
       <div class="cv-section-header">🎮 Dépenser mes tokens</div>
-      <!-- Solde -->
       <div style="background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Mon solde</div>
@@ -966,7 +967,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         </div>
         <div style="font-size:40px">🪙</div>
       </div>
-      <!-- Jeux disponibles -->
       <div id="cv-shop-items"></div>
       <div id="cv-shop-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">
         <div style="font-size:40px;margin-bottom:8px;opacity:.3">🪙</div>
@@ -974,47 +974,40 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
 
-    <!-- ── SECTION DÉFIS ── -->
-    <div class="cv-section" id="cvs-defis">
-      <div class="cv-section-header">🎯 Défis en cours</div>
+    <!-- ── SECTION DÉFIS (masquée) ── -->
+    <div class="cv-section" id="cvs-defis" style="display:none!important">
       <div id="cv-challenges-list"></div>
-      <div id="cv-defis-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun défi actif pour le moment</div>
+      <div id="cv-defis-empty"></div>
     </div>
 
     <!-- ── SECTION COMMANDES ── -->
     <div class="cv-section" id="cvs-commandes">
-      <div class="cv-section-header">📦 Commander</div>
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px">Commander</div>
+        <div style="font-size:13px;color:var(--muted)">Livraison ou retrait disponible</div>
+      </div>
       <div id="cv-products-list"></div>
-      <div id="cv-shop-products-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun produit disponible</div>
+      <div id="cv-shop-products-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:3rem 0">
+        <div style="font-size:40px;margin-bottom:8px;opacity:.3">📦</div>
+        Aucun produit disponible pour le moment
+      </div>
     </div>
 
   </div>
 
-  <!-- BOTTOM NAV CLIENT -->
+  <!-- BOTTOM NAV CLIENT — 3 onglets -->
   <nav class="cv-nav" id="cv-nav">
     <button class="cv-nav-item active" id="cvnav-carte" onclick="switchClientTab('carte')">
-      <div class="cv-nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-      </div>
+      <div class="cv-nav-icon">🃏</div>
       <div class="cv-nav-label">Carte</div>
     </button>
     <button class="cv-nav-item" id="cvnav-shop" onclick="switchClientTab('shop')">
-      <div class="cv-nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-      </div>
+      <div class="cv-nav-icon">🎮</div>
       <div class="cv-nav-label">Shop</div>
       <div class="cv-nav-badge" id="cvnav-badge-shop" style="display:none"></div>
     </button>
-    <button class="cv-nav-item" id="cvnav-defis" onclick="switchClientTab('defis')">
-      <div class="cv-nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      </div>
-      <div class="cv-nav-label">Défis</div>
-    </button>
     <button class="cv-nav-item" id="cvnav-commandes" onclick="switchClientTab('commandes')">
-      <div class="cv-nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      </div>
+      <div class="cv-nav-icon">📦</div>
       <div class="cv-nav-label">Commander</div>
     </button>
   </nav>
@@ -1665,7 +1658,7 @@ async function setOrderStatus(id,status){
 }
 
 function switchClientTab(tab){
-  ["carte","shop","defis","commandes"].forEach(t=>{
+  ["carte","shop","commandes"].forEach(t=>{
     const s=document.getElementById("cvs-"+t);
     const n=document.getElementById("cvnav-"+t);
     if(s)s.classList.toggle("active",t===tab);
