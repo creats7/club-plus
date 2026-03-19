@@ -688,6 +688,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <button class="btn btn-accent btn-sm" onclick="toggleRewardForm()">+ Ajouter</button>
       </div>
     </div>
+    <!-- Coût en tokens -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">Coût pour jouer</div>
+        <div style="font-size:11px;color:var(--muted)">Tokens dépensés par le client pour faire tourner la roue</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <input id="wheel-cost-input" type="number" min="1" max="99" value="1"
+          style="width:52px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:5px;outline:none" />
+        <span style="font-size:12px;color:var(--muted)">🪙</span>
+        <button class="btn btn-accent btn-sm" onclick="saveWheelCost()">Sauver</button>
+      </div>
+    </div>
     <div class="prob-total" id="prob-total-display">
       <span id="prob-total-val">—</span><span style="font-size:11px;color:var(--muted)">/100%</span>
       <span id="prob-total-msg" style="font-size:12px"></span>
@@ -835,6 +848,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="panel-header">
       <div class="panel-title">Coffres</div>
       <button class="btn btn-accent btn-sm" onclick="toggleChestForm()">+ Coffre</button>
+    </div>
+    <!-- Coût de base -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">Coût d'un coffre</div>
+        <div style="font-size:11px;color:var(--muted)">Tokens dépensés pour ouvrir n'importe quel coffre</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <input id="chest-cost-input" type="number" min="1" max="99" value="1"
+          style="width:52px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:5px;outline:none" />
+        <span style="font-size:12px;color:var(--muted)">🪙</span>
+        <button class="btn btn-accent btn-sm" onclick="saveChestCost()">Sauver</button>
+      </div>
     </div>
     <div class="chest-form-wrap" id="chest-form">
       <div style="font-size:13px;font-weight:600;margin-bottom:12px" id="chest-form-title">Nouveau coffre</div>
@@ -1195,6 +1221,7 @@ const T_CHESTS=SUPA_URL+"/rest/v1/chests";
 const T_CHEST_REWARDS=SUPA_URL+"/rest/v1/chest_rewards";
 const T_CLIENT_CHESTS=SUPA_URL+"/rest/v1/client_chests";
 const T_STAMP_REWARDS=SUPA_URL+"/rest/v1/stamp_rewards";
+const T_SHOP_CONFIG=SUPA_URL+"/rest/v1/shop_config";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -1238,8 +1265,8 @@ function switchTab(tab){
   if(tab==="products")loadProducts();
   if(tab==="orders")loadOrders();
   if(tab==="challenges")loadChallenges();
-  if(tab==="rewards")loadRewards();
-  if(tab==="chests")loadChestsAdmin();
+  if(tab==="rewards"){loadRewards();loadShopConfig();}
+  if(tab==="chests"){loadChestsAdmin();loadShopConfig();}
   if(tab==="stamp_rewards")loadStampRewards();
   if(tab==="history")loadHistory();
 }
@@ -2800,6 +2827,9 @@ async function loadClientShop(clientId){
   const [chests]=await Promise.all([
     dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc")
   ]);
+  await loadShopConfig();
+  const wheelCost=shopConfig.wheel_cost;
+  const chestCost=shopConfig.chest_cost;
 
   const container=document.getElementById("cv-shop-items");
   const empty=document.getElementById("cv-shop-empty");
@@ -2807,21 +2837,20 @@ async function loadClientShop(clientId){
 
   // ── ROUE ──
   items.push({
-    id:"wheel",cost:1,icon:"🎡",title:"Roue des récompenses",
+    id:"wheel",cost:wheelCost,icon:"🎡",title:"Roue des récompenses",
     desc:"Fais tourner la roue et tente de gagner un lot.",
-    tag:"1 TOKEN",canAfford:tokens>=1,
-    action:`openWheelShop()`
+    tag:`${wheelCost} TOKEN${wheelCost>1?"S":""}`,canAfford:tokens>=wheelCost,
+    action:`openWheelShop(${wheelCost})`
   });
 
   // ── COFFRES ──
   if(chests&&chests.length){
-    chests.forEach((ch,i)=>{
-      const cost=i+1;
+    chests.forEach(ch=>{
       items.push({
-        id:"chest_"+ch.id,cost,icon:"🎁",title:ch.name,
+        id:"chest_"+ch.id,cost:chestCost,icon:"🎁",title:ch.name,
         desc:ch.description||"Ouvre ce coffre et découvre ton lot.",
-        tag:`${cost} TOKEN${cost>1?"S":""}`,canAfford:tokens>=cost,
-        action:`buyChestShop('${ch.id}',${cost})`
+        tag:`${chestCost} TOKEN${chestCost>1?"S":""}`,canAfford:tokens>=chestCost,
+        action:`buyChestShop('${ch.id}',${chestCost})`
       });
     });
   }
@@ -2843,17 +2872,17 @@ async function loadClientShop(clientId){
     </div>`).join("");
 }
 
-async function openWheelShop(){
-  // Débite 1 token puis ouvre la roue
+async function openWheelShop(cost){
+  cost=cost||shopConfig.wheel_cost||1;
   const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
   if(!cData||!cData.length)return;
   const tokens=cData[0].tokens||0;
-  if(tokens<1){toast("Pas assez de tokens");return;}
-  await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-1});
+  if(tokens<cost){toast("Pas assez de tokens");return;}
+  await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
   await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
-  document.getElementById("cv-shop-tokens").textContent=tokens-1;
-  document.getElementById("cv-token-count").textContent=tokens-1;
-  openWheel(true); // true = déjà débité
+  document.getElementById("cv-shop-tokens").textContent=tokens-cost;
+  document.getElementById("cv-token-count").textContent=tokens-cost;
+  openWheel(true);
 }
 
 async function buyChestShop(chestId,cost){
@@ -2907,7 +2936,37 @@ async function loadClientProducts(){
   }).join("");
 }
 
-// ── STAMP REWARDS ADMIN ──
+// ── SHOP CONFIG ──
+let shopConfig={wheel_cost:1,chest_cost:1};
+
+async function loadShopConfig(){
+  const data=await dbGet(T_SHOP_CONFIG);
+  if(data&&data.length){
+    data.forEach(row=>{
+      if(row.key==="wheel_cost")shopConfig.wheel_cost=row.value||1;
+      if(row.key==="chest_cost")shopConfig.chest_cost=row.value||1;
+    });
+  }
+  // Remplir les inputs admin si présents
+  const wIn=document.getElementById("wheel-cost-input");
+  const cIn=document.getElementById("chest-cost-input");
+  if(wIn)wIn.value=shopConfig.wheel_cost;
+  if(cIn)cIn.value=shopConfig.chest_cost;
+}
+
+async function saveWheelCost(){
+  const v=Math.max(1,parseInt(document.getElementById("wheel-cost-input").value)||1);
+  await dbPatch(T_SHOP_CONFIG+"?key=eq.wheel_cost",{value:v});
+  shopConfig.wheel_cost=v;
+  toast("Coût roue : "+v+" 🪙 ✓");
+}
+
+async function saveChestCost(){
+  const v=Math.max(1,parseInt(document.getElementById("chest-cost-input").value)||1);
+  await dbPatch(T_SHOP_CONFIG+"?key=eq.chest_cost",{value:v});
+  shopConfig.chest_cost=v;
+  toast("Coût coffre : "+v+" 🪙 ✓");
+}
 async function loadStampRewards(){
   const rewards=await dbGet(T_STAMP_REWARDS+"?order=slot.asc");
   invalidateStampCache();
@@ -2952,6 +3011,7 @@ function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");
 document.addEventListener("DOMContentLoaded", function(){
   buildPin();
   buildOfferColors();
+  loadShopConfig();
 
   const cid=new URLSearchParams(window.location.search).get("client");
   const isAdmin=localStorage.getItem("clubplus_admin")==="1";
