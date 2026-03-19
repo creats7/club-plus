@@ -2115,28 +2115,57 @@ async function loadChestsAdmin(){
   for(const ch of chests){
     const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+ch.id+"&order=probability.desc");
     const total=(rewards||[]).reduce((s,r)=>s+r.probability,0);
-    const div=document.createElement("div");div.className="chest-admin-card";
-    div.innerHTML=`
-      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:600;letter-spacing:-.01em">${ch.name}</div>
-          ${ch.description?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${ch.description}</div>`:""}
-        </div>
-        <div style="display:flex;gap:4px;flex-shrink:0">
-          <button class="btn btn-sm" onclick="toggleChestActive('${ch.id}',${ch.active})">${ch.active?"● Actif":"○ Inactif"}</button>
-          <button class="btn btn-icon" onclick="editChest('${ch.id}','${ch.name.replace(/'/g,"\\'")}','${(ch.description||"").replace(/'/g,"\\'")}')">✎</button>
-          <button class="btn btn-icon btn-danger" onclick="deleteChestAdmin('${ch.id}','${ch.name.replace(/'/g,"\\'")}')">✕</button>
-        </div>
-      </div>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:${total===100?"var(--green)":"var(--danger)"};margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">
-        Lots : ${total}%${total!==100?" ⚠ doit totaliser 100%":"  ✓"}
-      </div>
-      ${(rewards&&rewards.length)?rewards.map(r=>`
-        <div class="chest-reward-row">
-          <span class="chest-reward-name">${r.name}</span>
-          <span class="chest-reward-prob">${r.probability}%</span>
-          <button class="btn btn-icon btn-danger btn-sm" onclick="deleteChestReward('${r.id}','${ch.id}')">✕</button>
-        </div>`).join(""):'<div style="font-size:12px;color:var(--muted);margin-bottom:4px">Aucun lot · clique sur ✎ pour en ajouter</div>'}`;
+    const div=document.createElement("div");
+    div.className="chest-admin-card";
+    // En-tête
+    const header=document.createElement("div");
+    header.style.cssText="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px";
+    const info=document.createElement("div");
+    info.style.cssText="flex:1;min-width:0";
+    info.innerHTML=`<div style="font-size:14px;font-weight:600;letter-spacing:-.01em">${ch.name}</div>${ch.description?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${ch.description}</div>`:""}`;
+    const actions=document.createElement("div");
+    actions.style.cssText="display:flex;gap:4px;flex-shrink:0";
+    const btnActive=document.createElement("button");
+    btnActive.className="btn btn-sm";
+    btnActive.textContent=ch.active?"● Actif":"○ Inactif";
+    btnActive.onclick=()=>toggleChestActive(ch.id,ch.active);
+    const btnEdit=document.createElement("button");
+    btnEdit.className="btn btn-icon";
+    btnEdit.textContent="✎";
+    btnEdit.onclick=()=>editChest(ch.id);
+    const btnDel=document.createElement("button");
+    btnDel.className="btn btn-icon btn-danger";
+    btnDel.textContent="✕";
+    btnDel.onclick=()=>deleteChestAdmin(ch.id,ch.name);
+    actions.append(btnActive,btnEdit,btnDel);
+    header.append(info,actions);
+    div.appendChild(header);
+    // Total probabilités
+    const probLine=document.createElement("div");
+    probLine.style.cssText=`font-size:10px;font-family:'DM Mono',monospace;color:${total===100?"var(--green)":"var(--danger)"};margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase`;
+    probLine.textContent=`Lots : ${total}%${total!==100?" ⚠ doit totaliser 100%":"  ✓"}`;
+    div.appendChild(probLine);
+    // Lots
+    if(rewards&&rewards.length){
+      rewards.forEach(r=>{
+        const row=document.createElement("div");
+        row.className="chest-reward-row";
+        const nameSpan=document.createElement("span");
+        nameSpan.className="chest-reward-name";nameSpan.textContent=r.name;
+        const probSpan=document.createElement("span");
+        probSpan.className="chest-reward-prob";probSpan.textContent=r.probability+"%";
+        const delBtn=document.createElement("button");
+        delBtn.className="btn btn-icon btn-danger btn-sm";delBtn.textContent="✕";
+        delBtn.onclick=()=>deleteChestReward(r.id,ch.id);
+        row.append(nameSpan,probSpan,delBtn);
+        div.appendChild(row);
+      });
+    } else {
+      const empty=document.createElement("div");
+      empty.style.cssText="font-size:12px;color:var(--muted);margin-bottom:4px";
+      empty.textContent="Aucun lot · clique sur ✎ pour en ajouter";
+      div.appendChild(empty);
+    }
     list.appendChild(div);
   }
 }
@@ -2151,6 +2180,8 @@ function updateProbTotal(){
 
 function toggleChestForm(){
   const f=document.getElementById("chest-form");
+  const isOpen=f.classList.contains("open");
+  // Toujours reset avant d'ouvrir pour une création
   chestRewardRows=[];
   document.getElementById("chf-id").value="";
   document.getElementById("chf-name").value="";
@@ -2158,21 +2189,32 @@ function toggleChestForm(){
   document.getElementById("chf-rewards-list").innerHTML="";
   document.getElementById("chest-form-title").textContent="Nouveau coffre";
   const el=document.getElementById("chf-prob-total");if(el)el.textContent="";
-  f.classList.toggle("open");
-  if(f.classList.contains("open")){addChestRewardRow();document.getElementById("chf-name").focus();}
+  if(isOpen){f.classList.remove("open");}
+  else{f.classList.add("open");addChestRewardRow();document.getElementById("chf-name").focus();}
 }
 
-async function editChest(id,name,desc){
-  document.getElementById("chf-id").value=id;
-  document.getElementById("chf-name").value=name;
-  document.getElementById("chf-desc").value=desc;
-  document.getElementById("chest-form-title").textContent="Modifier le coffre";
+async function editChest(id){
+  // Ferme d'abord si ouvert sur une autre opération
+  const f=document.getElementById("chest-form");
+  f.classList.remove("open");
+  // Reset
   chestRewardRows=[];
   document.getElementById("chf-rewards-list").innerHTML="";
-  const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+id+"&order=probability.desc");
+  const el=document.getElementById("chf-prob-total");if(el)el.textContent="";
+  // Fetch données fraîches
+  const [chests,rewards]=await Promise.all([
+    dbGet(T_CHESTS+"?id=eq."+id),
+    dbGet(T_CHEST_REWARDS+"?chest_id=eq."+id+"&order=probability.desc")
+  ]);
+  if(!chests||!chests.length){toast("Coffre introuvable");return;}
+  const ch=chests[0];
+  document.getElementById("chf-id").value=ch.id;
+  document.getElementById("chf-name").value=ch.name||"";
+  document.getElementById("chf-desc").value=ch.description||"";
+  document.getElementById("chest-form-title").textContent="Modifier le coffre";
   (rewards||[]).forEach(r=>addChestRewardRow(r.name,r.probability));
   if(!rewards||!rewards.length)addChestRewardRow();
-  document.getElementById("chest-form").classList.add("open");
+  f.classList.add("open");
   document.getElementById("chf-name").focus();
   updateProbTotal();
 }
@@ -2216,9 +2258,13 @@ async function saveChest(){
     toast("Coffre modifié ✓");
   } else {
     const res=await dbPost(T_CHESTS,{name,description:desc||null,active:true});
+    if(res&&res.code){toast("Erreur: "+res.message);return;}
     const chestId=res&&res[0]?.id;
-    if(!chestId){toast("Erreur création");return;}
-    for(const r of rewards)await dbPost(T_CHEST_REWARDS,{chest_id:chestId,name:r.name,probability:r.probability});
+    if(!chestId){toast("Erreur création coffre");return;}
+    for(const r of rewards){
+      const rr=await dbPost(T_CHEST_REWARDS,{chest_id:chestId,name:r.name,probability:r.probability});
+      if(rr&&rr.code){toast("Erreur lot: "+rr.message);return;}
+    }
     toast("Coffre créé ✓");
   }
   document.getElementById("chest-form").classList.remove("open");
