@@ -796,10 +796,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="reward-form" id="reward-form">
       <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="reward-form-title">Nouvelle récompense</div>
       <input type="hidden" id="rf-id" />
-      <label class="modal-label">Nom</label><input class="input" id="rf-name" placeholder="ex: Puff gratuite" />
+      <label class="modal-label">Nom</label>
+      <input class="input" id="rf-name" placeholder="ex: Puff gratuite" />
       <label class="modal-label">Probabilité (%)</label>
-      <input class="input" id="rf-prob" type="number" min="1" max="100" placeholder="ex: 25" style="margin-bottom:8px" />
-      <div style="display:flex;gap:8px;margin-top:12px">
+      <input class="input" id="rf-prob" type="number" min="1" max="100" placeholder="ex: 25" />
+      <label class="modal-label">Photo (URL)</label>
+      <input class="input" id="rf-image" placeholder="https://… (optionnel)" style="margin-bottom:8px" oninput="previewRewardImage()" />
+      <div id="rf-image-preview" style="display:none;margin-bottom:10px;text-align:center">
+        <img id="rf-image-img" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--border2)" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveReward()">Enregistrer</button>
         <button class="btn" onclick="toggleRewardForm()">Annuler</button>
       </div>
@@ -2592,36 +2598,84 @@ function renderRewards(rewards){
   rewards.forEach(r=>{
     const div=document.createElement("div");div.className="reward-row"+(r.active?"":" inactive");
     div.innerHTML=`
-      <div class="reward-dot" style="background:rgba(124,111,247,0.6)"></div>
+      ${r.image_url
+        ?`<img src="${r.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:8px;flex-shrink:0;border:1px solid var(--border2)" onerror="this.style.display='none'">`
+        :`<div class="reward-dot" style="background:rgba(255,255,255,0.2)"></div>`}
       <div style="flex:1;min-width:0">
         <div class="reward-name">${r.name}</div>
-        <div class="prob-bar-wrap"><div class="prob-bar" style="width:${r.probability}%;background:linear-gradient(90deg,#7c6ff7,#a78bfa)"></div></div>
+        <div class="prob-bar-wrap"><div class="prob-bar" style="width:${r.probability}%;background:rgba(255,255,255,.25)"></div></div>
       </div>
       <div class="reward-prob">${r.probability}%</div>
       <div style="display:flex;gap:4px;flex-shrink:0">
         <button class="btn btn-sm" onclick="toggleReward('${r.id}',${r.active})">${r.active?"●":"○"}</button>
-        <button class="btn btn-icon" onclick="editReward('${r.id}','${r.name.replace(/'/g,"\\'")}',${r.probability})">✎</button>
+        <button class="btn btn-icon" onclick="editReward('${r.id}')">✎</button>
         <button class="btn btn-icon btn-danger" onclick="deleteReward('${r.id}','${r.name.replace(/'/g,"\\'")}')">✕</button>
       </div>`;
     list.appendChild(div);
   });
 }
+
+// Cache des rewards pour editReward
+let _rewardsCache=[];
+async function loadRewards(){
+  const rewards=await dbGet(T_REWARDS+"?order=created_at.asc");
+  _rewardsCache=rewards||[];
+  renderRewards(_rewardsCache);
+}
+
 function toggleRewardForm(edit=false){
   const f=document.getElementById("reward-form");
-  if(!edit){document.getElementById("rf-id").value="";document.getElementById("rf-name").value="";document.getElementById("rf-prob").value="";document.getElementById("reward-form-title").textContent="Nouvelle récompense";}
-  f.classList.toggle("open");if(f.classList.contains("open"))document.getElementById("rf-name").focus();
+  if(!edit){
+    document.getElementById("rf-id").value="";
+    document.getElementById("rf-name").value="";
+    document.getElementById("rf-prob").value="";
+    document.getElementById("rf-image").value="";
+    document.getElementById("rf-image-preview").style.display="none";
+    document.getElementById("reward-form-title").textContent="Nouvelle récompense";
+  }
+  f.classList.toggle("open");
+  if(f.classList.contains("open"))document.getElementById("rf-name").focus();
 }
-function editReward(id,name,prob){
-  document.getElementById("rf-id").value=id;document.getElementById("rf-name").value=name;document.getElementById("rf-prob").value=prob;
+
+function previewRewardImage(){
+  const url=document.getElementById("rf-image").value.trim();
+  const preview=document.getElementById("rf-image-preview");
+  const img=document.getElementById("rf-image-img");
+  if(url){preview.style.display="block";img.src=url;}
+  else{preview.style.display="none";}
+}
+
+function editReward(id){
+  const r=_rewardsCache.find(x=>x.id===id);
+  if(!r)return;
+  document.getElementById("rf-id").value=r.id;
+  document.getElementById("rf-name").value=r.name;
+  document.getElementById("rf-prob").value=r.probability;
+  document.getElementById("rf-image").value=r.image_url||"";
+  const preview=document.getElementById("rf-image-preview");
+  const img=document.getElementById("rf-image-img");
+  if(r.image_url){preview.style.display="block";img.src=r.image_url;}
+  else{preview.style.display="none";}
   document.getElementById("reward-form-title").textContent="Modifier la récompense";
-  document.getElementById("reward-form").classList.add("open");document.getElementById("rf-name").focus();
+  document.getElementById("reward-form").classList.add("open");
+  document.getElementById("rf-name").focus();
 }
+
 async function saveReward(){
-  const name=document.getElementById("rf-name").value.trim(),prob=parseInt(document.getElementById("rf-prob").value)||0,id=document.getElementById("rf-id").value;
+  const name=document.getElementById("rf-name").value.trim();
+  const prob=parseInt(document.getElementById("rf-prob").value)||0;
+  const image_url=document.getElementById("rf-image").value.trim()||null;
+  const id=document.getElementById("rf-id").value;
   if(!name||prob<1||prob>100){toast("Nom et probabilité requis (1-100)");return;}
-  if(id){await dbPatch(T_REWARDS+"?id=eq."+id,{name,probability:prob});toast("Récompense modifiée ✓");}
-  else{await dbPost(T_REWARDS,{name,probability:prob,color:"#7c6ff7",active:true});toast("Récompense ajoutée ✓");}
-  document.getElementById("reward-form").classList.remove("open");loadRewards();
+  if(id){
+    await dbPatch(T_REWARDS+"?id=eq."+id,{name,probability:prob,image_url});
+    toast("Récompense modifiée ✓");
+  } else {
+    await dbPost(T_REWARDS,{name,probability:prob,image_url,active:true});
+    toast("Récompense ajoutée ✓");
+  }
+  document.getElementById("reward-form").classList.remove("open");
+  loadRewards();
 }
 async function toggleReward(id,active){await dbPatch(T_REWARDS+"?id=eq."+id,{active:!active});toast(active?"Désactivée":"Activée");loadRewards();}
 async function deleteReward(id,name){if(!confirm("Supprimer \""+name+"\" ?"))return;await dbDelete(T_REWARDS+"?id=eq."+id);toast("Supprimée");loadRewards();}
@@ -2686,7 +2740,6 @@ function buildCaseTrack(rewards){
   const track=document.getElementById("case-track");
   track.innerHTML="";
   track.style.transform="translateX(0)";
-  // Générer ~60 items pour avoir assez de course
   const count=60;
   const minProb=Math.min(...rewards.map(r=>r.probability));
   for(let i=0;i<count;i++){
@@ -2694,8 +2747,11 @@ function buildCaseTrack(rewards){
     const isRare=r.probability===minProb;
     const div=document.createElement("div");
     div.className="case-item"+(isRare?" rare":"");
-    div.dataset.idx=i%rewards.length;
-    div.innerHTML=`<div class="case-item-name">${r.name.length>14?r.name.slice(0,13)+"…":r.name}</div>`;
+    div.dataset.idx=String(i%rewards.length);
+    const name=r.name.length>14?r.name.slice(0,13)+"…":r.name;
+    div.innerHTML=r.image_url
+      ?`<img src="${r.image_url}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display='none'"><div class="case-item-name">${name}</div>`
+      :`<div class="case-item-name" style="font-size:11px;color:rgba(255,255,255,.7)">${name}</div>`;
     track.appendChild(div);
   }
 }
@@ -2745,18 +2801,26 @@ async function doSpin(){
   const targetItemIndex=40+index; // quelque part vers la fin du défilement
   // S'assurer que cet item a le bon reward
   const items=track.querySelectorAll(".case-item");
-  // Reconstruire les 10 derniers items pour forcer le reward au bon endroit
+  // Reconstruire les derniers items pour forcer le reward au bon endroit
   for(let i=35;i<items.length;i++){
     const r=activeRewards[i%activeRewards.length];
-    items[i].className="case-item"+(r.probability===Math.min(...activeRewards.map(x=>x.probability))?" rare":"");
-    items[i].querySelector(".case-item-name").textContent=r.name.length>14?r.name.slice(0,13)+"…":r.name;
+    const isRare=r.probability===Math.min(...activeRewards.map(x=>x.probability));
+    items[i].className="case-item"+(isRare?" rare":"");
     items[i].dataset.idx=String(i%activeRewards.length);
+    const name=r.name.length>14?r.name.slice(0,13)+"…":r.name;
+    items[i].innerHTML=r.image_url
+      ?`<img src="${r.image_url}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'"><div class="case-item-name">${name}</div>`
+      :`<div class="case-item-name" style="font-size:11px;color:rgba(255,255,255,.7)">${name}</div>`;
   }
   // Placer le reward gagnant exactement à targetItemIndex
   const winItem=items[targetItemIndex];
-  winItem.className="case-item"+(reward.probability===Math.min(...activeRewards.map(x=>x.probability))?" rare":"");
-  winItem.querySelector(".case-item-name").textContent=reward.name.length>14?reward.name.slice(0,13)+"…":reward.name;
+  const isWinRare=reward.probability===Math.min(...activeRewards.map(x=>x.probability));
+  winItem.className="case-item"+(isWinRare?" rare":"");
   winItem.dataset.idx=String(index);
+  const winName=reward.name.length>14?reward.name.slice(0,13)+"…":reward.name;
+  winItem.innerHTML=reward.image_url
+    ?`<img src="${reward.image_url}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'"><div class="case-item-name">${winName}</div>`
+    :`<div class="case-item-name" style="font-size:11px;color:rgba(255,255,255,.7)">${winName}</div>`;
 
   // Calculer la translation finale : l'item gagnant doit être centré sous le curseur
   // Position du centre de l'item gagnant dans le track
@@ -2793,7 +2857,12 @@ async function showWheelResult(){
   const LOSING=["rien","nothing","nada","perdu","0","no prize"];
   const isLosing=LOSING.includes(spinResult.name.trim().toLowerCase());
   const res=document.getElementById("wheel-result");
-  res.textContent="✦ "+spinResult.name;
+  // Afficher l'image si disponible
+  if(spinResult.image_url&&!isLosing){
+    res.innerHTML=`<img src="${spinResult.image_url}" style="width:80px;height:80px;object-fit:cover;border-radius:14px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" onerror="this.style.display='none'"><div>✦ ${spinResult.name}</div>`;
+  } else {
+    res.textContent="✦ "+spinResult.name;
+  }
   res.style.color="var(--text)";
   res.style.display="block";
   document.getElementById("wheel-result-sub").textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Montre ce résultat pour récupérer ton lot 🎁";
