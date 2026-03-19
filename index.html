@@ -814,6 +814,151 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 
   <!-- REWARDS -->
+  <div id="panel-rewards" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Roue</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-danger" onclick="resetRewards()">↺ Reset</button>
+        <button class="btn btn-accent btn-sm" onclick="toggleRewardForm()">+ Ajouter</button>
+      </div>
+    </div>
+    <!-- Coût roue -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">Coût pour jouer</div>
+        <div style="font-size:11px;color:var(--muted)">Tokens pour faire tourner la roue</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <input id="wheel-cost-input" type="number" min="1" max="99" value="1" style="width:52px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:5px;outline:none" />
+        <span style="font-size:12px;color:var(--muted)">🪙</span>
+        <button class="btn btn-accent btn-sm" onclick="saveWheelCost()">Sauver</button>
+      </div>
+    </div>
+    <div class="prob-total" id="prob-total-display">
+      <span id="prob-total-val">—</span><span style="font-size:11px;color:var(--muted)">/100%</span>
+      <span id="prob-total-msg" style="font-size:12px"></span>
+    </div>
+    <div class="reward-form" id="reward-form">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="reward-form-title">Nouvelle récompense</div>
+      <input type="hidden" id="rf-id" />
+      <label class="modal-label">Nom</label><input class="input" id="rf-name" placeholder="ex: Puff gratuite" />
+      <label class="modal-label">Probabilité (%)</label>
+      <input class="input" id="rf-prob" type="number" min="1" max="100" placeholder="ex: 25" />
+      <label class="modal-label">Photo (URL)</label>
+      <input class="input" id="rf-image" placeholder="https://… (optionnel)" oninput="previewRewardImage()" />
+      <div id="rf-image-preview" style="display:none;margin-bottom:10px;text-align:center">
+        <img id="rf-image-img" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--border2)" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveReward()">Enregistrer</button>
+        <button class="btn" onclick="toggleRewardForm()">Annuler</button>
+      </div>
+    </div>
+    <div id="rewards-list"></div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div id="panel-products" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Stock</div>
+      <button class="btn btn-accent btn-sm" onclick="toggleProductForm()">+ Produit</button>
+    </div>
+    <div class="product-form-wrap" id="product-form">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="product-form-title">Nouveau produit</div>
+      <input type="hidden" id="pf-id" />
+      <label class="modal-label">Nom du produit</label><input class="input" id="pf-name" placeholder="ex: Puff Watermelon Ice" />
+      <label class="modal-label">Prix (€)</label><input class="input" id="pf-price" type="number" min="0" step="0.01" placeholder="ex: 8.90" />
+      <label class="modal-label">Stock</label><input class="input" id="pf-stock" type="number" min="0" placeholder="ex: 50" />
+      <label class="modal-label">Image URL (optionnel)</label><input class="input" id="pf-image" placeholder="https://…" />
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveProduct()">Enregistrer</button>
+        <button class="btn" onclick="toggleProductForm()">Annuler</button>
+      </div>
+    </div>
+    <div id="products-list"><div class="loader">Chargement...</div></div>
+  </div>
+
+  <!-- ORDERS -->
+  <div id="panel-orders" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Commandes</div>
+      <div style="display:flex;gap:6px">
+        <select class="input" id="order-filter" onchange="filterOrders(this.value)" style="margin-bottom:0;font-size:12px;padding:5px 8px;width:auto">
+          <option value="all">Toutes</option>
+          <option value="pending">En attente</option>
+          <option value="confirmed">Confirmées</option>
+          <option value="delivered">Livrées</option>
+        </select>
+        <button class="btn btn-sm" onclick="loadOrders()">↻</button>
+      </div>
+    </div>
+    <div id="orders-list"><div class="loader">Chargement...</div></div>
+  </div>
+
+  <!-- CHALLENGES -->
+  <div id="panel-challenges" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Défis</div>
+      <button class="btn btn-accent btn-sm" onclick="toggleChallengeForm()">+ Défi</button>
+    </div>
+    <div class="challenge-form-wrap" id="challenge-form">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px" id="challenge-form-title">Nouveau défi</div>
+      <input type="hidden" id="cf-id" />
+      <label class="modal-label">Titre</label><input class="input" id="cf-title" placeholder="ex: Commande 3 fois ce mois" />
+      <label class="modal-label">Description</label><input class="input" id="cf-desc" placeholder="ex: Passe 3 commandes en un mois" />
+      <label class="modal-label">Objectif (nb commandes)</label><input class="input" id="cf-target" type="number" min="1" placeholder="ex: 3" />
+      <label class="modal-label">Période</label>
+      <select class="input" id="cf-period">
+        <option value="week">Cette semaine</option>
+        <option value="month">Ce mois</option>
+        <option value="alltime">Tous temps</option>
+      </select>
+      <label class="modal-label">Récompense (tokens)</label><input class="input" id="cf-reward" type="number" min="1" placeholder="ex: 2" />
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveChallenge()">Enregistrer</button>
+        <button class="btn" onclick="toggleChallengeForm()">Annuler</button>
+      </div>
+    </div>
+    <div id="challenges-list"><div class="loader">Chargement...</div></div>
+  </div>
+
+  <!-- MORE -->
+  <div id="panel-more" style="display:none">
+    <div class="panel-header"><div class="panel-title">Outils</div></div>
+    <div class="quick-grid">
+      <div class="quick-card green" onclick="switchTab('stamp_rewards')">
+        <div class="quick-icon">🃏</div>
+        <div class="quick-label">Cases tampons</div>
+        <div class="quick-sub">Tokens par case</div>
+      </div>
+      <div class="quick-card purple" onclick="switchTab('offers')">
+        <div class="quick-icon">🏷</div>
+        <div class="quick-label">Offres</div>
+        <div class="quick-sub">Gérer les promos</div>
+      </div>
+      <div class="quick-card amber" onclick="switchTab('challenges')">
+        <div class="quick-icon">🎯</div>
+        <div class="quick-label">Défis</div>
+        <div class="quick-sub">Défis clients</div>
+      </div>
+      <div class="quick-card blue" onclick="switchTab('rewards')">
+        <div class="quick-icon">🎡</div>
+        <div class="quick-label">Roue</div>
+        <div class="quick-sub">Récompenses</div>
+      </div>
+      <div class="quick-card token" onclick="switchTab('stats')">
+        <div class="quick-icon">📊</div>
+        <div class="quick-label">Stats</div>
+        <div class="quick-sub">Graphiques</div>
+      </div>
+      <div class="quick-card danger" onclick="switchTab('history')">
+        <div class="quick-icon">📋</div>
+        <div class="quick-label">Historique</div>
+        <div class="quick-sub">Spins passés</div>
+      </div>
+    </div>
+  </div>
+
   <!-- STAMP REWARDS ADMIN -->
   <div id="panel-stamp_rewards" style="display:none">
     <div class="panel-header">
@@ -1043,7 +1188,7 @@ function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit"
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","more","history","stamp_rewards"];
 const NAV_ITEMS=["home","clients","orders","products","more"];
 
 function switchTab(tab){
@@ -1058,7 +1203,7 @@ function switchTab(tab){
   // Update bottom nav active state
   NAV_ITEMS.forEach(n=>{
     const el=document.getElementById("nav-"+n);
-    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
+    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="rewards"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
   });
   // Load data
   if(tab==="home")loadHome();
@@ -1067,6 +1212,7 @@ function switchTab(tab){
   if(tab==="products")loadProducts();
   if(tab==="orders")loadOrders();
   if(tab==="challenges")loadChallenges();
+  if(tab==="rewards"){loadRewards();loadShopConfig();}
   if(tab==="stamp_rewards")loadStampRewards();
   if(tab==="history")loadHistory();
 }
