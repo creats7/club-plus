@@ -2210,11 +2210,13 @@ async function saveChest(){
     const p=parseInt(r.querySelector(".crr-prob")?.value)||0;
     if(n&&p>0)rewards.push({name:n,probability:p});
   });
+  const id=document.getElementById("chf-id").value;
+  // Lors d'une création, les lots sont obligatoires
+  if(!id&&!rewards.length){toast("Ajoute au moins un lot");return;}
   if(rewards.length){
     const total=rewards.reduce((s,r)=>s+r.probability,0);
     if(total!==100){toast(`Probabilités = ${total}% — doit être 100%`);return;}
   }
-  const id=document.getElementById("chf-id").value;
   if(id){
     await dbPatch(T_CHESTS+"?id=eq."+id,{name,description:desc||null});
     if(rewards.length){
@@ -2313,41 +2315,42 @@ function selectChest(chestId, clientChestId){
 
 async function openSelectedChest(){
   if(!pendingClientChestId)return;
-  // Auto-select first active chest if none selected
   if(!selectedChestId){
     const chests=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc&limit=1");
     if(chests&&chests.length)selectedChestId=chests[0].id;
-    else{toast("Aucun coffre configuré par l'admin");return;}
+    else{toast("Aucun coffre configuré");return;}
   }
-  // Vibrate + shake animation
+
+  // Animation ouverture
   const visual=document.getElementById("cv-chest-visual");
   if(visual){visual.classList.remove("floating","selected");visual.classList.add("selected");}
   spawnChestParticles();
 
   const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+selectedChestId);
-  if(!rewards||!rewards.length){toast("Ce coffre est vide");return;}
+  if(!rewards||!rewards.length){toast("Ce coffre n'a pas de lots configurés");return;}
+
+  // Tirage probabiliste
   const total=rewards.reduce((s,r)=>s+r.probability,0);
   let rand=Math.random()*total,cumul=0,won=rewards[rewards.length-1];
   for(const r of rewards){cumul+=r.probability;if(rand<=cumul){won=r;break;}}
 
+  // Marquer comme ouvert
   await dbPatch(T_CLIENT_CHESTS+"?id=eq."+pendingClientChestId,{
     opened:true,
     chest_id:selectedChestId,
-    reward_name:won.name+(won.value?" · "+won.value:""),
-    reward_type:won.type,
+    reward_name:won.name,
     opened_at:new Date().toISOString()
   });
 
-  const chest=await dbGet(T_CHESTS+"?id=eq."+selectedChestId+"&select=emoji");
-  const emoji=chest&&chest[0]?chest[0].emoji:"🎁";
-
+  // Afficher l'overlay résultat après l'animation
   setTimeout(()=>{
-    document.getElementById("cr-emoji").textContent=emoji;
-    document.getElementById("cr-reward").textContent=won.type==="nothing"?"Pas de chance…":won.name+(won.value?" — "+won.value:"");
-    document.getElementById("cr-sub").textContent=won.type==="nothing"?"Retente ta chance au prochain tampon !":"Montre ce résultat à la boutique pour récupérer ton lot !";
+    document.getElementById("cr-emoji").textContent="🎁";
+    document.getElementById("cr-reward").textContent=won.name;
+    document.getElementById("cr-sub").textContent="Montre ce résultat pour récupérer ton lot !";
     document.getElementById("chest-result-overlay").classList.add("open");
     selectedChestId=null;
-  },500);
+    pendingClientChestId=null;
+  },600);
 }
 
 function closeChestResult(){
@@ -2821,20 +2824,25 @@ async function buyChestShop(chestId,cost){
   const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
   if(!cData||!cData.length)return;
   const tokens=cData[0].tokens||0;
-  if(tokens<cost){toast("Pas assez de tokens 🪙");return;}
+  if(tokens<cost){toast("Pas assez de tokens");return;}
+
+  // Débiter les tokens
   await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
   await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
-  await dbPost(T_CLIENT_CHESTS,{client_id:currentClientId,chest_id:chestId,opened:false});
-  toast("🎁 Coffre acheté ! Ouvre-le ici même →");
-  // Rafraîchit le shop et ouvre l'overlay coffre directement
-  await loadClientShop(currentClientId);
-  // Ouvrir le coffre immédiatement
+
+  // Créer le client_chest
+  const res=await dbPost(T_CLIENT_CHESTS,{client_id:currentClientId,chest_id:chestId,opened:false});
+  const clientChestId=res&&res[0]?.id;
+  if(!clientChestId){toast("Erreur — réessaie");return;}
+
+  // Mettre à jour l'affichage token
+  document.getElementById("cv-shop-tokens").textContent=tokens-cost;
+  document.getElementById("cv-token-count").textContent=tokens-cost;
+
+  // Lancer directement l'ouverture
   selectedChestId=chestId;
-  const pending=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+currentClientId+"&opened=eq.false&order=created_at.desc&limit=1");
-  if(pending&&pending.length){
-    pendingClientChestId=pending[0].id;
-    await openSelectedChest();
-  }
+  pendingClientChestId=clientChestId;
+  await openSelectedChest();
 }
 
 // ── PRODUITS CLIENT ──
