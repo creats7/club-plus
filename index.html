@@ -1133,7 +1133,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <button onclick="calcDeliveryFee()" id="os-calc-btn"
         style="width:100%;padding:9px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px;transition:all .2s">
-        📏 Calculer les frais
+        📍 Utiliser ma position pour calculer les frais
       </button>
     </div>
 
@@ -1802,17 +1802,11 @@ function resetDeliveryFee(){
 }
 
 async function calcDeliveryFee(){
-  const address=document.getElementById("os-address")?.value.trim();
-  if(!address){toast("Entre une adresse d'abord");return;}
   const btn=document.getElementById("os-calc-btn");
-  if(btn){btn.textContent="⏳ Calcul...";btn.disabled=true;}
+  if(btn){btn.textContent="📡 Localisation...";btn.disabled=true;}
   try{
-    // Géocode l'adresse via nominatim (gratuit, pas de clé)
-    const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
-    const res=await fetch(url,{headers:{"Accept-Language":"fr"}});
-    const data=await res.json();
-    if(!data||!data.length){toast("Adresse introuvable — vérifie la saisie");if(btn){btn.textContent="📏 Calculer les frais";btn.disabled=false;}return;}
-    const clientLat=parseFloat(data[0].lat),clientLng=parseFloat(data[0].lon);
+    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000,maximumAge:30000,enableHighAccuracy:true}));
+    const clientLat=pos.coords.latitude,clientLng=pos.coords.longitude;
     const km=haversineKm(SHOP_LAT,SHOP_LNG,clientLat,clientLng);
     const fee=km>10?4:2;
     calculatedFee=fee;
@@ -1821,11 +1815,18 @@ async function calcDeliveryFee(){
     const feeDetail=document.getElementById("os-fee-detail");
     feeBox.style.display="block";
     feeVal.textContent=fee+" puff"+(fee>1?"s":"")+" mini";
-    feeDetail.textContent=`Distance estimée : ${km.toFixed(1)} km — ${fee===4?"+ de 10 km":"moins de 10 km"}`;
+    feeDetail.textContent=`Distance : ${km.toFixed(1)} km — ${fee===4?"+ de 10 km":"moins de 10 km"}`;
     if(btn){btn.textContent="✓ Calculé";btn.disabled=false;}
   } catch(e){
-    toast("Erreur calcul — vérifie la connexion");
-    if(btn){btn.textContent="📏 Calculer les frais";btn.disabled=false;}
+    // Géoloc refusée ou indisponible — fallback tarif max par sécurité
+    calculatedFee=4;
+    const feeBox=document.getElementById("os-fee-box");
+    const feeVal=document.getElementById("os-fee-val");
+    const feeDetail=document.getElementById("os-fee-detail");
+    feeBox.style.display="block";
+    feeVal.textContent="4 puffs mini";
+    feeDetail.textContent="Localisation non disponible — tarif maximum appliqué";
+    if(btn){btn.textContent="✓ Calculé";btn.disabled=false;}
   }
 }
 
