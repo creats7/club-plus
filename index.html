@@ -466,14 +466,24 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .qr-url{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all;margin-bottom:1rem;line-height:1.5}
 
 /* ── SPIN WHEEL ── */
-.wheel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:200;padding:1.5rem;backdrop-filter:blur(10px)}
+.wheel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;z-index:200;padding:1.5rem;backdrop-filter:blur(12px)}
 .wheel-overlay.open{display:flex}
-.wheel-box{background:#111;border:1px solid var(--border2);border-radius:20px;padding:1.75rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 60px rgba(0,0,0,.8)}
-.wheel-title{font-size:18px;font-weight:700;margin-bottom:4px;letter-spacing:-.03em}.wheel-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem}
-.wheel-wrap{position:relative;width:280px;height:280px;margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center}
-.wheel-canvas{border-radius:50%;box-shadow:0 0 0 1px var(--border2),0 4px 30px rgba(0,0,0,.6)}
-.wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:24px solid rgba(255,255,255,0.85);filter:drop-shadow(0 2px 6px rgba(255,255,255,0.2));z-index:10}
-.wheel-center{position:absolute;width:32px;height:32px;border-radius:50%;background:rgba(10,10,10,0.98);border:2px solid var(--border2);z-index:10}
+.wheel-box{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:1.75rem 1.5rem;width:100%;max-width:400px;text-align:center;box-shadow:0 16px 64px rgba(0,0,0,.9)}
+.wheel-title{font-size:18px;font-weight:800;margin-bottom:4px;letter-spacing:-.03em}
+.wheel-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+.case-slider-wrap{position:relative;width:100%;overflow:hidden;border-radius:12px;margin-bottom:1.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)}
+.case-slider-wrap::before,.case-slider-wrap::after{content:'';position:absolute;top:0;bottom:0;width:72px;z-index:3;pointer-events:none}
+.case-slider-wrap::before{left:0;background:linear-gradient(90deg,#111 0%,transparent 100%)}
+.case-slider-wrap::after{right:0;background:linear-gradient(-90deg,#111 0%,transparent 100%)}
+.case-cursor{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:2px;background:#fff;z-index:4;border-radius:2px;box-shadow:0 0 10px rgba(255,255,255,.7),0 0 22px rgba(255,255,255,.25)}
+.case-cursor::before,.case-cursor::after{content:'';position:absolute;left:50%;transform:translateX(-50%);border:7px solid transparent}
+.case-cursor::before{top:-10px;border-bottom-color:#fff}
+.case-cursor::after{bottom:-10px;border-top-color:#fff}
+.case-track{display:flex;align-items:center;height:104px;will-change:transform;padding:10px 0}
+.case-item{flex-shrink:0;width:80px;height:84px;margin:0 3px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:6px}
+.case-item.rare{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22)}
+.case-item-name{font-size:9px;font-weight:600;color:rgba(255,255,255,.55);text-align:center;font-family:'DM Mono',monospace;line-height:1.2;max-width:68px}
+.case-item.winner{border-color:rgba(255,255,255,.9)!important;background:rgba(255,255,255,.14)!important;box-shadow:0 0 20px rgba(255,255,255,.18)}
 .wheel-result{font-size:20px;font-weight:800;margin-bottom:6px;display:none;letter-spacing:-.03em}
 .wheel-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem;display:none}
 
@@ -1144,20 +1154,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </nav>
 </div>
 
-<!-- ══ SPIN WHEEL ══ -->
+<!-- ══ CASE OPENING ══ -->
 <div class="wheel-overlay" id="wheel-overlay">
   <div class="wheel-box">
-    <div class="wheel-title">🎡 Roue Club+</div>
+    <div class="wheel-title">Club+ · Récompenses</div>
     <div class="wheel-sub" id="wheel-sub">1 token sera utilisé</div>
-    <div class="wheel-wrap">
-      <div class="wheel-pointer"></div>
-      <canvas class="wheel-canvas" id="wheel-canvas" width="280" height="280"></canvas>
-      <div class="wheel-center"></div>
+    <div class="case-slider-wrap" id="case-slider-wrap">
+      <div class="case-cursor"></div>
+      <div class="case-track" id="case-track"></div>
     </div>
     <div class="wheel-result" id="wheel-result"></div>
     <div class="wheel-result-sub" id="wheel-result-sub"></div>
     <div style="display:flex;gap:8px;justify-content:center">
-      <button class="btn-spin" id="wheel-spin-btn" onclick="doSpin()">Lancer !</button>
+      <button class="btn-spin" id="wheel-spin-btn" onclick="doSpin()">Ouvrir</button>
       <button class="btn" id="wheel-close-btn" onclick="closeWheel()" style="display:none">Fermer</button>
     </div>
   </div>
@@ -2669,88 +2678,128 @@ async function loadHistory(){
 }
 
 // ── WHEEL ──
-function drawWheel(rewards,angle){
-  const canvas=document.getElementById("wheel-canvas");if(!canvas)return;
-  const ctx=canvas.getContext("2d"),W=canvas.width,cx=W/2,cy=W/2,R=cx-4,n=rewards.length;
-  if(n===0)return;
-  const arc=2*Math.PI/n;
-  ctx.clearRect(0,0,W,W);
-  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.fillStyle="rgba(14,12,32,0.95)";ctx.fill();
+// ── CASE OPENING (CSGO style) ──
+let wheelAlreadyDebited=false;
+const ITEM_W=86; // item width + margins
+
+function buildCaseTrack(rewards){
+  const track=document.getElementById("case-track");
+  track.innerHTML="";
+  track.style.transform="translateX(0)";
+  // Générer ~60 items pour avoir assez de course
+  const count=60;
   const minProb=Math.min(...rewards.map(r=>r.probability));
-  const rarestIdx=rewards.findIndex(r=>r.probability===minProb);
-  const segFills=["rgba(109,95,245,0.18)","rgba(255,255,255,0.04)","rgba(109,95,245,0.10)","rgba(255,255,255,0.07)","rgba(109,95,245,0.14)","rgba(255,255,255,0.05)","rgba(109,95,245,0.08)","rgba(255,255,255,0.06)"];
-  rewards.forEach((r,i)=>{
-    const start=angle+i*arc,end=start+arc,mid=start+arc/2,isRarest=(i===rarestIdx);
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,start,end);ctx.closePath();
-    if(isRarest){const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R);g.addColorStop(0,"rgba(56,189,248,0.08)");g.addColorStop(1,"rgba(56,189,248,0.22)");ctx.fillStyle=g;}
-    else{ctx.fillStyle=segFills[i%segFills.length];}
-    ctx.fill();
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,start,end);ctx.closePath();
-    ctx.strokeStyle=isRarest?"rgba(56,189,248,0.35)":"rgba(124,111,247,0.15)";ctx.lineWidth=1;ctx.stroke();
-    if(isRarest){ctx.beginPath();ctx.arc(cx,cy,R-1,start,end);ctx.strokeStyle="rgba(56,189,248,0.5)";ctx.lineWidth=2;ctx.stroke();}
-    ctx.save();ctx.translate(cx,cy);ctx.rotate(mid);ctx.textAlign="right";ctx.shadowBlur=0;
-    const name=r.name.length>14?r.name.slice(0,13)+"…":r.name;
-    const fontSize=n>6?10:12;ctx.font=`500 ${fontSize}px 'DM Sans',sans-serif`;
-    ctx.fillStyle=isRarest?"rgba(56,189,248,0.95)":"rgba(196,181,253,0.85)";
-    ctx.fillText(name,R-12,4);ctx.restore();
-  });
-  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.strokeStyle="rgba(124,111,247,0.25)";ctx.lineWidth=1.5;ctx.stroke();
-  ctx.beginPath();ctx.arc(cx,cy,16,0,2*Math.PI);ctx.fillStyle="rgba(8,8,15,0.98)";ctx.fill();ctx.strokeStyle="rgba(124,111,247,0.3)";ctx.lineWidth=1.5;ctx.stroke();
+  for(let i=0;i<count;i++){
+    const r=rewards[i%rewards.length];
+    const isRare=r.probability===minProb;
+    const div=document.createElement("div");
+    div.className="case-item"+(isRare?" rare":"");
+    div.dataset.idx=i%rewards.length;
+    div.innerHTML=`<div class="case-item-name">${r.name.length>14?r.name.slice(0,13)+"…":r.name}</div>`;
+    track.appendChild(div);
+  }
 }
 
-let wheelAlreadyDebited=false;
+function pickReward(){
+  const total=activeRewards.reduce((s,r)=>s+r.probability,0);
+  if(total===0)return{reward:activeRewards[0],index:0};
+  let rand=Math.random()*total,cumul=0;
+  for(let i=0;i<activeRewards.length;i++){
+    cumul+=activeRewards[i].probability;
+    if(rand<=cumul)return{reward:activeRewards[i],index:i};
+  }
+  return{reward:activeRewards[activeRewards.length-1],index:activeRewards.length-1};
+}
+
 async function openWheel(alreadyDebited=false){
   wheelAlreadyDebited=alreadyDebited;
-  document.getElementById("wheel-overlay").classList.add("open");
+  isSpinning=false;
   document.getElementById("wheel-result").style.display="none";
   document.getElementById("wheel-result-sub").style.display="none";
   document.getElementById("wheel-spin-btn").style.display="inline-flex";
   document.getElementById("wheel-spin-btn").disabled=false;
   document.getElementById("wheel-close-btn").style.display="none";
-  isSpinning=false;
   activeRewards=await dbGet(T_REWARDS+"?active=eq.true&order=created_at.asc");
-  wheelAngle=-Math.PI/2;
-  drawWheel(activeRewards,wheelAngle);
+  if(!activeRewards||!activeRewards.length){toast("Aucune récompense configurée");return;}
+  buildCaseTrack(activeRewards);
+  document.getElementById("wheel-overlay").classList.add("open");
 }
+
 function closeWheel(){document.getElementById("wheel-overlay").classList.remove("open");}
-function pickReward(){
-  const total=activeRewards.reduce((s,r)=>s+r.probability,0);if(total===0)return{reward:activeRewards[0],index:0};
-  let rand=Math.random()*total,cumul=0;
-  for(let i=0;i<activeRewards.length;i++){cumul+=activeRewards[i].probability;if(rand<=cumul)return{reward:activeRewards[i],index:i};}
-  return{reward:activeRewards[activeRewards.length-1],index:activeRewards.length-1};
-}
+
 async function doSpin(){
-  if(isSpinning||!activeRewards.length)return;
-  isSpinning=true;document.getElementById("wheel-spin-btn").disabled=true;
-  const {reward,index}=pickReward();spinResult=reward;
-  const n=activeRewards.length,arc=2*Math.PI/n,extraTurns=5;
-  const targetFinal=-Math.PI/2-(index+0.5)*arc;
-  let spinAmount=wheelAngle-targetFinal;
-  spinAmount=((spinAmount%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
-  if(spinAmount<0.01)spinAmount+=2*Math.PI;
-  const totalRotation=extraTurns*2*Math.PI+spinAmount;
-  const finalAngle=wheelAngle-totalRotation;
-  const duration=4500,startAngle=wheelAngle,startTime=performance.now();
-  function easeOut(t){return 1-Math.pow(1-t,4);}
+  if(isSpinning||!activeRewards||!activeRewards.length)return;
+  isSpinning=true;
+  document.getElementById("wheel-spin-btn").disabled=true;
+
+  const {reward,index}=pickReward();
+  spinResult=reward;
+
+  const track=document.getElementById("case-track");
+  const wrap=document.getElementById("case-slider-wrap");
+  const wrapW=wrap.offsetWidth;
+  const centerOffset=wrapW/2; // position du curseur depuis gauche du wrap
+
+  // On veut que l'item gagnant se retrouve sous le curseur
+  // L'item gagnant est placé à l'index cible dans la piste (ex: item 45)
+  const targetItemIndex=40+index; // quelque part vers la fin du défilement
+  // S'assurer que cet item a le bon reward
+  const items=track.querySelectorAll(".case-item");
+  // Reconstruire les 10 derniers items pour forcer le reward au bon endroit
+  for(let i=35;i<items.length;i++){
+    const r=activeRewards[i%activeRewards.length];
+    items[i].className="case-item"+(r.probability===Math.min(...activeRewards.map(x=>x.probability))?" rare":"");
+    items[i].querySelector(".case-item-name").textContent=r.name.length>14?r.name.slice(0,13)+"…":r.name;
+    items[i].dataset.idx=String(i%activeRewards.length);
+  }
+  // Placer le reward gagnant exactement à targetItemIndex
+  const winItem=items[targetItemIndex];
+  winItem.className="case-item"+(reward.probability===Math.min(...activeRewards.map(x=>x.probability))?" rare":"");
+  winItem.querySelector(".case-item-name").textContent=reward.name.length>14?reward.name.slice(0,13)+"…":reward.name;
+  winItem.dataset.idx=String(index);
+
+  // Calculer la translation finale : l'item gagnant doit être centré sous le curseur
+  // Position du centre de l'item gagnant dans le track
+  const itemCenter=targetItemIndex*ITEM_W+(ITEM_W/2);
+  // On veut que itemCenter soit à centerOffset du bord gauche du wrap
+  // donc translateX = -(itemCenter - centerOffset) + offset aléatoire dans l'item (-15 à +15)
+  const jitter=(Math.random()-0.5)*20;
+  const finalTranslate=-(itemCenter-centerOffset)+jitter;
+
+  // Animation avec easing custom
+  const duration=4200;
+  const startTranslate=0;
+  const start=performance.now();
+
+  function easeOutQuint(t){return 1-Math.pow(1-t,5);}
+
   function animate(now){
-    const t=Math.min((now-startTime)/duration,1);
-    const cur=startAngle-totalRotation*easeOut(t);
-    wheelAngle=cur;drawWheel(activeRewards,cur);
+    const elapsed=now-start;
+    const t=Math.min(elapsed/duration,1);
+    const ease=easeOutQuint(t);
+    const current=startTranslate+(finalTranslate-startTranslate)*ease;
+    track.style.transform=`translateX(${current}px)`;
     if(t<1){requestAnimationFrame(animate);}
-    else{wheelAngle=finalAngle;drawWheel(activeRewards,finalAngle);showWheelResult();}
+    else{
+      track.style.transform=`translateX(${finalTranslate}px)`;
+      winItem.classList.add("winner");
+      setTimeout(()=>showWheelResult(),600);
+    }
   }
   requestAnimationFrame(animate);
 }
+
 async function showWheelResult(){
   const LOSING=["rien","nothing","nada","perdu","0","no prize"];
   const isLosing=LOSING.includes(spinResult.name.trim().toLowerCase());
   const res=document.getElementById("wheel-result");
-  res.textContent="✦ "+spinResult.name;res.style.color="var(--text)";res.style.display="block";
-  document.getElementById("wheel-result-sub").textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Écris-moi pour le récupérer 🎁";
+  res.textContent="✦ "+spinResult.name;
+  res.style.color="var(--text)";
+  res.style.display="block";
+  document.getElementById("wheel-result-sub").textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Montre ce résultat pour récupérer ton lot 🎁";
   document.getElementById("wheel-result-sub").style.display="block";
   document.getElementById("wheel-spin-btn").style.display="none";
   document.getElementById("wheel-close-btn").style.display="inline-flex";
-  // Ne débiter que si pas encore fait (openWheelShop a déjà débité)
   if(!wheelAlreadyDebited){
     const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
     if(cData&&cData.length){
