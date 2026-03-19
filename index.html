@@ -1150,6 +1150,24 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 
 
+<!-- ══ SPIN WHEEL ══ -->
+<div class="wheel-overlay" id="wheel-overlay">
+  <div class="wheel-box">
+    <div class="wheel-title">Club+ · Récompenses</div>
+    <div class="wheel-sub" id="wheel-sub">Tokens utilisés</div>
+    <div class="case-slider-wrap" id="case-slider-wrap">
+      <div class="case-cursor"></div>
+      <div class="case-track" id="case-track"></div>
+    </div>
+    <div class="wheel-result" id="wheel-result"></div>
+    <div class="wheel-result-sub" id="wheel-result-sub"></div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn-spin" id="wheel-spin-btn" onclick="doSpin()">Ouvrir</button>
+      <button class="btn" id="wheel-close-btn" onclick="closeWheel()" style="display:none">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2472,18 +2490,131 @@ async function saveWheelCost(){
   toast("Coût roue : "+v+" 🪙 ✓");
 }
 
-async function saveChestCost(){
-  const v=Math.max(1,parseInt(document.getElementById("chest-cost-input").value)||1);
-  await dbPatch(T_SHOP_CONFIG+"?key=eq.chest_cost",{value:v});
-  shopConfig.chest_cost=v;
-  toast("Coût coffre : "+v+" 🪙 ✓");
+// ── WHEEL (CSGO slider) ──
+let wheelAlreadyDebited=false;
+const ITEM_W=86;
+
+function buildCaseTrack(rewards){
+  const track=document.getElementById("case-track");
+  if(!track)return;
+  track.innerHTML="";track.style.transform="translateX(0)";
+  const minProb=Math.min(...rewards.map(r=>r.probability));
+  for(let i=0;i<60;i++){
+    const r=rewards[i%rewards.length];
+    const isRare=r.probability===minProb;
+    const div=document.createElement("div");
+    div.className="case-item"+(isRare?" rare":"");
+    div.dataset.idx=String(i%rewards.length);
+    const name=r.name.length>14?r.name.slice(0,13)+"…":r.name;
+    div.innerHTML=r.image_url
+      ?`<img src="${r.image_url}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'"><div class="case-item-name">${name}</div>`
+      :`<div class="case-item-name">${name}</div>`;
+    track.appendChild(div);
+  }
 }
 
-async function saveScratchCost(){
-  const v=Math.max(1,parseInt(document.getElementById("scratch-cost-input").value)||1);
-  await dbPatch(T_SHOP_CONFIG+"?key=eq.scratch_cost",{value:v});
-  shopConfig.scratch_cost=v;
-  toast("Coût gratte : "+v+" 🪙 ✓");
+function pickReward(){
+  const total=activeRewards.reduce((s,r)=>s+r.probability,0);
+  if(total===0)return{reward:activeRewards[0],index:0};
+  let rand=Math.random()*total,cumul=0;
+  for(let i=0;i<activeRewards.length;i++){cumul+=activeRewards[i].probability;if(rand<=cumul)return{reward:activeRewards[i],index:i};}
+  return{reward:activeRewards[activeRewards.length-1],index:activeRewards.length-1};
+}
+
+async function openWheel(alreadyDebited=false){
+  wheelAlreadyDebited=alreadyDebited;
+  isSpinning=false;
+  document.getElementById("wheel-result").style.display="none";
+  document.getElementById("wheel-result-sub").style.display="none";
+  document.getElementById("wheel-spin-btn").style.display="inline-flex";
+  document.getElementById("wheel-spin-btn").disabled=false;
+  document.getElementById("wheel-close-btn").style.display="none";
+  activeRewards=await dbGet(T_REWARDS+"?active=eq.true&order=created_at.asc");
+  if(!activeRewards||!activeRewards.length){toast("Aucune récompense configurée");return;}
+  buildCaseTrack(activeRewards);
+  document.getElementById("wheel-overlay").classList.add("open");
+}
+
+function closeWheel(){document.getElementById("wheel-overlay").classList.remove("open");}
+
+async function doSpin(){
+  if(isSpinning||!activeRewards||!activeRewards.length)return;
+  isSpinning=true;
+  document.getElementById("wheel-spin-btn").disabled=true;
+  const {reward,index}=pickReward();spinResult=reward;
+  const track=document.getElementById("case-track");
+  const wrap=document.getElementById("case-slider-wrap");
+  const wrapW=wrap.offsetWidth;
+  const centerOffset=wrapW/2;
+  const targetIndex=42;
+  const items=track.querySelectorAll(".case-item");
+  // Force winner at targetIndex
+  for(let i=35;i<items.length;i++){
+    const r=activeRewards[i%activeRewards.length];
+    const isRare=r.probability===Math.min(...activeRewards.map(x=>x.probability));
+    items[i].className="case-item"+(isRare?" rare":"");
+    const n=r.name.length>14?r.name.slice(0,13)+"…":r.name;
+    items[i].innerHTML=r.image_url?`<img src="${r.image_url}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'"><div class="case-item-name">${n}</div>`:`<div class="case-item-name">${n}</div>`;
+    items[i].dataset.idx=String(i%activeRewards.length);
+  }
+  const winItem=items[targetIndex];
+  const isWinRare=reward.probability===Math.min(...activeRewards.map(x=>x.probability));
+  winItem.className="case-item"+(isWinRare?" rare":"");
+  winItem.dataset.idx=String(index);
+  const winName=reward.name.length>14?reward.name.slice(0,13)+"…":reward.name;
+  winItem.innerHTML=reward.image_url?`<img src="${reward.image_url}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'"><div class="case-item-name">${winName}</div>`:`<div class="case-item-name">${winName}</div>`;
+  const itemCenter=targetIndex*ITEM_W+(ITEM_W/2);
+  const jitter=(Math.random()-0.5)*20;
+  const finalT=-(itemCenter-centerOffset)+jitter;
+  const duration=4200;const start=performance.now();
+  function easeOutQuint(t){return 1-Math.pow(1-t,5);}
+  function animate(now){
+    const t=Math.min((now-start)/duration,1);
+    track.style.transform=`translateX(${finalT*easeOutQuint(t)}px)`;
+    if(t<1){requestAnimationFrame(animate);}
+    else{winItem.classList.add("winner");setTimeout(()=>showWheelResult(),600);}
+  }
+  requestAnimationFrame(animate);
+}
+
+async function showWheelResult(){
+  const LOSING=["rien","nothing","nada","perdu","0","no prize"];
+  const isLosing=LOSING.includes(spinResult.name.trim().toLowerCase());
+  const res=document.getElementById("wheel-result");
+  if(spinResult.image_url&&!isLosing){
+    res.innerHTML=`<img src="${spinResult.image_url}" style="width:80px;height:80px;object-fit:cover;border-radius:14px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" onerror="this.style.display='none'"><div>✦ ${spinResult.name}</div>`;
+  } else {
+    res.textContent="✦ "+spinResult.name;
+  }
+  res.style.color="var(--text)";res.style.display="block";
+  document.getElementById("wheel-result-sub").textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Montre ce résultat pour récupérer ton lot 🎁";
+  document.getElementById("wheel-result-sub").style.display="block";
+  document.getElementById("wheel-spin-btn").style.display="none";
+  document.getElementById("wheel-close-btn").style.display="inline-flex";
+  if(!wheelAlreadyDebited){
+    const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
+    if(cData&&cData.length){
+      const newTokens=Math.max(0,(cData[0].tokens||0)-1);
+      await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:newTokens});
+      await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
+    }
+  }
+  await dbPost(T_SPINS,{client_id:currentClientId,reward_name:spinResult.name});
+  await loadClientView(currentClientId);
+  isSpinning=false;
+}
+
+async function openWheelShop(cost){
+  cost=cost||shopConfig.wheel_cost||1;
+  const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
+  if(!cData||!cData.length)return;
+  const tokens=cData[0].tokens||0;
+  if(tokens<cost){toast("Pas assez de tokens");return;}
+  await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
+  await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
+  document.getElementById("cv-shop-tokens").textContent=tokens-cost;
+  document.getElementById("cv-token-count").textContent=tokens-cost;
+  openWheel(true);
 }
 
 async function loadStampRewards(){
