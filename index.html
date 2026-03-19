@@ -63,15 +63,75 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
 .topbar-brand{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--muted2);text-transform:uppercase}
 
-/* ── BOTTOM NAV ── */
-.admin-body{padding-bottom:72px}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;background:rgba(10,10,10,0.95);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:50;display:flex;align-items:stretch}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 10px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:color .15s;position:relative;font-family:'Inter',sans-serif}
-.nav-item.active{color:var(--text)}
+/* ── BOTTOM NAV ADMIN — pill flottante ── */
+.bottom-nav{
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  width:auto;max-width:calc(100% - 32px);
+  background:rgba(20,20,20,0.98);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:24px;
+  backdrop-filter:blur(28px);
+  z-index:50;display:flex;align-items:center;
+  padding:5px;gap:2px;
+  box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.03);
+}
+.nav-item{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 14px;border-radius:18px;
+  cursor:pointer;border:none;background:transparent;
+  color:rgba(255,255,255,.35);
+  transition:all .2s cubic-bezier(.34,1.2,.64,1);
+  position:relative;font-family:'Inter',sans-serif;
+  white-space:nowrap;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.nav-item.active{background:rgba(255,255,255,0.13);color:rgba(255,255,255,.95)}
 .nav-item:active{transform:scale(.92)}
-.nav-icon{font-size:20px;margin-bottom:2px;line-height:1}
-.nav-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase}
-.nav-badge{position:absolute;top:6px;right:calc(50% - 14px);background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:1px 5px;font-family:'DM Mono',monospace;min-width:16px;text-align:center}
+.nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-icon svg{width:20px;height:20px}
+.nav-label{font-size:13px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.01em;display:none}
+.nav-item.active .nav-label{display:block}
+.nav-badge{
+  position:absolute;top:3px;right:3px;
+  background:var(--danger);color:#fff;font-size:9px;font-weight:700;
+  border-radius:99px;padding:1px 5px;
+  font-family:'DM Mono',monospace;min-width:16px;text-align:center;
+}
+
+/* ── BOTTOM NAV CLIENT — même style ── */
+.cv-nav{
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  width:auto;max-width:calc(100% - 32px);
+  background:rgba(20,20,20,0.98);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:24px;
+  backdrop-filter:blur(28px);
+  z-index:50;display:none;align-items:center;
+  padding:5px;gap:2px;
+  box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.03);
+}
+.cv-nav.visible{display:flex}
+.cv-nav-item{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 14px;border-radius:18px;
+  cursor:pointer;border:none;background:transparent;
+  color:rgba(255,255,255,.35);
+  transition:all .2s cubic-bezier(.34,1.2,.64,1);
+  position:relative;font-family:'Inter',sans-serif;
+  white-space:nowrap;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.cv-nav-item.active{background:rgba(255,255,255,0.13);color:rgba(255,255,255,.95)}
+.cv-nav-item:active{transform:scale(.92)}
+.cv-nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cv-nav-icon svg{width:20px;height:20px}
+.cv-nav-label{font-size:13px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.01em;display:none}
+.cv-nav-item.active .cv-nav-label{display:block}
+.cv-nav-badge{
+  position:absolute;top:3px;right:3px;
+  background:var(--danger);color:#fff;font-size:9px;font-weight:700;
+  border-radius:99px;padding:1px 5px;min-width:16px;text-align:center;
+}
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .panel-title{font-size:18px;font-weight:700;letter-spacing:-.03em}
 
@@ -331,14 +391,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-chest-buy-desc{font-size:12px;color:var(--muted)}
 .cv-chest-buy-price{display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--text);flex-shrink:0}
 .cv-chest-buy-card.disabled{opacity:.35;cursor:not-allowed}
-.cv-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;background:rgba(10,10,10,0.97);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:50;display:none}
-.cv-nav.visible{display:flex}
-.cv-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px 11px;cursor:pointer;border:none;background:transparent;color:var(--muted2);transition:color .15s;font-family:'Inter',sans-serif;position:relative}
-.cv-nav-item.active{color:var(--text)}
-.cv-nav-item:active{transform:scale(.9)}
-.cv-nav-icon{font-size:20px;margin-bottom:2px;line-height:1}
-.cv-nav-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase}
-.cv-nav-badge{position:absolute;top:5px;right:calc(50% - 16px);background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:1px 5px;min-width:16px;text-align:center}
+.admin-body{padding-bottom:88px}
 .cv-section{display:none;width:100%;animation:fadeUp .3s ease both}
 .cv-section.active{display:block}
 .cv-section-header{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.14em;margin-bottom:14px}
@@ -399,7 +452,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 @keyframes tokenPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 8px 2px rgba(255,255,255,0.1)}}
 @keyframes slotBounce{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
 
-.cv-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:1.25rem 1.25rem 80px;width:100%;gap:14px;position:relative;z-index:1}
+.cv-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:1.25rem 1.25rem 100px;width:100%;gap:14px;position:relative;z-index:1}
 .cv-brand{display:flex;flex-direction:column;align-items:center;animation:fadeUp .5s ease both}
 .cv-brand-icon{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.2em;color:var(--muted2);text-transform:uppercase;margin-bottom:8px}
 .cv-brand-name{font-size:26px;font-weight:900;letter-spacing:-.04em;color:var(--text)}
@@ -818,25 +871,35 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
-      <div class="nav-icon">🏠</div>
+      <div class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
       <div class="nav-label">Accueil</div>
       <div class="nav-badge" id="nav-badge-home" style="display:none"></div>
     </button>
     <button class="nav-item" id="nav-clients" onclick="switchTab('clients')">
-      <div class="nav-icon">👥</div>
+      <div class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
       <div class="nav-label">Clients</div>
     </button>
     <button class="nav-item" id="nav-orders" onclick="switchTab('orders')">
-      <div class="nav-icon">🛍</div>
+      <div class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
       <div class="nav-label">Commandes</div>
       <div class="nav-badge" id="nav-badge-orders" style="display:none"></div>
     </button>
     <button class="nav-item" id="nav-products" onclick="switchTab('products')">
-      <div class="nav-icon">📦</div>
+      <div class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
       <div class="nav-label">Stock</div>
     </button>
     <button class="nav-item" id="nav-more" onclick="switchTab('more')">
-      <div class="nav-icon">☰</div>
+      <div class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
       <div class="nav-label">Plus</div>
     </button>
   </nav>
@@ -930,20 +993,28 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- BOTTOM NAV CLIENT -->
   <nav class="cv-nav" id="cv-nav">
     <button class="cv-nav-item active" id="cvnav-carte" onclick="switchClientTab('carte')">
-      <div class="cv-nav-icon">🃏</div>
+      <div class="cv-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
       <div class="cv-nav-label">Carte</div>
     </button>
     <button class="cv-nav-item" id="cvnav-shop" onclick="switchClientTab('shop')">
-      <div class="cv-nav-icon">🎮</div>
+      <div class="cv-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+      </div>
       <div class="cv-nav-label">Shop</div>
       <div class="cv-nav-badge" id="cvnav-badge-shop" style="display:none"></div>
     </button>
     <button class="cv-nav-item" id="cvnav-defis" onclick="switchClientTab('defis')">
-      <div class="cv-nav-icon">🎯</div>
+      <div class="cv-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
       <div class="cv-nav-label">Défis</div>
     </button>
     <button class="cv-nav-item" id="cvnav-commandes" onclick="switchClientTab('commandes')">
-      <div class="cv-nav-icon">📦</div>
+      <div class="cv-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      </div>
       <div class="cv-nav-label">Commander</div>
     </button>
   </nav>
@@ -1037,10 +1108,43 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <label class="modal-label">Téléphone</label>
     <input class="input" id="os-phone" placeholder="06 12 34 56 78" type="tel" />
 
-    <label class="modal-label">Adresse de livraison</label>
-    <input class="input" id="os-address" placeholder="ex: 12 rue de la Paix, Paris" />
+    <!-- Toggle livraison / retrait -->
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button id="os-btn-livraison" onclick="setDeliveryMode('livraison')"
+        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,.08);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s">
+        🚚 Livraison
+      </button>
+      <button id="os-btn-retrait" onclick="setDeliveryMode('retrait')"
+        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s">
+        📍 Retrait
+      </button>
+    </div>
 
-    <label class="modal-label">Créneau de retrait souhaité</label>
+    <div id="os-livraison-block">
+      <label class="modal-label">Adresse de livraison</label>
+      <input class="input" id="os-address" placeholder="ex: 12 rue de la Paix, Melun" oninput="resetDeliveryFee()" />
+      <!-- Frais de livraison -->
+      <div id="os-fee-box" style="display:none;background:var(--surface);border:1px solid var(--border2);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:13px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--muted)">Frais de livraison</span>
+          <span id="os-fee-val" style="font-family:'DM Mono',monospace;font-weight:700">—</span>
+        </div>
+        <div id="os-fee-detail" style="font-size:11px;color:var(--muted2);margin-top:3px;font-family:'DM Mono',monospace"></div>
+      </div>
+      <button onclick="calcDeliveryFee()" id="os-calc-btn"
+        style="width:100%;padding:9px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px;transition:all .2s">
+        📏 Calculer les frais
+      </button>
+    </div>
+
+    <div id="os-retrait-block" style="display:none">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:var(--muted)">
+        📍 Retrait gratuit — on te prépare ta commande
+      </div>
+      <input type="hidden" id="os-address" />
+    </div>
+
+    <label class="modal-label">Créneau souhaité</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <input class="input" id="os-date" type="date" style="margin-bottom:0" />
       <input class="input" id="os-time" type="time" style="margin-bottom:0" />
@@ -1660,6 +1764,71 @@ async function cancelClientOrder(id){
 }
 
 // ── ORDER MODAL (client) ──
+// ── DELIVERY MODE ──
+const SHOP_LAT=48.584993,SHOP_LNG=2.966841;
+let currentDeliveryMode='livraison';
+let calculatedFee=null; // null = pas calculé, 0 = retrait, 2 ou 4 = livraison
+
+function haversineKm(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function setDeliveryMode(mode){
+  currentDeliveryMode=mode;
+  calculatedFee=null;
+  const livBtn=document.getElementById("os-btn-livraison");
+  const retBtn=document.getElementById("os-btn-retrait");
+  const livBlock=document.getElementById("os-livraison-block");
+  const retBlock=document.getElementById("os-retrait-block");
+  if(!livBtn)return;
+  if(mode==='livraison'){
+    livBtn.style.background="rgba(255,255,255,.12)";livBtn.style.color="var(--text)";livBtn.style.borderColor="var(--border2)";
+    retBtn.style.background="transparent";retBtn.style.color="var(--muted)";retBtn.style.borderColor="var(--border)";
+    livBlock.style.display="block";retBlock.style.display="none";
+  } else {
+    retBtn.style.background="rgba(255,255,255,.12)";retBtn.style.color="var(--text)";retBtn.style.borderColor="var(--border2)";
+    livBtn.style.background="transparent";livBtn.style.color="var(--muted)";livBtn.style.borderColor="var(--border)";
+    retBlock.style.display="block";livBlock.style.display="none";
+    calculatedFee=0;
+  }
+}
+
+function resetDeliveryFee(){
+  calculatedFee=null;
+  const feeBox=document.getElementById("os-fee-box");
+  if(feeBox)feeBox.style.display="none";
+}
+
+async function calcDeliveryFee(){
+  const address=document.getElementById("os-address")?.value.trim();
+  if(!address){toast("Entre une adresse d'abord");return;}
+  const btn=document.getElementById("os-calc-btn");
+  if(btn){btn.textContent="⏳ Calcul...";btn.disabled=true;}
+  try{
+    // Géocode l'adresse via nominatim (gratuit, pas de clé)
+    const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+    const res=await fetch(url,{headers:{"Accept-Language":"fr"}});
+    const data=await res.json();
+    if(!data||!data.length){toast("Adresse introuvable — vérifie la saisie");if(btn){btn.textContent="📏 Calculer les frais";btn.disabled=false;}return;}
+    const clientLat=parseFloat(data[0].lat),clientLng=parseFloat(data[0].lon);
+    const km=haversineKm(SHOP_LAT,SHOP_LNG,clientLat,clientLng);
+    const fee=km>10?4:2;
+    calculatedFee=fee;
+    const feeBox=document.getElementById("os-fee-box");
+    const feeVal=document.getElementById("os-fee-val");
+    const feeDetail=document.getElementById("os-fee-detail");
+    feeBox.style.display="block";
+    feeVal.textContent=fee+" puff"+(fee>1?"s":"")+" mini";
+    feeDetail.textContent=`Distance estimée : ${km.toFixed(1)} km — ${fee===4?"+ de 10 km":"moins de 10 km"}`;
+    if(btn){btn.textContent="✓ Calculé";btn.disabled=false;}
+  } catch(e){
+    toast("Erreur calcul — vérifie la connexion");
+    if(btn){btn.textContent="📏 Calculer les frais";btn.disabled=false;}
+  }
+}
+
 function openOrderModal(productId,productName,price,stock){
   // Pré-remplir avec les infos du client si dispo
   document.getElementById("os-product-id").value=productId;
@@ -1671,6 +1840,9 @@ function openOrderModal(productId,productName,price,stock){
   document.getElementById("os-address").value="";
   document.getElementById("os-date").value="";
   document.getElementById("os-time").value="";
+  // Reset livraison
+  setDeliveryMode('livraison');
+  resetDeliveryFee();
   // Pré-remplir nom et téléphone depuis le client connecté
   if(currentClientId){
     const c=allClients.find(x=>x.id===currentClientId);
@@ -1682,17 +1854,28 @@ function closeOrderModal(){document.getElementById("order-overlay").classList.re
 async function submitOrder(){
   const name=document.getElementById("os-name").value.trim();
   const phone=document.getElementById("os-phone").value.trim();
-  const address=document.getElementById("os-address").value.trim();
+  const address=currentDeliveryMode==="livraison"?(document.getElementById("os-address")?.value.trim()||""):"Retrait sur place";
   const date=document.getElementById("os-date").value;
   const time=document.getElementById("os-time").value;
-  const note=document.getElementById("os-note").value.trim();
+  const userNote=document.getElementById("os-note").value.trim();
   const productId=document.getElementById("os-product-id").value;
   const price=parseFloat(document.getElementById("os-product-price").value)||null;
   const err=document.getElementById("os-error");
 
   if(!name){err.textContent="Entre ton nom";return;}
   if(!phone){err.textContent="Entre ton téléphone";return;}
+  if(currentDeliveryMode==="livraison"&&!address){err.textContent="Entre une adresse de livraison";return;}
+  if(currentDeliveryMode==="livraison"&&calculatedFee===null){err.textContent="Calcule d'abord les frais de livraison";return;}
   err.textContent="";
+
+  // Frais de livraison dans la note
+  let feeNote="";
+  if(currentDeliveryMode==="livraison"&&calculatedFee>0){
+    feeNote=`[Livraison : ${calculatedFee} puff${calculatedFee>1?"s":""} mini]`;
+  } else if(currentDeliveryMode==="retrait"){
+    feeNote="[Retrait sur place]";
+  }
+  const note=[feeNote,userNote].filter(Boolean).join(" — ");
 
   const pickup_slot=date&&time?`${new Date(date).toLocaleDateString("fr-FR")} à ${time}`:date?new Date(date).toLocaleDateString("fr-FR"):null;
   const products=await dbGet(T_PRODUCTS+"?id=eq."+productId+"&select=name,price");
@@ -1703,7 +1886,7 @@ async function submitOrder(){
   try{
     const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:4000,maximumAge:60000}));
     lat=pos.coords.latitude;lng=pos.coords.longitude;
-  }catch(e){/* permission refusée ou non dispo — on continue sans */}
+  }catch(e){}
 
   await dbPost(T_ORDERS,{
     client_id:currentClientId||null,
@@ -1717,8 +1900,7 @@ async function submitOrder(){
     pickup_slot:pickup_slot||null,
     note:note||null,
     status:"pending",
-    lat:lat,
-    lng:lng
+    lat,lng
   });
   closeOrderModal();
   toast("Réservation envoyée ! On te confirme ça 🎉");
