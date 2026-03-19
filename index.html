@@ -63,7 +63,41 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
 .topbar-brand{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--muted2);text-transform:uppercase}
 
-/* ── BOTTOM NAV ADMIN — pill flottante ── */
+/* ── SCRATCH CARD ── */
+@keyframes scratchReveal{0%{opacity:0;transform:scale(.85)}60%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+.scratch-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(16px);padding:24px}
+.scratch-overlay.open{display:flex}
+.scratch-box{background:#111;border:1px solid var(--border2);border-radius:22px;padding:2rem 1.5rem;width:100%;max-width:340px;text-align:center}
+.scratch-title{font-size:18px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+.scratch-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+.scratch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.scratch-cell{
+  aspect-ratio:1;border-radius:14px;position:relative;overflow:hidden;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;
+  transition:all .2s;user-select:none;
+}
+.scratch-cell.scratched{cursor:default}
+.scratch-cell .cover{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  transition:transform .4s cubic-bezier(.34,1.2,.64,1),opacity .3s;
+  z-index:2;
+}
+.scratch-cell.scratched .cover{transform:scale(0);opacity:0}
+.scratch-cell .reward-inside{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;padding:6px;z-index:1;
+  animation:scratchReveal .4s ease both;
+}
+.scratch-cell .reward-inside .ri-icon{font-size:20px}
+.scratch-cell .reward-inside .ri-name{font-size:10px;font-weight:600;color:var(--text);text-align:center;line-height:1.2;font-family:'Inter',sans-serif}
+.scratch-win-banner{background:rgba(255,255,255,.08);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;margin-bottom:1.25rem;display:none}
+.scratch-win-banner.show{display:block;animation:scratchReveal .5s ease both}
 .bottom-nav{
   position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
   width:auto;max-width:calc(100% - 32px);
@@ -689,16 +723,28 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
     <!-- Coût en tokens -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
       <div>
-        <div style="font-size:13px;font-weight:600;margin-bottom:2px">Coût pour jouer</div>
-        <div style="font-size:11px;color:var(--muted)">Tokens dépensés par le client pour faire tourner la roue</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">Coût — Roue</div>
+        <div style="font-size:11px;color:var(--muted)">Tokens pour faire tourner la roue</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <input id="wheel-cost-input" type="number" min="1" max="99" value="1"
           style="width:52px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:5px;outline:none" />
         <span style="font-size:12px;color:var(--muted)">🪙</span>
         <button class="btn btn-accent btn-sm" onclick="saveWheelCost()">Sauver</button>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">Coût — Gratte</div>
+        <div style="font-size:11px;color:var(--muted)">Tokens pour jouer à la carte à gratter</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <input id="scratch-cost-input" type="number" min="1" max="99" value="1"
+          style="width:52px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:5px;outline:none" />
+        <span style="font-size:12px;color:var(--muted)">🪙</span>
+        <button class="btn btn-accent btn-sm" onclick="saveScratchCost()">Sauver</button>
       </div>
     </div>
     <div class="prob-total" id="prob-total-display">
@@ -1197,6 +1243,21 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="chest-result-reward" id="cr-reward"></div>
     <div class="chest-result-sub" id="cr-sub"></div>
     <button class="btn-spin" style="width:100%;justify-content:center" onclick="closeChestResult()">Super !</button>
+  </div>
+</div>
+
+<!-- SCRATCH CARD -->
+<div class="scratch-overlay" id="scratch-overlay">
+  <div class="scratch-box">
+    <div class="scratch-title">🃏 Carte à gratter</div>
+    <div class="scratch-sub" id="scratch-sub">Gratte les 3 cases pour révéler ton lot !</div>
+    <div class="scratch-grid" id="scratch-grid"></div>
+    <div class="scratch-win-banner" id="scratch-win-banner">
+      <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Tu as gagné</div>
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.02em" id="scratch-win-text"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Montre ce résultat pour récupérer ton lot !</div>
+    </div>
+    <button class="btn-spin" style="width:100%;justify-content:center" id="scratch-close-btn" onclick="closeScratch()" style="display:none">Fermer</button>
   </div>
 </div>
 
@@ -2830,6 +2891,7 @@ async function loadClientShop(clientId){
   await loadShopConfig();
   const wheelCost=shopConfig.wheel_cost;
   const chestCost=shopConfig.chest_cost;
+  const scratchCost=shopConfig.scratch_cost;
 
   const container=document.getElementById("cv-shop-items");
   const empty=document.getElementById("cv-shop-empty");
@@ -2841,6 +2903,14 @@ async function loadClientShop(clientId){
     desc:"Fais tourner la roue et tente de gagner un lot.",
     tag:`${wheelCost} TOKEN${wheelCost>1?"S":""}`,canAfford:tokens>=wheelCost,
     action:`openWheelShop(${wheelCost})`
+  });
+
+  // ── SCRATCH CARD ──
+  items.push({
+    id:"scratch",cost:scratchCost,icon:"🃏",title:"Carte à gratter",
+    desc:"Gratte 3 cases et découvre ce que tu as gagné !",
+    tag:`${scratchCost} TOKEN${scratchCost>1?"S":""}`,canAfford:tokens>=scratchCost,
+    action:`openScratchShop(${scratchCost})`
   });
 
   // ── COFFRES ──
@@ -2856,6 +2926,7 @@ async function loadClientShop(clientId){
   }
 
   if(!items.length){empty.style.display="block";container.innerHTML="";return;}
+  items.sort((a,b)=>a.cost-b.cost);
   empty.style.display="none";
   container.innerHTML=items.map(item=>`
     <div style="background:var(--surface);border:1px solid ${item.canAfford?"var(--border2)":"var(--border)"};border-radius:16px;padding:18px;margin-bottom:10px;display:flex;gap:14px;align-items:center;opacity:${item.canAfford?1:.45};transition:border-color .2s">
@@ -2937,7 +3008,7 @@ async function loadClientProducts(){
 }
 
 // ── SHOP CONFIG ──
-let shopConfig={wheel_cost:1,chest_cost:1};
+let shopConfig={wheel_cost:1,chest_cost:1,scratch_cost:1};
 
 async function loadShopConfig(){
   const data=await dbGet(T_SHOP_CONFIG);
@@ -2945,13 +3016,15 @@ async function loadShopConfig(){
     data.forEach(row=>{
       if(row.key==="wheel_cost")shopConfig.wheel_cost=row.value||1;
       if(row.key==="chest_cost")shopConfig.chest_cost=row.value||1;
+      if(row.key==="scratch_cost")shopConfig.scratch_cost=row.value||1;
     });
   }
-  // Remplir les inputs admin si présents
   const wIn=document.getElementById("wheel-cost-input");
   const cIn=document.getElementById("chest-cost-input");
+  const sIn=document.getElementById("scratch-cost-input");
   if(wIn)wIn.value=shopConfig.wheel_cost;
   if(cIn)cIn.value=shopConfig.chest_cost;
+  if(sIn)sIn.value=shopConfig.scratch_cost;
 }
 
 async function saveWheelCost(){
@@ -2966,6 +3039,98 @@ async function saveChestCost(){
   await dbPatch(T_SHOP_CONFIG+"?key=eq.chest_cost",{value:v});
   shopConfig.chest_cost=v;
   toast("Coût coffre : "+v+" 🪙 ✓");
+}
+
+async function saveScratchCost(){
+  const v=Math.max(1,parseInt(document.getElementById("scratch-cost-input").value)||1);
+  await dbPatch(T_SHOP_CONFIG+"?key=eq.scratch_cost",{value:v});
+  shopConfig.scratch_cost=v;
+  toast("Coût gratte : "+v+" 🪙 ✓");
+}
+
+// ── SCRATCH CARD ──
+let scratchRewards=[];
+let scratchCells=[];
+let scratchRevealed=0;
+
+async function openScratchShop(cost){
+  cost=cost||shopConfig.scratch_cost||1;
+  const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
+  if(!cData||!cData.length)return;
+  const tokens=cData[0].tokens||0;
+  if(tokens<cost){toast("Pas assez de tokens");return;}
+  // Débiter
+  await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
+  await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
+  document.getElementById("cv-shop-tokens").textContent=tokens-cost;
+  document.getElementById("cv-token-count").textContent=tokens-cost;
+  // Charger les récompenses actives de la roue (même pool)
+  const rewards=await dbGet(T_REWARDS+"?active=eq.true&order=created_at.asc");
+  if(!rewards||!rewards.length){toast("Aucune récompense configurée");return;}
+  // Tirer 3 lots indépendants
+  const total=rewards.reduce((s,r)=>s+r.probability,0);
+  function pickOne(){
+    let rand=Math.random()*total,cumul=0;
+    for(const r of rewards){cumul+=r.probability;if(rand<=cumul)return r;}
+    return rewards[rewards.length-1];
+  }
+  scratchRewards=[pickOne(),pickOne(),pickOne()];
+  scratchRevealed=0;
+  // Enregistrer le meilleur lot
+  const best=scratchRewards.reduce((a,b)=>a.probability<=b.probability?a:b);
+  await dbPost(T_SPINS,{client_id:currentClientId,reward_name:"[GRATTE] "+best.name});
+  // Construire la grille
+  buildScratchGrid();
+  document.getElementById("scratch-win-banner").classList.remove("show");
+  document.getElementById("scratch-sub").textContent="Gratte les 3 cases pour révéler ton lot !";
+  const closeBtn=document.getElementById("scratch-close-btn");
+  closeBtn.style.display="none";
+  document.getElementById("scratch-overlay").classList.add("open");
+}
+
+function buildScratchGrid(){
+  const grid=document.getElementById("scratch-grid");
+  grid.innerHTML="";
+  scratchCells=[];
+  scratchRewards.forEach((r,i)=>{
+    const cell=document.createElement("div");
+    cell.className="scratch-cell";
+    cell.innerHTML=`
+      <div class="cover">✦</div>
+      <div class="reward-inside">
+        <div class="ri-icon">🎁</div>
+        <div class="ri-name">${r.name}</div>
+      </div>`;
+    cell.addEventListener("click",()=>revealScratchCell(cell,i),{once:true});
+    // Touch support
+    cell.addEventListener("touchstart",()=>revealScratchCell(cell,i),{once:true,passive:true});
+    grid.appendChild(cell);
+    scratchCells.push(cell);
+  });
+}
+
+function revealScratchCell(cell,idx){
+  if(cell.classList.contains("scratched"))return;
+  cell.classList.add("scratched");
+  scratchRevealed++;
+  if(scratchRevealed===3){
+    // Toutes révélées — afficher le meilleur lot
+    setTimeout(()=>{
+      const best=scratchRewards.reduce((a,b)=>a.probability<=b.probability?a:b);
+      const isLosing=["rien","nothing","nada","perdu","0"].includes(best.name.toLowerCase().trim());
+      const banner=document.getElementById("scratch-win-banner");
+      const winText=document.getElementById("scratch-win-text");
+      winText.textContent=isLosing?"Pas de chance cette fois !":best.name;
+      banner.classList.add("show");
+      document.getElementById("scratch-sub").textContent=isLosing?"Retente au prochain tampon !":"Montre ce résultat pour récupérer ton lot !";
+      document.getElementById("scratch-close-btn").style.display="block";
+    },400);
+  }
+}
+
+function closeScratch(){
+  document.getElementById("scratch-overlay").classList.remove("open");
+  if(currentClientId)loadClientView(currentClientId);
 }
 async function loadStampRewards(){
   const rewards=await dbGet(T_STAMP_REWARDS+"?order=slot.asc");
