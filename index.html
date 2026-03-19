@@ -2136,8 +2136,7 @@ async function loadChestsAdmin(){
           <span class="chest-reward-name">${r.name}</span>
           <span class="chest-reward-prob">${r.probability}%</span>
           <button class="btn btn-icon btn-danger btn-sm" onclick="deleteChestReward('${r.id}','${ch.id}')">✕</button>
-        </div>`).join(""):'<div style="font-size:12px;color:var(--muted);margin-bottom:4px">Aucun lot configuré</div>'}
-      <button class="btn btn-sm" onclick="quickAddReward('${ch.id}')" style="margin-top:6px;width:100%;justify-content:center">+ Ajouter un lot</button>`;
+        </div>`).join(""):'<div style="font-size:12px;color:var(--muted);margin-bottom:4px">Aucun lot · clique sur ✎ pour en ajouter</div>'}`;
     list.appendChild(div);
   }
 }
@@ -2188,15 +2187,6 @@ function addChestRewardRow(name="",prob=""){
     <button class="btn btn-icon btn-danger btn-sm" onclick="this.closest('.crr-row').remove();updateProbTotal()">✕</button>`;
   list.appendChild(row);
   updateProbTotal();
-}
-
-async function quickAddReward(chestId){
-  const name=prompt("Nom du lot :");if(!name)return;
-  const probStr=prompt("Probabilité (%) :");
-  const prob=parseInt(probStr);
-  if(isNaN(prob)||prob<1||prob>100){toast("Probabilité invalide (1-100)");return;}
-  await dbPost(T_CHEST_REWARDS,{chest_id:chestId,name,probability:prob});
-  toast("Lot ajouté ✓");loadChestsAdmin();
 }
 
 async function saveChest(){
