@@ -28,7 +28,6 @@
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:0;position:relative;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.028) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 100% 50% at 50% 0%,black,transparent 70%);pointer-events:none;z-index:0}
 .view{display:none;width:100%;max-width:460px;position:relative;z-index:1;padding:1.25rem 1.25rem 80px}.view.active{display:block}
-#view-admin{max-width:100vw;padding:0}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--rs);border:1px solid var(--border2);background:rgba(255,255,255,0.05);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;font-weight:500}
 .btn:hover{background:rgba(255,255,255,0.09);border-color:var(--border3)}.btn:active{transform:scale(.97)}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
 .btn-accent{background:var(--text);border-color:transparent;color:#0a0a0a;font-weight:700;box-shadow:0 2px 12px rgba(255,255,255,0.1)}
@@ -427,7 +426,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-chest-buy-price{display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--text);flex-shrink:0}
 .cv-chest-buy-card.disabled{opacity:.35;cursor:not-allowed}
 /* ── ADMIN DESKTOP LAYOUT ── */
-#view-admin{display:flex!important;flex-direction:row;min-height:100vh;max-width:100vw;padding:0}
+#view-admin.active{display:flex;flex-direction:row;min-height:100vh;max-width:100vw;padding:0}
 .admin-sidebar{width:220px;min-width:220px;height:100vh;position:sticky;top:0;background:#0d0d0d;border-right:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;padding:24px 12px;overflow-y:auto;flex-shrink:0;z-index:10}
 .sidebar-brand{padding:0 10px 24px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:16px}
 .sidebar-brand-name{font-size:20px;font-weight:800;letter-spacing:-.04em;color:#fff;line-height:1}
