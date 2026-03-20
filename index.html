@@ -533,15 +533,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 }
 /* ── CHEST CARDS (shop client) ── */
 .hc-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
-.hc-card{border-radius:18px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:#111;transition:transform .2s cubic-bezier(.34,1.2,.64,1),border-color .2s,box-shadow .2s;position:relative}
+.hc-card{border-radius:18px;overflow:hidden;cursor:pointer;border:none;background:transparent;transition:transform .2s cubic-bezier(.34,1.2,.64,1),box-shadow .2s;position:relative}
 .hc-card:active{transform:scale(.97)}
-.hc-card.can-afford:hover{border-color:rgba(255,255,255,.2);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.hc-card.can-afford:hover{transform:translateY(-4px);}
 .hc-card.cant-afford{opacity:.4;cursor:not-allowed}
-.hc-cover-wrap{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%)}
+.hc-cover-wrap{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:transparent}
 .hc-cover{width:100%;height:100%;object-fit:contain;display:block;padding:12px;box-sizing:border-box;filter:drop-shadow(0 8px 24px rgba(0,0,0,.6))}
 .hc-cover-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:72px}
-.hc-cover-glow{position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(transparent,rgba(0,0,0,.5));pointer-events:none}
-.hc-info{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.06)}
+.hc-cover-glow{display:none}
+.hc-info{padding:12px 4px;display:flex;align-items:center;justify-content:space-between}
 .hc-title{font-size:15px;font-weight:700;letter-spacing:-.02em}
 .hc-cost{font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);display:flex;align-items:center;gap:4px}
 .hc-cost-val{color:var(--text);font-weight:700;font-size:14px}
