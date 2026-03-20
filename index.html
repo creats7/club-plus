@@ -497,13 +497,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hc-result-name{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
 .hc-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
 /* ── CASES GRID ── */
-.hc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-.hc-card{border-radius:16px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:#141414;transition:transform .18s,border-color .18s}
-.hc-card:active{transform:scale(.97)}.hc-card.can-afford:hover{border-color:rgba(255,255,255,.22);transform:translateY(-2px)}.hc-card.cant-afford{opacity:.45;cursor:not-allowed}
-.hc-cover{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.hc-cover-ph{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,#1a1a1a,#111)}
-.hc-info{padding:10px 12px}.hc-title{font-size:13px;font-weight:700;letter-spacing:-.02em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hc-cost{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)}.hc-cost-val{color:var(--text);font-weight:700}
 .wheel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;z-index:200;padding:1.5rem;backdrop-filter:blur(12px)}
 .wheel-overlay.open{display:flex}
 .wheel-box{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:1.75rem 1.5rem;width:100%;max-width:400px;text-align:center;box-shadow:0 16px 64px rgba(0,0,0,.9)}
@@ -539,17 +532,20 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   --r-legendary-bg:rgba(255,185,0,.1);
 }
 /* ── CHEST CARDS (shop client) ── */
-.hc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-.hc-card{border-radius:16px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:#141414;transition:transform .18s,border-color .18s;position:relative}
+.hc-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.hc-card{border-radius:18px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:#111;transition:transform .2s cubic-bezier(.34,1.2,.64,1),border-color .2s,box-shadow .2s;position:relative}
 .hc-card:active{transform:scale(.97)}
-.hc-card.can-afford:hover{border-color:rgba(255,255,255,.22);transform:translateY(-2px)}
-.hc-card.cant-afford{opacity:.45;cursor:not-allowed}
-.hc-cover{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:rgba(255,255,255,.04)}
-.hc-cover-ph{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,#1a1a1a,#111)}
-.hc-info{padding:10px 12px}
-.hc-title{font-size:13px;font-weight:700;letter-spacing:-.02em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hc-cost{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);display:flex;align-items:center;gap:4px}
-.hc-cost-val{color:var(--text);font-weight:700}
+.hc-card.can-afford:hover{border-color:rgba(255,255,255,.2);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.hc-card.cant-afford{opacity:.4;cursor:not-allowed}
+.hc-cover-wrap{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%)}
+.hc-cover{width:100%;height:100%;object-fit:contain;display:block;padding:12px;box-sizing:border-box;filter:drop-shadow(0 8px 24px rgba(0,0,0,.6))}
+.hc-cover-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:72px}
+.hc-cover-glow{position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(transparent,rgba(0,0,0,.5));pointer-events:none}
+.hc-info{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.06)}
+.hc-title{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.hc-cost{font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);display:flex;align-items:center;gap:4px}
+.hc-cost-val{color:var(--text);font-weight:700;font-size:14px}
+.hc-open-btn{background:#fff;color:#0a0a0a;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0}
 /* ── CASE OPENING OVERLAY ── */
 .hc-opening-overlay{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:350;backdrop-filter:blur(20px);padding:1.5rem}
 .hc-opening-overlay.open{display:flex}
@@ -2645,20 +2641,31 @@ async function loadClientShop(clientId){
 
   // ── Caisses ──
   if(cases&&cases.length){
-    html+=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Caisses</div>`;
     html+=`<div class="hc-grid">`;
     cases.forEach(ch=>{
       const cost=ch.cost||1;
       const canAfford=tokens>=cost;
       html+=`<div class="hc-card ${canAfford?"can-afford":"cant-afford"}" onclick="${canAfford?`openCaseShop('${ch.id}',${cost})`:""}">
-        ${ch.cover_url?`<img class="hc-cover" src="${ch.cover_url}" onerror="this.style.display='none'">`:`<div class="hc-cover-ph">🗃</div>`}
+        <div class="hc-cover-wrap">
+          ${ch.cover_url
+            ?`<img class="hc-cover" src="${ch.cover_url}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
+            :`<div class="hc-cover-ph">🗃</div>`}
+          <div class="hc-cover-glow"></div>
+        </div>
         <div class="hc-info">
-          <div class="hc-title">${ch.name}</div>
-          <div class="hc-cost"><span class="hc-cost-val">${cost} 🪙</span></div>
+          <div>
+            <div class="hc-title">${ch.name}</div>
+            <div class="hc-cost"><span class="hc-cost-val">${cost}</span>&nbsp;🪙 token${cost>1?"s":""}</div>
+          </div>
+          <button class="hc-open-btn" ${canAfford?"":"disabled style=\"opacity:.4;cursor:not-allowed\""}>
+            ${canAfford?"Ouvrir →":"Insuffisant"}
+          </button>
         </div>
       </div>`;
     });
     html+=`</div>`;
+  } else {
+    html=`<div style="text-align:center;color:var(--muted);font-size:13px;padding:3rem 0;opacity:.5">Aucune caisse disponible</div>`;
   }
 
   container.innerHTML=html;
