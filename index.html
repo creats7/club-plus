@@ -998,11 +998,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="quick-label">Défis</div>
         <div class="quick-sub">Défis clients</div>
       </div>
-      <div class="quick-card blue" onclick="switchTab('rewards')">
-        <div class="quick-icon">🎡</div>
-        <div class="quick-label">Roue</div>
-        <div class="quick-sub">Récompenses</div>
-      </div>
+
       <div class="quick-card green" onclick="switchTab('cases')">
         <div class="quick-icon">🗃</div>
         <div class="quick-label">Caisses</div>
@@ -1434,7 +1430,7 @@ function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit"
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","cases","more","history","stamp_rewards"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards"];
 const NAV_ITEMS=["home","clients","orders","products","more"];
 
 function switchTab(tab){
@@ -1449,7 +1445,7 @@ function switchTab(tab){
   // Update bottom nav active state
   NAV_ITEMS.forEach(n=>{
     const el=document.getElementById("nav-"+n);
-    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="rewards"&&n==="more")||(tab==="cases"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
+    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="cases"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
   });
   // Load data
   if(tab==="home")loadHome();
@@ -1458,7 +1454,6 @@ function switchTab(tab){
   if(tab==="products")loadProducts();
   if(tab==="orders")loadOrders();
   if(tab==="challenges")loadChallenges();
-  if(tab==="rewards"){loadRewards();loadShopConfig();}
   if(tab==="cases")loadCasesAdmin();
   if(tab==="stamp_rewards")loadStampRewards();
   if(tab==="history")loadHistory();
@@ -2640,10 +2635,6 @@ async function loadClientShop(clientId){
   document.getElementById("cv-token-count").textContent=tokens;
 
   await loadShopConfig();
-  const wheelCost=shopConfig.wheel_cost;
-  const wheelLabel=shopConfig.wheel_label||"Roue des récompenses";
-  const wheelImage=shopConfig.wheel_image;
-
   const cases=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
 
   const container=document.getElementById("cv-shop-items");
@@ -2669,20 +2660,6 @@ async function loadClientShop(clientId){
     });
     html+=`</div>`;
   }
-
-  // ── Roue ──
-  const canAffordWheel=tokens>=wheelCost;
-  html+=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;margin-top:${cases&&cases.length?4:0}px">Roue</div>`;
-  html+=`<div onclick="${canAffordWheel?`openWheelShop(${wheelCost})`:""}\"
-    style="border-radius:16px;overflow:hidden;cursor:${canAffordWheel?"pointer":"not-allowed"};border:1px solid ${canAffordWheel?"rgba(255,255,255,.12)":"rgba(255,255,255,.05)"};background:#141414;opacity:${canAffordWheel?1:.45};max-width:200px"
-    ${canAffordWheel?'onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'rgba(255,255,255,.25)\'"':''}
-    ${canAffordWheel?'onmouseout="this.style.transform=\'\';this.style.borderColor=\'rgba(255,255,255,.12)\'"':''}>
-    ${wheelImage?`<img src="${wheelImage}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block" onerror="this.style.display='none'">`:`<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(135deg,#1a1a1a,#0d0d0d)">🎡</div>`}
-    <div style="padding:12px 14px">
-      <div style="font-size:14px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px">${wheelLabel}</div>
-      <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--muted)">${wheelCost} 🪙</div>
-    </div>
-  </div>`;
 
   container.innerHTML=html;
 }
