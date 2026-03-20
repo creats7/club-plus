@@ -1634,13 +1634,15 @@ async function doLogin(){
   const raw=document.getElementById("login-snap").value.trim();
   if(!raw){document.getElementById("login-error").textContent="Entre ton pseudo Snap";return;}
   const phone=raw.toLowerCase().trim();
-  const data=await dbGet(T_CLIENTS+"?phone=ilike."+encodeURIComponent(phone)+"&limit=1");
-  if(!data||!data.length){
+  // Fetch all then filter client-side — évite le bug avec le "." dans l'URL Supabase
+  const all=await dbGet(T_CLIENTS+"?select=id,phone&limit=500");
+  const found=(all||[]).find(c=>(c.phone||"").toLowerCase()===phone);
+  if(!found){
     document.getElementById("login-error").textContent="Snap introuvable — inscris-toi !";
     return;
   }
   document.getElementById("login-error").textContent="";
-  loadClientView(data[0].id);
+  loadClientView(found.id);
 }
 
 async function doSignup(){
@@ -1650,10 +1652,11 @@ async function doSignup(){
   document.getElementById("signup-success").textContent="";
   if(!name){document.getElementById("signup-error").textContent="Entre ton nom";return;}
   if(!raw){document.getElementById("signup-error").textContent="Entre ton pseudo Snap";return;}
-  const phone=normalizePhone(raw);
-  // Vérifie si déjà inscrit
-  const existing=await dbGet(T_CLIENTS+"?phone=ilike."+encodeURIComponent(phone)+"&limit=1");
-  if(existing&&existing.length){
+  const phone=raw.toLowerCase().trim();
+  // Fetch all then filter client-side
+  const all=await dbGet(T_CLIENTS+"?select=id,phone&limit=500");
+  const existing=(all||[]).find(c=>(c.phone||"").toLowerCase()===phone);
+  if(existing){
     document.getElementById("signup-error").textContent="Ce Snap est déjà inscrit — connecte-toi !";
     return;
   }
