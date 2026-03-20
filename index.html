@@ -744,8 +744,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- LOGIN -->
       <div id="rpanel-login">
-        <label class="modal-label">Pseudo Snapchat</label>
-        <input class="input" id="login-snap" placeholder="ex: mxnce.l" />
+        <label class="modal-label">Numéro de téléphone</label>
+        <input class="input" id="login-phone" placeholder="06 12 34 56 78" type="tel" />
         <div class="reg-error" id="login-error"></div>
         <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doLogin()">Accéder à ma carte</button>
       </div>
@@ -754,8 +754,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div id="rpanel-signup" style="display:none">
         <label class="modal-label">Prénom Nom</label>
         <input class="input" id="signup-name" placeholder="ex: Lucas Martin" />
-        <label class="modal-label">Pseudo Snapchat</label>
-        <input class="input" id="signup-snap" placeholder="ex: mxnce.l" />
+        <label class="modal-label">Numéro de téléphone</label>
+        <input class="input" id="signup-phone" placeholder="06 12 34 56 78" type="tel" />
         <div class="reg-error" id="signup-error"></div>
         <div class="reg-success" id="signup-success"></div>
         <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doSignup()">Créer ma carte</button>
@@ -842,7 +842,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
     <div class="add-form-wrap" id="add-form">
       <input class="input" id="new-name" placeholder="Prénom Nom" />
-      <input class="input" id="new-snap" placeholder="Snapchat" style="margin-bottom:8px" />
+      <input class="input" id="new-phone" placeholder="Téléphone" style="margin-bottom:8px" />
       <div style="display:flex;gap:8px">
         <button class="btn btn-accent" onclick="addClient()">Ajouter</button>
         <button class="btn" onclick="toggleAddForm()">Annuler</button>
@@ -1285,7 +1285,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="modal-title">Modifier le client</div>
     <input type="hidden" id="edit-id" />
     <div class="modal-field"><label class="modal-label">Nom</label><input class="input" id="edit-name" style="margin-bottom:0" /></div>
-    <div class="modal-field"><label class="modal-label">Snapchat</label><input class="input" id="edit-snap" style="margin-bottom:0" /></div>
+    <div class="modal-field"><label class="modal-label">Téléphone</label><input class="input" id="edit-phone" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Tampons (0–10)</label><input class="input" id="edit-stamps" type="number" min="0" max="10" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Tokens</label><input class="input" id="edit-tokens" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-actions">
@@ -1340,8 +1340,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <label class="modal-label">Nom complet</label>
     <input class="input" id="os-name" placeholder="Prénom Nom" />
-    <label class="modal-label">Snapchat</label>
-    <input class="input" id="os-snap" placeholder="ex: mxnce.l" />
+    <label class="modal-label">Téléphone</label>
+    <input class="input" id="os-phone" placeholder="06 12 34 56 78" type="tel" />
 
     <!-- Toggle livraison / retrait -->
     <div style="display:flex;gap:6px;margin-bottom:12px">
@@ -1631,33 +1631,29 @@ function switchRegTab(tab){
 function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
 
 async function doLogin(){
-  const raw=document.getElementById("login-snap").value.trim();
-  if(!raw){document.getElementById("login-error").textContent="Entre ton pseudo Snap";return;}
-  const phone=raw.toLowerCase().trim();
-  // Fetch all then filter client-side — évite le bug avec le "." dans l'URL Supabase
-  const all=await dbGet(T_CLIENTS+"?select=id,phone&limit=500");
-  const found=(all||[]).find(c=>(c.phone||"").toLowerCase()===phone);
-  if(!found){
-    document.getElementById("login-error").textContent="Snap introuvable — inscris-toi !";
+  const raw=document.getElementById("login-phone").value.trim();
+  if(!raw){document.getElementById("login-error").textContent="Entre ton numéro";return;}
+  const phone=normalizePhone(raw);
+  const data=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+  if(!data||!data.length){
+    document.getElementById("login-error").textContent="Numéro introuvable — inscris-toi !";
     return;
   }
   document.getElementById("login-error").textContent="";
-  loadClientView(found.id);
+  loadClientView(data[0].id);
 }
 
 async function doSignup(){
   const name=document.getElementById("signup-name").value.trim();
-  const raw=document.getElementById("signup-snap").value.trim();
+  const raw=document.getElementById("signup-phone").value.trim();
   document.getElementById("signup-error").textContent="";
   document.getElementById("signup-success").textContent="";
   if(!name){document.getElementById("signup-error").textContent="Entre ton nom";return;}
-  if(!raw){document.getElementById("signup-error").textContent="Entre ton pseudo Snap";return;}
-  const phone=raw.toLowerCase().trim();
-  // Fetch all then filter client-side
-  const all=await dbGet(T_CLIENTS+"?select=id,phone&limit=500");
-  const existing=(all||[]).find(c=>(c.phone||"").toLowerCase()===phone);
-  if(existing){
-    document.getElementById("signup-error").textContent="Ce Snap est déjà inscrit — connecte-toi !";
+  if(!raw){document.getElementById("signup-error").textContent="Entre ton numéro";return;}
+  const phone=normalizePhone(raw);
+  const existing=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+  if(existing&&existing.length){
+    document.getElementById("signup-error").textContent="Ce numéro est déjà inscrit — connecte-toi !";
     return;
   }
   const res=await dbPost(T_CLIENTS,{name,phone,stamps:0,tokens:0,total_stamps:0});
@@ -1822,26 +1818,26 @@ function renderList(cl){
 function filterClients(q){renderList(allClients.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||(c.phone||"").toLowerCase().includes(q.toLowerCase())));}
 function toggleAddForm(){const f=document.getElementById("add-form");f.classList.toggle("open");if(f.classList.contains("open"))document.getElementById("new-name").focus();}
 async function addClient(){
-  const name=document.getElementById("new-name").value.trim(),phone=document.getElementById("new-snap").value.trim();if(!name)return;
-  document.getElementById("new-name").value="";document.getElementById("new-snap").value="";
+  const name=document.getElementById("new-name").value.trim(),phone=document.getElementById("new-phone").value.trim();if(!name)return;
+  document.getElementById("new-name").value="";document.getElementById("new-phone").value="";
   document.getElementById("add-form").classList.remove("open");
-  await dbPost(T_CLIENTS,{name,phone:phone?phone.toLowerCase().trim():null,stamps:0,tokens:0});
+  await dbPost(T_CLIENTS,{name,phone:phone?normalizePhone(phone):null,stamps:0,tokens:0});
   toast("Client ajouté ✓");await loadAll();
 }
 function openEdit(id,name,phone,stamps,tokens){
   document.getElementById("edit-id").value=id;document.getElementById("edit-name").value=name;
-  document.getElementById("edit-snap").value=phone;document.getElementById("edit-stamps").value=stamps;
+  document.getElementById("edit-phone").value=phone;document.getElementById("edit-stamps").value=stamps;
   document.getElementById("edit-tokens").value=tokens;
   document.getElementById("edit-modal").classList.add("open");
 }
 function closeEdit(){document.getElementById("edit-modal").classList.remove("open");}
 async function saveEdit(){
   const id=document.getElementById("edit-id").value,name=document.getElementById("edit-name").value.trim();
-  const phone=document.getElementById("edit-snap").value.trim();
+  const phone=document.getElementById("edit-phone").value.trim();
   const stamps=Math.max(0,Math.min(10,parseInt(document.getElementById("edit-stamps").value)||0));
   const tokens=Math.max(0,parseInt(document.getElementById("edit-tokens").value)||0);
   if(!name)return;
-  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?phone.toLowerCase().trim():null,stamps,tokens});
+  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps,tokens});
   closeEdit();toast("Client modifié ✓");await loadAll();
 }
 // Cache des récompenses par case (chargé au démarrage)
@@ -2152,14 +2148,14 @@ function openOrderModal(productId,productName,price,stock){
   // Pré-remplir nom et téléphone depuis le client connecté
   if(currentClientId){
     const c=allClients.find(x=>x.id===currentClientId);
-    if(c){document.getElementById("os-name").value=c.name;document.getElementById("os-snap").value=c.phone||"";}
+    if(c){document.getElementById("os-name").value=c.name;document.getElementById("os-phone").value=c.phone||"";}
   }
   document.getElementById("order-overlay").classList.add("open");
 }
 function closeOrderModal(){document.getElementById("order-overlay").classList.remove("open");}
 async function submitOrder(){
   const name=document.getElementById("os-name").value.trim();
-  const phone=document.getElementById("os-snap").value.trim();
+  const phone=document.getElementById("os-phone").value.trim();
   const address=currentDeliveryMode==="livraison"?(document.getElementById("os-address-livraison")?.value.trim()||""):"Retrait sur place";
   const date=document.getElementById("os-date").value;
   const time=document.getElementById("os-time").value;
@@ -2169,7 +2165,7 @@ async function submitOrder(){
   const err=document.getElementById("os-error");
 
   if(!name){err.textContent="Entre ton nom";return;}
-  if(!phone){err.textContent="Entre ton pseudo Snap";return;}
+  if(!phone){err.textContent="Entre ton téléphone";return;}
   if(currentDeliveryMode==="livraison"&&!address){err.textContent="Entre une adresse de livraison";return;}
   if(currentDeliveryMode==="livraison"&&calculatedFee===null){err.textContent="Calcule d'abord les frais de livraison";return;}
   err.textContent="";
