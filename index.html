@@ -606,7 +606,49 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hc-result-rarity{font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;font-weight:700}
 .hc-result-name{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
 .hc-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
-/* ── Rarity effects ── */
+/* ── CARTE V2 ── */
+.cv-card-v2{width:100%;background:linear-gradient(160deg,#1c1c1c 0%,#111 100%);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:1.5rem;box-shadow:0 12px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.07);position:relative;overflow:hidden}
+.cv-card-v2::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,.04) 0%,transparent 70%);pointer-events:none}
+.cv-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem}
+.cv-card-name{font-size:19px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:3px}
+.cv-card-sub{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);letter-spacing:.14em;text-transform:uppercase}
+.cv-card-level-badge{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px 10px;min-width:46px}
+.cv-card-level-num{font-size:20px;font-weight:800;font-family:'DM Mono',monospace;line-height:1;color:var(--text)}
+.cv-card-level-lbl{font-size:8px;font-family:'DM Mono',monospace;letter-spacing:.15em;color:var(--muted2);text-transform:uppercase;margin-top:2px}
+/* Tampons v2 */
+.cv-stamps-v2{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1.25rem}
+@keyframes stampPopV2{0%{transform:scale(.5) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0deg);opacity:1}}
+.cv-stamp-v2{aspect-ratio:1;border-radius:12px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;position:relative;transition:all .2s}
+.cv-stamp-v2.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff;animation:stampPopV2 .4s cubic-bezier(.34,1.5,.64,1) both;box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
+.cv-stamp-v2.on.bonus{background:rgba(255,185,0,.15);border-color:rgba(255,185,0,.5);box-shadow:0 0 12px rgba(255,185,0,.15)}
+.cv-stamp-v2.bonus-empty{border-color:rgba(255,185,0,.25);background:rgba(255,185,0,.04)}
+.cv-stamp-v2-num{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:1px}
+.cv-stamp-bonus-dot{position:absolute;bottom:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#fbbf24}
+.cv-stamp-bonus-dot.empty{background:rgba(255,185,0,.35)}
+/* Progression */
+.cv-prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.cv-prog-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em}
+.cv-prog-count{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
+.cv-prog-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:7px}
+.cv-prog-fill{height:100%;border-radius:2px;background:rgba(255,255,255,.6);transition:width 1s cubic-bezier(.4,0,.2,1)}
+.cv-prog-hint{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
+.cv-prog-hint strong{color:var(--text)}
+/* Wallet */
+.cv-wallet-row{display:flex;align-items:center;justify-content:space-between}
+.cv-wallet-left{display:flex;align-items:center;gap:10px}
+.cv-wallet-icon{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.cv-wallet-count{font-family:'DM Mono',monospace;font-size:24px;font-weight:700;line-height:1;color:var(--text)}
+.cv-wallet-lbl{font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:2px;font-family:'DM Mono',monospace}
+.cv-wallet-btn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:var(--text);border-radius:10px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.01em;transition:all .2s;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.cv-wallet-btn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25)}
+/* CTA v2 */
+@keyframes ctaGlowV2{0%,100%{box-shadow:0 4px 24px rgba(255,255,255,.1),0 0 0 0 rgba(255,255,255,.08)}50%{box-shadow:0 8px 40px rgba(255,255,255,.22),0 0 0 5px rgba(255,255,255,.04)}}
+.cv-cta-v2{width:100%;padding:18px 20px;border-radius:18px;background:#fff;color:#0a0a0a;border:none;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-top:12px;animation:ctaGlowV2 2.5s ease-in-out infinite;transition:transform .18s cubic-bezier(.34,1.2,.64,1)}
+.cv-cta-v2:hover{transform:translateY(-2px)}
+.cv-cta-v2:active{transform:scale(.97)}
+.cv-cta-v2-title{font-size:16px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:3px}
+.cv-cta-v2-sub{font-size:11px;color:rgba(0,0,0,.4);font-family:'DM Mono',monospace;letter-spacing:.04em}
+.cv-cta-v2-arrow{width:36px;height:36px;background:#0a0a0a;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
 @keyframes particleBurst{
   0%{transform:translate(var(--tx,0px),0) rotate(0deg) scale(1);opacity:1}
   100%{transform:translate(var(--tx,0px),var(--ty,-140px)) rotate(720deg) scale(0);opacity:0}
@@ -1163,54 +1205,69 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div id="cv-offer-banner"></div>
 
-      <div class="cv-card">
-        <span id="cv-avatar" style="display:none"></span>
-        <span id="cv-name" style="display:none"></span>
-
-        <!-- Tampons -->
-        <div class="cv-stamps-grid" id="cv-stamps"></div>
-
-        <!-- Progression -->
-        <div class="cv-progress-section">
-          <div class="cv-progress-header">
-            <span class="cv-progress-label">Progression</span>
-            <span class="cv-progress-count" id="cv-count">0<span>/10</span></span>
+      <!-- Carte principale -->
+      <div class="cv-card-v2">
+        <!-- Header: nom + niveau -->
+        <div class="cv-card-header">
+          <div>
+            <div class="cv-card-name" id="cv-name-display">—</div>
+            <div class="cv-card-sub">Carte de fidélité</div>
           </div>
-          <div class="cv-track"><div class="cv-fill" id="cv-fill" style="width:0%"></div></div>
-          <div class="cv-countdown" id="cv-countdown"></div>
+          <div class="cv-card-level-badge">
+            <div class="cv-card-level-num" id="cv-level">1</div>
+            <div class="cv-card-level-lbl">NVL</div>
+          </div>
         </div>
 
-        <!-- Token wallet -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);margin-top:4px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:16px">🪙</div>
+        <!-- Grille tampons 5x2 -->
+        <div class="cv-stamps-v2" id="cv-stamps"></div>
+
+        <!-- Barre progression -->
+        <div class="cv-prog-row">
+          <span class="cv-prog-label">Progression</span>
+          <span class="cv-prog-count" id="cv-count">0<span style="opacity:.4">/10</span></span>
+        </div>
+        <div class="cv-prog-track">
+          <div class="cv-prog-fill" id="cv-fill" style="width:0%"></div>
+        </div>
+        <div class="cv-prog-hint" id="cv-countdown"></div>
+
+        <!-- Séparateur -->
+        <div style="height:1px;background:rgba(255,255,255,.06);margin:16px 0"></div>
+
+        <!-- Wallet tokens + bouton -->
+        <div class="cv-wallet-row">
+          <div class="cv-wallet-left">
+            <div class="cv-wallet-icon">🪙</div>
             <div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;line-height:1" id="cv-token-count">0</div>
-              <div style="font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-family:'DM Mono',monospace">tokens</div>
+              <div class="cv-wallet-count" id="cv-token-count">0</div>
+              <div class="cv-wallet-lbl">tokens disponibles</div>
             </div>
           </div>
-          <button onclick="switchClientTab('shop')"
-            style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--text);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.01em;transition:all .2s;display:flex;align-items:center;gap:6px">
+          <button class="cv-wallet-btn" onclick="switchClientTab('shop')">
             Dépenser
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>
 
+      <!-- Preview bonus cases spéciales -->
+      <div id="cv-stamp-rewards-preview"></div>
+
       <!-- CTA Commander -->
-      <button class="cv-cta-order" onclick="switchClientTab('commandes')">
-        <div class="cta-left">
-          <div class="cta-title">Commander maintenant</div>
-          <div class="cta-sub">Livraison · Retrait disponible</div>
+      <button class="cv-cta-v2" onclick="switchClientTab('commandes')">
+        <div>
+          <div class="cv-cta-v2-title">Commander maintenant</div>
+          <div class="cv-cta-v2-sub">Livraison · Retrait disponible</div>
         </div>
-        <div class="cta-arrow">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="cv-cta-v2-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </button>
 
       <!-- Changer de compte -->
-      <div style="text-align:center;margin-top:10px">
-        <span onclick="clientLogout()" style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;cursor:pointer;text-decoration:underline;text-underline-offset:3px;opacity:0.5">Changer de compte</span>
+      <div style="text-align:center;margin-top:14px">
+        <span onclick="clientLogout()" style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;cursor:pointer;opacity:0.4">Changer de compte</span>
       </div>
     </div>
 
@@ -2651,27 +2708,40 @@ async function loadClientView(id){
   const tokens=c.tokens||0;
   const rem=10-stamps;
 
+  // Nom client
+  const nameEl=document.getElementById("cv-name-display");
+  if(nameEl)nameEl.textContent=c.name||"—";
+
   // Carte tampons
-  document.getElementById("cv-count").innerHTML=stamps+'<span>/10</span>';
+  document.getElementById("cv-count").innerHTML=stamps+'<span style="opacity:.4">/10</span>';
   document.getElementById("cv-fill").style.width=(stamps*10)+"%";
   const cd=document.getElementById("cv-countdown");
-  if(rem===0)cd.innerHTML="";
+  if(rem===0)cd.innerHTML='<span style="color:#4ade80;font-weight:600">✓ Carte complète !</span>';
   else{
     const nextSlot=stamps+1;
     const sr=rewards.find(r=>r.slot===nextSlot);
     const nextTokens=sr?sr.tokens:1;
-    cd.innerHTML=`Prochain tampon (case ${nextSlot}) → <strong>+${nextTokens} 🪙</strong>`;
+    cd.innerHTML=`Prochain tampon → <strong>+${nextTokens} 🪙</strong>`;
   }
 
-  // Grille tampons avec tokens par case au hover
+  // Grille tampons v2
   document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>{
     const slotNum=i+1;
     const sr=rewards.find(r=>r.slot===slotNum);
     const tok=sr?sr.tokens:1;
+    const isBonus=tok>1;
     if(i<stamps){
-      return `<div class="cv-stamp on" style="animation-delay:${i*.05}s" title="Case ${slotNum}: +${tok}🪙">${checkSvg()}</div>`;
+      return `<div class="cv-stamp-v2 on${isBonus?" bonus":""}" style="animation-delay:${i*.04}s">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+          <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        ${isBonus?`<div class="cv-stamp-bonus-dot"></div>`:""}
+      </div>`;
     }
-    return `<div class="cv-stamp" title="Case ${slotNum}: +${tok}🪙"><span class="cv-stamp-num">${tok}🪙</span></div>`;
+    return `<div class="cv-stamp-v2${isBonus?" bonus-empty":""}">
+      <span class="cv-stamp-v2-num">${tok}<span style="font-size:7px">🪙</span></span>
+      ${isBonus?`<div class="cv-stamp-bonus-dot empty"></div>`:""}
+    </div>`;
   }).join("");
 
   // Wallet tokens
