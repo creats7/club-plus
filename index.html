@@ -1634,9 +1634,9 @@ async function doLogin(){
   const raw=document.getElementById("login-snap").value.trim();
   if(!raw){document.getElementById("login-error").textContent="Entre ton pseudo Snap";return;}
   const phone=raw.toLowerCase().trim();
-  const data=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+  const data=await dbGet(T_CLIENTS+"?phone=ilike."+encodeURIComponent(phone)+"&limit=1");
   if(!data||!data.length){
-    document.getElementById("login-error").textContent="Numéro introuvable — inscris-toi !";
+    document.getElementById("login-error").textContent="Snap introuvable — inscris-toi !";
     return;
   }
   document.getElementById("login-error").textContent="";
@@ -1652,7 +1652,7 @@ async function doSignup(){
   if(!raw){document.getElementById("signup-error").textContent="Entre ton pseudo Snap";return;}
   const phone=normalizePhone(raw);
   // Vérifie si déjà inscrit
-  const existing=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+  const existing=await dbGet(T_CLIENTS+"?phone=ilike."+encodeURIComponent(phone)+"&limit=1");
   if(existing&&existing.length){
     document.getElementById("signup-error").textContent="Ce Snap est déjà inscrit — connecte-toi !";
     return;
@@ -2166,7 +2166,7 @@ async function submitOrder(){
   const err=document.getElementById("os-error");
 
   if(!name){err.textContent="Entre ton nom";return;}
-  if(!phone){err.textContent="Entre ton téléphone";return;}
+  if(!phone){err.textContent="Entre ton pseudo Snap";return;}
   if(currentDeliveryMode==="livraison"&&!address){err.textContent="Entre une adresse de livraison";return;}
   if(currentDeliveryMode==="livraison"&&calculatedFee===null){err.textContent="Calcule d'abord les frais de livraison";return;}
   err.textContent="";
