@@ -612,19 +612,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem}
 .cv-card-name{font-size:19px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:3px}
 .cv-card-sub{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);letter-spacing:.14em;text-transform:uppercase}
-.cv-card-level-badge{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px 10px;min-width:46px}
-.cv-card-level-num{font-size:20px;font-weight:800;font-family:'DM Mono',monospace;line-height:1;color:var(--text)}
-.cv-card-level-lbl{font-size:8px;font-family:'DM Mono',monospace;letter-spacing:.15em;color:var(--muted2);text-transform:uppercase;margin-top:2px}
 /* Tampons v2 */
 .cv-stamps-v2{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1.25rem}
 @keyframes stampPopV2{0%{transform:scale(.5) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0deg);opacity:1}}
 .cv-stamp-v2{aspect-ratio:1;border-radius:12px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;position:relative;transition:all .2s}
 .cv-stamp-v2.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff;animation:stampPopV2 .4s cubic-bezier(.34,1.5,.64,1) both;box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
-.cv-stamp-v2.on.bonus{background:rgba(255,185,0,.15);border-color:rgba(255,185,0,.5);box-shadow:0 0 12px rgba(255,185,0,.15)}
-.cv-stamp-v2.bonus-empty{border-color:rgba(255,185,0,.25);background:rgba(255,185,0,.04)}
+.cv-stamp-v2.on.bonus{background:rgba(200,200,210,.1);border-color:rgba(200,200,210,.4);box-shadow:0 0 10px rgba(200,200,210,.1)}
+.cv-stamp-v2.bonus-empty{border-color:rgba(200,200,210,.2);background:rgba(200,200,210,.03)}
 .cv-stamp-v2-num{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:1px}
-.cv-stamp-bonus-dot{position:absolute;bottom:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#fbbf24}
-.cv-stamp-bonus-dot.empty{background:rgba(255,185,0,.35)}
+.cv-stamp-bonus-dot{position:absolute;bottom:3px;right:3px;width:5px;height:5px;border-radius:50%;background:rgba(200,200,210,0.8)}
+.cv-stamp-bonus-dot.empty{background:rgba(200,200,210,0.25)}
 /* Progression */
 .cv-prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .cv-prog-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em}
@@ -949,7 +946,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <input id="wheel-cost-input" type="number" min="1" max="99" value="1" style="width:52px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:5px;outline:none" />
-        <span style="font-size:12px;color:var(--muted)">🪙</span>
+        <span style="font-size:12px;color:var(--muted)">◈</span>
         <button class="btn btn-accent btn-sm" onclick="saveWheelCost()">Sauver</button>
       </div>
     </div>
@@ -1213,10 +1210,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <div class="cv-card-name" id="cv-name-display">—</div>
             <div class="cv-card-sub">Carte de fidélité</div>
           </div>
-          <div class="cv-card-level-badge">
-            <div class="cv-card-level-num" id="cv-level">1</div>
-            <div class="cv-card-level-lbl">NVL</div>
-          </div>
+
         </div>
 
         <!-- Grille tampons 5x2 -->
@@ -1238,7 +1232,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <!-- Wallet tokens + bouton -->
         <div class="cv-wallet-row">
           <div class="cv-wallet-left">
-            <div class="cv-wallet-icon">🪙</div>
+            <div class="cv-wallet-icon">◈</div>
             <div>
               <div class="cv-wallet-count" id="cv-token-count">0</div>
               <div class="cv-wallet-lbl">tokens disponibles</div>
@@ -1250,9 +1244,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </button>
         </div>
       </div>
-
-      <!-- Preview bonus cases spéciales -->
-      <div id="cv-stamp-rewards-preview"></div>
 
       <!-- CTA Commander -->
       <button class="cv-cta-v2" onclick="switchClientTab('commandes')">
@@ -1280,7 +1271,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div style="font-family:'DM Mono',monospace;font-size:26px;font-weight:700;line-height:1" id="cv-shop-tokens">0</div>
           <div style="font-size:11px;color:var(--muted)">tokens</div>
         </div>
-        <div style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:22px">🪙</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:22px">◈</div>
       </div>
       <div id="cv-shop-items"></div>
       <div id="cv-shop-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:3rem 0">
@@ -1477,7 +1468,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div style="font-size:14px;color:var(--muted);line-height:1.5">
         Cette ouverture coûte
         <span style="color:var(--text);font-weight:700;font-family:'DM Mono',monospace" id="case-confirm-cost"></span>
-        <span style="color:var(--text);font-weight:700"> 🪙 token<span id="case-confirm-plural"></span></span>
+        <span style="color:var(--text);font-weight:700"> ◈ token<span id="case-confirm-plural"></span></span>
       </div>
     </div>
     <div style="display:flex;gap:10px">
@@ -1849,7 +1840,7 @@ function renderList(cl){
             <div class="client-name-text">${c.name}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
               ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
-              ${(c.tokens||0)>0?`<div class="token-badge">🪙 ${c.tokens}</div>`:""}
+              ${(c.tokens||0)>0?`<div class="token-badge">◈ ${c.tokens}</div>`:""}
             </div>
           </div>
         </div>
@@ -1866,7 +1857,7 @@ function renderList(cl){
           <button class="btn btn-sm" onclick="chg('${c.id}',${stamps},${c.tokens||0},-1)" ${stamps===0?"disabled":""}>−</button>
           <button class="btn btn-sm" onclick="rst('${c.id}','${c.name.replace(/'/g,"\\'")}')">Reset</button>
           <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)" ${full?"disabled":""}>+ Tampon</button>
-          <button class="btn btn-sm" style="color:var(--token);border-color:var(--token-border);background:var(--token-dim)" onclick="giveToken('${c.id}',${c.tokens||0})">🪙 +1</button>
+          <button class="btn btn-sm" style="color:var(--token);border-color:var(--token-border);background:var(--token-dim)" onclick="giveToken('${c.id}',${c.tokens||0})">◈ +1</button>
         </div>
       </div>`;
     list.appendChild(div);
@@ -1920,7 +1911,7 @@ async function chg(id,curStamps,curTokens,d){
     await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens});
     await dbPost(T_STAMP_LOGS,{client_id:id});
     await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-    const msg=nextSlot>=10?`🎉 Carte complète ! +${tokensEarned} token${tokensEarned>1?"s":""} 🪙`:`✦ Tampon case ${slotCapped} — +${tokensEarned} 🪙`;
+    const msg=nextSlot>=10?`🎉 Carte complète ! +${tokensEarned} token${tokensEarned>1?"s":""} ◈`:`✦ Tampon case ${slotCapped} — +${tokensEarned} ◈`;
     toast(msg);
   } else {
     const newStamps=Math.max(0,curStamps-1);
@@ -1933,7 +1924,7 @@ async function chg(id,curStamps,curTokens,d){
 async function giveToken(id,curTokens){
   await dbPatch(T_CLIENTS+"?id=eq."+id,{tokens:curTokens+1});
   await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-  toast("🪙 Token ajouté ✓");await loadAll();
+  toast("◈ Token ajouté ✓");await loadAll();
 }
 async function rst(id,name){
   if(!confirm("Réinitialiser la carte de "+name+" ?"))return;
@@ -2348,7 +2339,7 @@ async function loadChallenges(){
           <div class="challenge-title">${ch.title}</div>
           ${ch.description?`<div class="challenge-desc">${ch.description}</div>`:""}
         </div>
-        <div class="challenge-reward">🪙 +${ch.reward_tokens}</div>
+        <div class="challenge-reward">◈ +${ch.reward_tokens}</div>
       </div>
       <div class="challenge-meta">
         Objectif : ${ch.target} commandes · ${PERIOD_LABELS[ch.period]||ch.period}
@@ -2451,7 +2442,7 @@ async function loadClientChallenges(clientId){
       ${ch.description?`<div class="cv-challenge-desc">${ch.description}</div>`:""}
       <div class="cv-challenge-progress">
         <span class="cv-challenge-count">${progress}/${ch.target} commandes · ${PERIOD_LABELS[ch.period]||ch.period}</span>
-        <span class="cv-challenge-reward">🪙 +${ch.reward_tokens} à gagner</span>
+        <span class="cv-challenge-reward">◈ +${ch.reward_tokens} à gagner</span>
       </div>
       <div class="cv-challenge-bar"><div class="cv-challenge-fill" style="width:${pct}%"></div></div>
     </div>`;
@@ -2721,7 +2712,7 @@ async function loadClientView(id){
     const nextSlot=stamps+1;
     const sr=rewards.find(r=>r.slot===nextSlot);
     const nextTokens=sr?sr.tokens:1;
-    cd.innerHTML=`Prochain tampon → <strong>+${nextTokens} 🪙</strong>`;
+    cd.innerHTML=`Prochain tampon → <strong>+${nextTokens} ◈</strong>`;
   }
 
   // Grille tampons v2
@@ -2739,7 +2730,7 @@ async function loadClientView(id){
       </div>`;
     }
     return `<div class="cv-stamp-v2${isBonus?" bonus-empty":""}">
-      <span class="cv-stamp-v2-num">${tok}<span style="font-size:7px">🪙</span></span>
+      <span class="cv-stamp-v2-num">${tok}<span style="font-size:7px">◈</span></span>
       ${isBonus?`<div class="cv-stamp-bonus-dot empty"></div>`:""}
     </div>`;
   }).join("");
@@ -2747,20 +2738,7 @@ async function loadClientView(id){
   // Wallet tokens
   document.getElementById("cv-token-count").textContent=tokens;
 
-  // Preview récompenses sous la carte
-  const preview=document.getElementById("cv-stamp-rewards-preview");
-  if(preview&&rewards.length){
-    const special=rewards.filter(r=>r.tokens>1);
-    if(special.length){
-      preview.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Bonus cases spéciales</div>
-        ${special.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
-          <span style="color:var(--muted)">Case ${r.slot}</span>
-          <span style="font-family:'DM Mono',monospace;font-weight:700">+${r.tokens} 🪙</span>
-        </div>`).join("")}
-      </div>`;
-    } else preview.innerHTML="";
-  }
+
 
   // Offre
   const ob=document.getElementById("cv-offer-banner");
@@ -2836,7 +2814,7 @@ async function loadClientShop(clientId){
         <div class="hc-info">
           <div>
             <div class="hc-title">${ch.name}</div>
-            <div class="hc-cost"><span class="hc-cost-val">${cost}</span>&nbsp;🪙 token${cost>1?"s":""}</div>
+            <div class="hc-cost"><span class="hc-cost-val">${cost}</span>&nbsp;◈ token${cost>1?"s":""}</div>
           </div>
           <button class="hc-open-btn" ${canAfford?"":"disabled style=\"opacity:.4;cursor:not-allowed\""}>
             ${canAfford?"Ouvrir →":"Insuffisant"}
@@ -2907,7 +2885,7 @@ async function saveWheelCost(){
   const v=Math.max(1,parseInt(document.getElementById("wheel-cost-input").value)||1);
   await dbPatch(T_SHOP_CONFIG+"?key=eq.wheel_cost",{value:v});
   shopConfig.wheel_cost=v;
-  toast("Coût roue : "+v+" 🪙 ✓");
+  toast("Coût roue : "+v+" ◈ ✓");
 }
 
 async function saveWheelLabel(){
@@ -3074,7 +3052,7 @@ async function loadCasesAdmin(){
       header.appendChild(img);
     }
     const info=document.createElement("div");info.style.flex="1;min-width:0";
-    info.innerHTML=`<div style="font-size:14px;font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${ch.cost||1} 🪙 · ${ch.active?"Actif":"Inactif"}</div>`;
+    info.innerHTML=`<div style="font-size:14px;font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${ch.cost||1} ◈ · ${ch.active?"Actif":"Inactif"}</div>`;
     const actions=document.createElement("div");actions.style.cssText="display:flex;gap:4px;flex-shrink:0";
     const btnActive=document.createElement("button");btnActive.className="btn btn-sm";btnActive.textContent=ch.active?"● Actif":"○ Inactif";btnActive.onclick=()=>toggleCaseActive(ch.id,ch.active);
     const btnEdit=document.createElement("button");btnEdit.className="btn btn-icon";btnEdit.textContent="✎";btnEdit.onclick=()=>editCase(ch.id);
@@ -3142,7 +3120,7 @@ async function confirmOpenCase(){
   const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
   if(!cData||!cData.length)return;
   const tokens=cData[0].tokens||0;
-  if(tokens<cost){toast("Pas assez de tokens 🪙");return;}
+  if(tokens<cost){toast("Pas assez de tokens ◈");return;}
   await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
   await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
   const res=await dbPost(T_CLIENT_CHESTS,{client_id:currentClientId,chest_id:caseId,opened:false});
@@ -3563,7 +3541,7 @@ async function loadStampRewards(){
         <button onclick="this.previousElementSibling.previousElementSibling.firstElementChild.value=Math.max(0,parseInt(this.previousElementSibling.previousElementSibling.firstElementChild.value||1)-1);updateSRPreview()" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,.06);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
         <input id="sr-slot-${slot}" type="number" min="0" max="99" value="${tok}" style="width:48px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;font-weight:700;padding:4px;outline:none" />
         <button onclick="this.previousElementSibling.previousElementSibling.value=Math.min(99,parseInt(this.previousElementSibling.previousElementSibling.value||0)+1)" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,.06);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
-        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;min-width:24px">🪙</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;min-width:24px">◈</div>
       </div>
     </div>`;
   }).join("");
