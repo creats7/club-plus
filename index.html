@@ -543,6 +543,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hc-cover-glow{display:none}
 .hc-info-btn{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:700;font-family:'DM Mono',monospace;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:background .15s;z-index:5;line-height:1}
 .hc-info-btn:hover{background:rgba(255,255,255,.15)}
+/* Order success popup */
+.order-success-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(14px);padding:1.5rem}
+.order-success-overlay.open{display:flex}
+.order-success-box{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:2rem 1.5rem;width:100%;max-width:340px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:fadeUp .35s cubic-bezier(.34,1.2,.64,1) both}
+.order-success-check{width:56px;height:56px;border-radius:50%;background:rgba(74,222,128,.12);border:1.5px solid rgba(74,222,128,.3);color:#4ade80;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.order-success-title{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+.order-success-msg{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:1.25rem}
+.order-success-snap{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;text-align:left}
+.order-success-snap-icon{font-size:28px;flex-shrink:0}
+.order-success-snap-label{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.order-success-snap-handle{font-size:16px;font-weight:700;letter-spacing:-.02em}
 /* Case info overlay */
 .case-info-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:400;backdrop-filter:blur(10px)}
 .case-info-overlay.open{display:flex}
@@ -1365,6 +1376,23 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<!-- ORDER SUCCESS POPUP -->
+<div class="order-success-overlay" id="order-success-overlay" onclick="document.getElementById('order-success-overlay').classList.remove('open')">
+  <div class="order-success-box" onclick="event.stopPropagation()">
+    <div class="order-success-check">✓</div>
+    <div class="order-success-title">Réservation envoyée !</div>
+    <div class="order-success-msg">Tu seras contacté pour valider le rendez-vous.</div>
+    <div class="order-success-snap">
+      <div class="order-success-snap-icon">👻</div>
+      <div>
+        <div class="order-success-snap-label">Contacte-moi sur Snapchat</div>
+        <div class="order-success-snap-handle">mxnce.l</div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('order-success-overlay').classList.remove('open')" class="btn-spin" style="width:100%;justify-content:center;margin-top:1.25rem;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;padding:14px;border-radius:12px">Super, merci !</button>
+  </div>
+</div>
+
 <!-- CASE CONFIRM MODAL -->
 <div class="case-info-overlay" id="case-confirm-overlay" onclick="cancelOpenCase()">
   <div class="case-info-sheet" onclick="event.stopPropagation()" style="padding-bottom:2rem">
@@ -2161,7 +2189,7 @@ async function submitOrder(){
     lat,lng
   });
   closeOrderModal();
-  toast("Réservation envoyée ! On te confirme ça 🎉");
+  document.getElementById("order-success-overlay").classList.add("open");
   if(currentClientId) loadClientOrders(currentClientId);
 }
 
