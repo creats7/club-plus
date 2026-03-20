@@ -471,7 +471,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hc-opening-overlay{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:350;backdrop-filter:blur(20px);padding:1.5rem}
 .hc-opening-overlay.open{display:flex}
 .hc-opening-title{font-size:18px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px;text-align:center}
-.hc-opening-sub{font-size:12px;color:var(--muted);margin-bottom:1.5rem;text-align:center}
+.hc-opening-sub{font-size:32px;color:#fff;font-weight:800;font-family:'DM Mono',monospace;margin-bottom:1.5rem;text-align:center;letter-spacing:.05em;min-height:48px;display:flex;align-items:center;justify-content:center}
 .hc-slider-wrap{position:relative;width:100%;max-width:420px;overflow:hidden;border-radius:12px;margin-bottom:2rem}
 .hc-slider-wrap::before,.hc-slider-wrap::after{content:'';position:absolute;top:0;bottom:0;width:100px;z-index:3;pointer-events:none}
 .hc-slider-wrap::before{left:0;background:linear-gradient(90deg,rgba(0,0,0,.97) 0%,transparent 100%)}
@@ -576,7 +576,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hc-opening-overlay{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:350;backdrop-filter:blur(20px);padding:1.5rem}
 .hc-opening-overlay.open{display:flex}
 .hc-opening-title{font-size:16px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px;text-align:center}
-.hc-opening-sub{font-size:12px;color:var(--muted);margin-bottom:1.5rem;text-align:center}
+.hc-opening-sub{font-size:32px;color:#fff;font-weight:800;font-family:'DM Mono',monospace;margin-bottom:1.5rem;text-align:center;letter-spacing:.05em;min-height:48px;display:flex;align-items:center;justify-content:center}
 /* Slider */
 .hc-slider-wrap{position:relative;width:100%;max-width:420px;overflow:hidden;border-radius:12px;margin-bottom:2rem}
 .hc-slider-wrap::before,.hc-slider-wrap::after{content:'';position:absolute;top:0;bottom:0;width:100px;z-index:3;pointer-events:none}
@@ -3089,6 +3089,46 @@ function cancelOpenCase(){
   _pendingCaseId=null;_pendingCaseCost=0;
 }
 
+// ── AUDIO ENGINE ──
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+function playTick(pitch=880,vol=0.08){
+  try{
+    const ctx=getAudioCtx();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type="sine";o.frequency.value=pitch;
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.04);
+    o.start();o.stop(ctx.currentTime+0.04);
+  }catch(e){}
+}
+function playVictory(rarity){
+  try{
+    const ctx=getAudioCtx();
+    const notes={
+      common:[440,550],
+      rare:[440,550,660,880],
+      epic:[330,440,550,660,880,1100],
+      legendary:[262,330,392,523,659,784,1047,1319]
+    }[rarity]||[440,550];
+    notes.forEach((freq,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type=rarity==="legendary"?"sine":"triangle";
+      o.frequency.value=freq;
+      const t=ctx.currentTime+i*0.10;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.18,t+0.04);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.start(t);o.stop(t+0.4);
+    });
+  }catch(e){}
+}
+
 async function openCaseOpening(caseId,clientChestId){
   const [caseData,rewards]=await Promise.all([
     dbGet(T_CHESTS+"?id=eq."+caseId),
@@ -3097,12 +3137,11 @@ async function openCaseOpening(caseId,clientChestId){
   if(!rewards||!rewards.length){toast("Caisse sans lots");return;}
   const ch=caseData&&caseData[0];
   document.getElementById("hc-opening-title").textContent=ch?ch.name:"Ouverture";
-  document.getElementById("hc-opening-sub").textContent="Bonne chance !";
+  document.getElementById("hc-result").classList.remove("show");
   const total=rewards.reduce((s,r)=>s+r.probability,0);
   let rand=Math.random()*total,cumul=0,won=rewards[rewards.length-1];
   for(const r of rewards){cumul+=r.probability;if(rand<=cumul){won=r;break;}}
   buildHcTrack(rewards);
-  document.getElementById("hc-result").classList.remove("show");
   const col=RARITY_COLORS[won.rarity||"common"];
   const cur=document.getElementById("hc-cursor");
   cur.style.background=col;cur.style.boxShadow=`0 0 12px ${col},0 0 28px ${col.replace("1)","0.3)")}`;
@@ -3110,7 +3149,22 @@ async function openCaseOpening(caseId,clientChestId){
   if(!style){style=document.createElement("style");style.id="hc-cursor-style";document.head.appendChild(style);}
   style.textContent=`.hc-cursor::before{border-bottom-color:${col}}.hc-cursor::after{border-top-color:${col}}`;
   document.getElementById("hc-opening-overlay").classList.add("open");
-  setTimeout(()=>runHcSpin(won,clientChestId),300);
+
+  // Compte à rebours 3...2...1
+  const sub=document.getElementById("hc-opening-sub");
+  sub.textContent="";
+  await new Promise(res=>{
+    let n=3;
+    sub.textContent=n;
+    playTick(660,0.12);
+    const iv=setInterval(()=>{
+      n--;
+      if(n>0){sub.textContent=n;playTick(660,0.12);}
+      else{sub.textContent="";clearInterval(iv);res();}
+    },700);
+  });
+
+  runHcSpin(won,clientChestId);
 }
 
 function buildHcTrack(rewards){
@@ -3137,17 +3191,55 @@ function runHcSpin(won,clientChestId){
   const winName=won.name.length>14?won.name.slice(0,13)+"…":won.name;
   winItem.innerHTML=won.image_url?`<img src="${won.image_url}" onerror="this.style.display='none'" /><div class="hc-item-name">${winName}</div>`:`<div class="hc-item-name">${winName}</div>`;
   const itemCenter=targetIndex*HC_ITEM_W+(HC_ITEM_W/2);
-  const jitter=(Math.random()-0.5)*16;
+  const jitter=(Math.random()-0.5)*12;
   const finalT=-(itemCenter-centerOffset)+jitter;
-  const duration=4500;const start=performance.now();
-  function easeOutQuint(t){return 1-Math.pow(1-t,5);}
+
+  // Durée longue + easing plus dramatique
+  const duration=7000;const start=performance.now();
+  // Ease out expo — démarrage rapide, fin très lente
+  function easeOutExpo(t){return t===1?1:1-Math.pow(2,-10*t);}
+
+  // Tick sonore basé sur la position
+  let lastTickIdx=-1;
+  const col=RARITY_COLORS[won.rarity||"common"];
+
   function animate(now){
     const t=Math.min((now-start)/duration,1);
-    track.style.transform=`translateX(${finalT*easeOutQuint(t)}px)`;
+    const ease=easeOutExpo(t);
+    const currentX=finalT*ease;
+    track.style.transform=`translateX(${currentX}px)`;
+
+    // Calcul de l'item sous le curseur pour le tick
+    const idxUnder=Math.floor((-currentX+centerOffset)/HC_ITEM_W);
+    if(idxUnder!==lastTickIdx&&idxUnder>=0&&idxUnder<60){
+      lastTickIdx=idxUnder;
+      // Pitch qui monte légèrement vers la fin pour le suspense
+      const pitch=440+Math.floor(t*400);
+      const vol=0.04+t*0.06;
+      playTick(pitch,vol);
+    }
+
     if(t<1){requestAnimationFrame(animate);}
-    else{winItem.classList.add("winner");setTimeout(()=>showHcResult(won,clientChestId),700);}
+    else{
+      // Flash sur l'item gagnant
+      winItem.classList.add("winner");
+      flashWinItem(winItem,col);
+      playVictory(won.rarity||"common");
+      setTimeout(()=>showHcResult(won,clientChestId),1200);
+    }
   }
   requestAnimationFrame(animate);
+}
+
+function flashWinItem(el,col){
+  // Série de flashs lumineux sur l'item gagnant
+  let flashes=0;
+  const max=6;
+  const iv=setInterval(()=>{
+    el.style.boxShadow=flashes%2===0?`0 0 20px ${col},0 0 40px ${col.replace("1)","0.5)")}`:"none";
+    flashes++;
+    if(flashes>=max*2)clearInterval(iv);
+  },120);
 }
 
 async function showHcResult(won,clientChestId){
