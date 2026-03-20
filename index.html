@@ -1365,6 +1365,26 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<!-- CASE CONFIRM MODAL -->
+<div class="case-info-overlay" id="case-confirm-overlay" onclick="cancelOpenCase()">
+  <div class="case-info-sheet" onclick="event.stopPropagation()" style="padding-bottom:2rem">
+    <div class="case-info-handle"></div>
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="font-size:36px;margin-bottom:12px">🗃</div>
+      <div style="font-size:18px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px" id="case-confirm-name"></div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.5">
+        Cette ouverture coûte
+        <span style="color:var(--text);font-weight:700;font-family:'DM Mono',monospace" id="case-confirm-cost"></span>
+        <span style="color:var(--text);font-weight:700"> 🪙 token<span id="case-confirm-plural"></span></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="cancelOpenCase()" class="btn" style="flex:1;justify-content:center;padding:14px;font-size:14px">Annuler</button>
+      <button onclick="confirmOpenCase()" class="btn-spin" style="flex:2;justify-content:center;padding:14px;font-size:14px;font-weight:800;background:#fff;color:#0a0a0a;border:none;border-radius:var(--rs)">Ouvrir →</button>
+    </div>
+  </div>
+</div>
+
 <!-- CASE INFO MODAL -->
 <div class="case-info-overlay" id="case-info-overlay" onclick="closeCaseInfo()">
   <div class="case-info-sheet" onclick="event.stopPropagation()">
@@ -2988,11 +3008,27 @@ const RARITY_LABELS={common:"Commun",rare:"Rare",epic:"Épique",legendary:"Lége
 const HC_ITEM_W=104;
 let selectedCaseId=null,pendingCaseClientId=null;
 
-async function openCaseShop(caseId,cost){
+let _pendingCaseId=null,_pendingCaseCost=0,_pendingCaseName="";
+
+function openCaseShop(caseId,cost){
+  // Find case name from DOM
+  const card=document.querySelector(`.hc-card[onclick*="${caseId}"]`);
+  const name=card?.querySelector(".hc-title")?.textContent||"cette caisse";
+  _pendingCaseId=caseId;_pendingCaseCost=cost;_pendingCaseName=name;
+  document.getElementById("case-confirm-name").textContent=name;
+  document.getElementById("case-confirm-cost").textContent=cost;
+  document.getElementById("case-confirm-plural").textContent=cost>1?"s":"";
+  document.getElementById("case-confirm-overlay").classList.add("open");
+}
+
+async function confirmOpenCase(){
+  document.getElementById("case-confirm-overlay").classList.remove("open");
+  const caseId=_pendingCaseId,cost=_pendingCaseCost;
+  if(!caseId)return;
   const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
   if(!cData||!cData.length)return;
   const tokens=cData[0].tokens||0;
-  if(tokens<cost){toast("Pas assez de tokens");return;}
+  if(tokens<cost){toast("Pas assez de tokens 🪙");return;}
   await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
   await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
   const res=await dbPost(T_CLIENT_CHESTS,{client_id:currentClientId,chest_id:caseId,opened:false});
@@ -3002,6 +3038,11 @@ async function openCaseShop(caseId,cost){
   document.getElementById("cv-token-count").textContent=tokens-cost;
   selectedCaseId=caseId;pendingCaseClientId=clientChestId;
   await openCaseOpening(caseId,clientChestId);
+}
+
+function cancelOpenCase(){
+  document.getElementById("case-confirm-overlay").classList.remove("open");
+  _pendingCaseId=null;_pendingCaseCost=0;
 }
 
 async function openCaseOpening(caseId,clientChestId){
