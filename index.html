@@ -606,6 +606,23 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hc-result-rarity{font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;font-weight:700}
 .hc-result-name{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
 .hc-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+/* ── Rarity effects ── */
+@keyframes particleBurst{
+  0%{transform:translate(var(--tx,0px),0) rotate(0deg) scale(1);opacity:1}
+  100%{transform:translate(var(--tx,0px),var(--ty,-140px)) rotate(720deg) scale(0);opacity:0}
+}
+@keyframes beamFade{
+  0%{opacity:0;transform:scaleY(0)}
+  30%{opacity:1;transform:scaleY(1)}
+  100%{opacity:0;transform:scaleY(1)}
+}
+@keyframes ringPulse{
+  0%{transform:translate(-50%,-50%) scale(.4);opacity:.9}
+  100%{transform:translate(-50%,-50%) scale(2.4);opacity:0}
+}
+.rarity-particle{position:absolute;pointer-events:none;z-index:10;animation:particleBurst var(--dur,1.2s) ease-out var(--delay,0s) forwards}
+.rarity-beam{position:absolute;bottom:0;width:2px;height:55%;pointer-events:none;z-index:5;transform-origin:bottom center;animation:beamFade 1.2s ease-out forwards}
+.rarity-ring{position:absolute;top:35%;left:50%;width:180px;height:180px;border-radius:50%;border:2px solid var(--ring-col,rgba(255,185,0,.5));pointer-events:none;z-index:5;animation:ringPulse 1s ease-out forwards}
 @keyframes stampPop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
 @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(90px) rotate(720deg);opacity:0}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -3136,20 +3153,105 @@ function runHcSpin(won,clientChestId){
 
 async function showHcResult(won,clientChestId){
   await dbPatch(T_CLIENT_CHESTS+"?id=eq."+clientChestId,{opened:true,chest_id:selectedCaseId,reward_name:won.name,opened_at:new Date().toISOString()});
-  const col=RARITY_COLORS[won.rarity||"common"];
+  const rarity=won.rarity||"common";
+  const col=RARITY_COLORS[rarity];
+  const overlay=document.getElementById("hc-opening-overlay");
+
+  // ── Fond dynamique selon rareté ──
+  const bgMap={
+    common:"rgba(0,0,0,.97)",
+    rare:"radial-gradient(ellipse at 50% 0%,rgba(75,145,255,.18) 0%,rgba(0,0,0,.97) 60%)",
+    epic:"radial-gradient(ellipse at 50% 0%,rgba(170,80,255,.22) 0%,rgba(0,0,0,.97) 60%)",
+    legendary:"radial-gradient(ellipse at 50% 0%,rgba(255,185,0,.28) 0%,rgba(0,0,0,.97) 60%)"
+  };
+  overlay.style.background=bgMap[rarity]||bgMap.common;
+
+  // ── Image ──
   const img=document.getElementById("hc-result-img");
-  if(won.image_url){img.src=won.image_url;img.style.display="block";img.style.border=`2px solid ${col}`;}else{img.style.display="none";}
-  document.getElementById("hc-result-rarity").textContent=RARITY_LABELS[won.rarity||"common"];
+  if(won.image_url){
+    img.src=won.image_url;
+    img.style.display="block";
+    img.style.border=`2px solid ${col}`;
+    img.style.boxShadow=`0 0 24px ${col.replace("1)","0.4)")}`;
+  } else {img.style.display="none";}
+
+  document.getElementById("hc-result-rarity").textContent=RARITY_LABELS[rarity];
   document.getElementById("hc-result-rarity").style.color=col;
   document.getElementById("hc-result-name").textContent=won.name;
-  const isCommon=(won.rarity||"common")==="common";
-  document.getElementById("hc-result-sub").textContent=isCommon?"😅 Pas de chance cette fois !":"🎉 Bravo, tu as gagné !";
+  document.getElementById("hc-result-name").style.color=rarity==="legendary"?col:"#fff";
+
+  const msgs={common:"Retente ta chance !",rare:"Belle prise ! 🔵",epic:"Incroyable ! 🟣",legendary:"LÉGENDAIRE ! 🔥"};
+  document.getElementById("hc-result-sub").textContent=msgs[rarity];
+
+  // ── Lancer les effets ──
+  spawnRarityEffect(rarity,col,overlay);
+
   document.getElementById("hc-result").classList.add("show");
   document.getElementById("hc-opening-sub").textContent="";
 }
 
+function spawnRarityEffect(rarity,col,container){
+  // Supprimer anciens effets
+  container.querySelectorAll(".rarity-particle,.rarity-beam,.rarity-ring").forEach(e=>e.remove());
+  if(rarity==="common")return;
+
+  const count={rare:18,epic:28,legendary:40}[rarity]||0;
+  const beams={epic:6,legendary:10}[rarity]||0;
+
+  // Particules confetti
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div");
+    p.className="rarity-particle";
+    const size=Math.random()*7+4;
+    const colors=rarity==="legendary"
+      ?["#ffd700","#ffec6e","#fff","#ffb300"]
+      :rarity==="epic"
+      ?["#c084fc","#a855f7","#fff","#e879f9"]
+      :["#60a5fa","#3b82f6","#fff","#93c5fd"];
+    const tx=Math.round((Math.random()-.5)*220);
+    const ty=Math.round(-(80+Math.random()*130));
+    p.style.cssText=`
+      --tx:${tx}px;--ty:${ty}px;
+      --dur:${(Math.random()*.6+.9).toFixed(2)}s;
+      --delay:${(Math.random()*.5).toFixed(2)}s;
+      width:${size}px;height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random()>.5?"50%":"3px"};
+      left:${Math.random()*100}%;
+      top:${Math.random()*40+20}%;
+      animation-delay:${Math.random()*.6}s;
+      animation-duration:${Math.random()*.8+1}s;
+      transform:rotate(${Math.random()*360}deg);
+    `;
+    container.appendChild(p);
+  }
+
+  // Rayons lumineux (épique + légendaire)
+  for(let i=0;i<beams;i++){
+    const b=document.createElement("div");
+    b.className="rarity-beam";
+    b.style.cssText=`
+      left:${Math.random()*80+10}%;
+      animation-delay:${i*0.12}s;
+      background:linear-gradient(transparent,${col.replace("1)","0.35)")},transparent);
+    `;
+    container.appendChild(b);
+  }
+
+  // Anneau pulsant (légendaire uniquement)
+  if(rarity==="legendary"){
+    const ring=document.createElement("div");
+    ring.className="rarity-ring";
+    ring.style.setProperty("--ring-col",col.replace("1)","0.5)"));
+    container.appendChild(ring);
+  }
+}
+
 function closeHcOpening(){
-  document.getElementById("hc-opening-overlay").classList.remove("open");
+  const overlay=document.getElementById("hc-opening-overlay");
+  overlay.classList.remove("open");
+  overlay.style.background="";
+  overlay.querySelectorAll(".rarity-particle,.rarity-beam,.rarity-ring").forEach(e=>e.remove());
   selectedCaseId=null;pendingCaseClientId=null;
   if(currentClientId)loadClientView(currentClientId);
 }
