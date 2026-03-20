@@ -834,22 +834,22 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="quick-sub" id="qc-orders">— aujourd'hui</div>
           <div class="quick-badge" id="qc-badge" style="display:none"></div>
         </div>
-        <div class="quick-card token" onclick="switchTab('products')">
-          <div class="quick-icon">📦</div>
-          <div class="quick-label">Stock</div>
-          <div class="quick-sub" id="qc-products">— produits</div>
+        <div class="quick-card green" onclick="switchTab('cases')">
+          <div class="quick-icon">🗃</div>
+          <div class="quick-label">Caisses</div>
+          <div class="quick-sub" id="qc-cases">Gérer</div>
         </div>
-        <div class="quick-card amber" onclick="switchTab('challenges')">
-          <div class="quick-icon">🎯</div>
-          <div class="quick-label">Défis</div>
-          <div class="quick-sub" id="qc-challenges">— actifs</div>
+        <div class="quick-card danger" onclick="switchTab('history')">
+          <div class="quick-icon">📋</div>
+          <div class="quick-label">Historique</div>
+          <div class="quick-sub" id="qc-history">Openings</div>
         </div>
         <div class="quick-card green" onclick="switchTab('offers')">
           <div class="quick-icon">🏷</div>
           <div class="quick-label">Offre active</div>
           <div class="quick-sub" id="qc-offers">Aucune</div>
         </div>
-        <div class="quick-card blue" onclick="switchTab('stats')">
+        <div class="quick-card token" onclick="switchTab('stats')">
           <div class="quick-icon">📊</div>
           <div class="quick-label">Statistiques</div>
           <div class="quick-sub" id="qc-stats">Voir les stats</div>
@@ -1061,10 +1061,20 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div id="panel-more" style="display:none">
     <div class="panel-header"><div class="panel-title">Outils</div></div>
     <div class="quick-grid">
+      <div class="quick-card danger" onclick="switchTab('history')">
+        <div class="quick-icon">📋</div>
+        <div class="quick-label">Historique</div>
+        <div class="quick-sub">Openings</div>
+      </div>
       <div class="quick-card green" onclick="switchTab('stamp_rewards')">
         <div class="quick-icon">🃏</div>
         <div class="quick-label">Cases tampons</div>
         <div class="quick-sub">Tokens par case</div>
+      </div>
+      <div class="quick-card token" onclick="switchTab('products')">
+        <div class="quick-icon">📦</div>
+        <div class="quick-label">Stock</div>
+        <div class="quick-sub">Gérer les produits</div>
       </div>
       <div class="quick-card purple" onclick="switchTab('offers')">
         <div class="quick-icon">🏷</div>
@@ -1076,21 +1086,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="quick-label">Défis</div>
         <div class="quick-sub">Défis clients</div>
       </div>
-
-      <div class="quick-card green" onclick="switchTab('cases')">
-        <div class="quick-icon">🗃</div>
-        <div class="quick-label">Caisses</div>
-        <div class="quick-sub">Gérer les caisses</div>
-      </div>
-      <div class="quick-card token" onclick="switchTab('stats')">
+      <div class="quick-card blue" onclick="switchTab('stats')">
         <div class="quick-icon">📊</div>
         <div class="quick-label">Stats</div>
         <div class="quick-sub">Graphiques</div>
-      </div>
-      <div class="quick-card danger" onclick="switchTab('history')">
-        <div class="quick-icon">📋</div>
-        <div class="quick-label">Historique</div>
-        <div class="quick-sub">Spins passés</div>
       </div>
     </div>
   </div>
@@ -1151,33 +1150,33 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
       <div class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </div>
       <div class="nav-label">Accueil</div>
       <div class="nav-badge" id="nav-badge-home" style="display:none"></div>
     </button>
     <button class="nav-item" id="nav-clients" onclick="switchTab('clients')">
       <div class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
       <div class="nav-label">Clients</div>
     </button>
     <button class="nav-item" id="nav-orders" onclick="switchTab('orders')">
       <div class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       </div>
       <div class="nav-label">Commandes</div>
       <div class="nav-badge" id="nav-badge-orders" style="display:none"></div>
     </button>
-    <button class="nav-item" id="nav-products" onclick="switchTab('products')">
+    <button class="nav-item" id="nav-cases" onclick="switchTab('cases')">
       <div class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
       </div>
-      <div class="nav-label">Stock</div>
+      <div class="nav-label">Caisses</div>
     </button>
     <button class="nav-item" id="nav-more" onclick="switchTab('more')">
       <div class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
       </div>
       <div class="nav-label">Plus</div>
     </button>
@@ -1579,7 +1578,7 @@ function switchTab(tab){
   // Update bottom nav active state
   NAV_ITEMS.forEach(n=>{
     const el=document.getElementById("nav-"+n);
-    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="cases"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
+    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more")||(tab==="products"&&n==="more")||(tab==="rewards"&&n==="more"));
   });
   // Load data
   if(tab==="home")loadHome();
