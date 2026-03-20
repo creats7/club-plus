@@ -466,6 +466,44 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .qr-url{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all;margin-bottom:1rem;line-height:1.5}
 
 /* ── SPIN WHEEL ── */
+/* ── HELLCASE OPENING ── */
+:root{--r-common:rgba(180,180,180,1);--r-rare:rgba(75,145,255,1);--r-epic:rgba(170,80,255,1);--r-legendary:rgba(255,185,0,1);--r-legendary-bg:rgba(255,185,0,.1);--r-epic-bg:rgba(170,80,255,.1);--r-rare-bg:rgba(75,145,255,.1)}
+.hc-opening-overlay{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:350;backdrop-filter:blur(20px);padding:1.5rem}
+.hc-opening-overlay.open{display:flex}
+.hc-opening-title{font-size:18px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px;text-align:center}
+.hc-opening-sub{font-size:12px;color:var(--muted);margin-bottom:1.5rem;text-align:center}
+.hc-slider-wrap{position:relative;width:100%;max-width:420px;overflow:hidden;border-radius:12px;margin-bottom:2rem}
+.hc-slider-wrap::before,.hc-slider-wrap::after{content:'';position:absolute;top:0;bottom:0;width:100px;z-index:3;pointer-events:none}
+.hc-slider-wrap::before{left:0;background:linear-gradient(90deg,rgba(0,0,0,.97) 0%,transparent 100%)}
+.hc-slider-wrap::after{right:0;background:linear-gradient(-90deg,rgba(0,0,0,.97) 0%,transparent 100%)}
+.hc-cursor{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:2px;z-index:4;border-radius:2px}
+.hc-cursor::before,.hc-cursor::after{content:'';position:absolute;left:50%;transform:translateX(-50%);border:7px solid transparent}
+.hc-cursor::before{top:-10px}.hc-cursor::after{bottom:-10px}
+.hc-track{display:flex;align-items:center;height:120px;padding:8px 0;will-change:transform}
+.hc-item{flex-shrink:0;width:96px;height:104px;margin:0 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);padding:8px;position:relative;overflow:hidden}
+.hc-item::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 12px 12px}
+.hc-item.common::after{background:var(--r-common)}.hc-item.rare::after{background:var(--r-rare)}.hc-item.epic::after{background:var(--r-epic)}
+.hc-item.legendary::after{background:var(--r-legendary);box-shadow:0 0 8px var(--r-legendary)}
+.hc-item.legendary{background:var(--r-legendary-bg);border-color:rgba(255,185,0,.25)}
+.hc-item.epic{background:var(--r-epic-bg);border-color:rgba(170,80,255,.2)}
+.hc-item.rare{background:var(--r-rare-bg);border-color:rgba(75,145,255,.2)}
+.hc-item img{width:52px;height:52px;object-fit:cover;border-radius:8px}
+.hc-item-name{font-size:9px;font-weight:600;color:rgba(255,255,255,.6);text-align:center;font-family:'DM Mono',monospace;line-height:1.2;max-width:80px}
+.hc-item.winner{transform:scale(1.05)}
+.hc-result{text-align:center;display:none;animation:fadeUp .4s ease both}
+.hc-result.show{display:block}
+.hc-result-img{width:96px;height:96px;object-fit:cover;border-radius:16px;margin:0 auto 12px;display:block}
+.hc-result-rarity{font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;font-weight:700}
+.hc-result-name{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.hc-result-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+/* ── CASES GRID ── */
+.hc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.hc-card{border-radius:16px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:#141414;transition:transform .18s,border-color .18s}
+.hc-card:active{transform:scale(.97)}.hc-card.can-afford:hover{border-color:rgba(255,255,255,.22);transform:translateY(-2px)}.hc-card.cant-afford{opacity:.45;cursor:not-allowed}
+.hc-cover{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.hc-cover-ph{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,#1a1a1a,#111)}
+.hc-info{padding:10px 12px}.hc-title{font-size:13px;font-weight:700;letter-spacing:-.02em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc-cost{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)}.hc-cost-val{color:var(--text);font-weight:700}
 .wheel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;z-index:200;padding:1.5rem;backdrop-filter:blur(12px)}
 .wheel-overlay.open{display:flex}
 .wheel-box{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:1.75rem 1.5rem;width:100%;max-width:400px;text-align:center;box-shadow:0 16px 64px rgba(0,0,0,.9)}
@@ -965,6 +1003,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="quick-label">Roue</div>
         <div class="quick-sub">Récompenses</div>
       </div>
+      <div class="quick-card green" onclick="switchTab('cases')">
+        <div class="quick-icon">🗃</div>
+        <div class="quick-label">Caisses</div>
+        <div class="quick-sub">Gérer les caisses</div>
+      </div>
       <div class="quick-card token" onclick="switchTab('stats')">
         <div class="quick-icon">📊</div>
         <div class="quick-label">Stats</div>
@@ -976,6 +1019,36 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="quick-sub">Spins passés</div>
       </div>
     </div>
+  </div>
+
+  <!-- CASES ADMIN -->
+  <div id="panel-cases" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Caisses</div>
+      <button class="btn btn-accent btn-sm" onclick="toggleCaseForm()">+ Caisse</button>
+    </div>
+    <div class="chest-form-wrap" id="case-form">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px" id="case-form-title">Nouvelle caisse</div>
+      <input type="hidden" id="caf-id" />
+      <label class="modal-label">Titre</label>
+      <input class="input" id="caf-name" placeholder="ex: Caisse Mystère" />
+      <label class="modal-label">Image de cover (URL)</label>
+      <input class="input" id="caf-cover" placeholder="https://…" oninput="previewCaseCover()" />
+      <div id="caf-cover-preview" style="display:none;margin-bottom:10px">
+        <img id="caf-cover-img" style="width:100%;max-height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border2)" />
+      </div>
+      <label class="modal-label">Coût (tokens)</label>
+      <input class="input" id="caf-cost" type="number" min="1" value="1" placeholder="ex: 2" />
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em">Lots & probabilités</div>
+      <div id="caf-rewards-list"></div>
+      <button class="btn btn-sm" onclick="addCaseRewardRow()" style="margin-bottom:10px;width:100%;justify-content:center">+ Ajouter un lot</button>
+      <div id="caf-prob-total" style="font-family:'DM Mono',monospace;font-size:12px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveCase()">Enregistrer</button>
+        <button class="btn" onclick="toggleCaseForm()">Annuler</button>
+      </div>
+    </div>
+    <div id="cases-admin-list"><div class="loader">Chargement...</div></div>
   </div>
 
   <!-- STAMP REWARDS ADMIN -->
@@ -1285,6 +1358,23 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<!-- ══ HELLCASE OPENING ══ -->
+<div class="hc-opening-overlay" id="hc-opening-overlay">
+  <div class="hc-opening-title" id="hc-opening-title">Ouverture</div>
+  <div class="hc-opening-sub" id="hc-opening-sub">Bonne chance !</div>
+  <div class="hc-slider-wrap" id="hc-slider-wrap">
+    <div class="hc-cursor" id="hc-cursor"></div>
+    <div class="hc-track" id="hc-track"></div>
+  </div>
+  <div class="hc-result" id="hc-result">
+    <img class="hc-result-img" id="hc-result-img" src="" style="display:none" />
+    <div class="hc-result-rarity" id="hc-result-rarity"></div>
+    <div class="hc-result-name" id="hc-result-name"></div>
+    <div class="hc-result-sub">Montre ce résultat pour récupérer ton lot !</div>
+    <button class="btn-spin" style="justify-content:center" onclick="closeHcOpening()">Fermer</button>
+  </div>
+</div>
+
 <!-- ══ SPIN WHEEL ══ -->
 <div class="wheel-overlay" id="wheel-overlay">
   <div class="wheel-box">
@@ -1322,6 +1412,9 @@ const T_CHALLENGES=SUPA_URL+"/rest/v1/challenges";
 const T_COMPLETIONS=SUPA_URL+"/rest/v1/challenge_completions";
 const T_STAMP_REWARDS=SUPA_URL+"/rest/v1/stamp_rewards";
 const T_SHOP_CONFIG=SUPA_URL+"/rest/v1/shop_config";
+const T_CHESTS=SUPA_URL+"/rest/v1/chests";
+const T_CHEST_REWARDS=SUPA_URL+"/rest/v1/chest_rewards";
+const T_CLIENT_CHESTS=SUPA_URL+"/rest/v1/client_chests";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -1341,7 +1434,7 @@ function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit"
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","more","history","stamp_rewards"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","rewards","cases","more","history","stamp_rewards"];
 const NAV_ITEMS=["home","clients","orders","products","more"];
 
 function switchTab(tab){
@@ -1356,7 +1449,7 @@ function switchTab(tab){
   // Update bottom nav active state
   NAV_ITEMS.forEach(n=>{
     const el=document.getElementById("nav-"+n);
-    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="rewards"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
+    if(el)el.classList.toggle("active",n===tab||(tab==="stats"&&n==="home")||(tab==="offers"&&n==="more")||(tab==="challenges"&&n==="more")||(tab==="rewards"&&n==="more")||(tab==="cases"&&n==="more")||(tab==="history"&&n==="more")||(tab==="stamp_rewards"&&n==="more"));
   });
   // Load data
   if(tab==="home")loadHome();
@@ -1366,6 +1459,7 @@ function switchTab(tab){
   if(tab==="orders")loadOrders();
   if(tab==="challenges")loadChallenges();
   if(tab==="rewards"){loadRewards();loadShopConfig();}
+  if(tab==="cases")loadCasesAdmin();
   if(tab==="stamp_rewards")loadStampRewards();
   if(tab==="history")loadHistory();
 }
@@ -2549,29 +2643,48 @@ async function loadClientShop(clientId){
   const wheelCost=shopConfig.wheel_cost;
   const wheelLabel=shopConfig.wheel_label||"Roue des récompenses";
   const wheelImage=shopConfig.wheel_image;
-  const canAfford=tokens>=wheelCost;
+
+  const cases=await dbGet(T_CHESTS+"?active=eq.true&order=created_at.asc");
 
   const container=document.getElementById("cv-shop-items");
   const empty=document.getElementById("cv-shop-empty");
   empty.style.display="none";
 
-  // Card style Hellcase
-  container.innerHTML=`
-    <div onclick="${canAfford?`openWheelShop(${wheelCost})`:""}\"
-      style="border-radius:16px;overflow:hidden;cursor:${canAfford?"pointer":"not-allowed"};border:1px solid ${canAfford?"rgba(255,255,255,.12)":"rgba(255,255,255,.05)"};background:#141414;opacity:${canAfford?1:.45};transition:transform .18s,border-color .18s;max-width:200px;margin:0 auto"
-      ${canAfford?'onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'rgba(255,255,255,.25)\'"':''}
-      ${canAfford?'onmouseout="this.style.transform=\'\';this.style.borderColor=\'rgba(255,255,255,.12)\'"':''}>
-      ${wheelImage
-        ?`<img src="${wheelImage}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block" onerror="this.style.display='none'">`
-        :`<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(135deg,#1a1a1a,#0d0d0d)">🎡</div>`}
-      <div style="padding:12px 14px">
-        <div style="font-size:14px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wheelLabel}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--muted)">${wheelCost} 🪙 token${wheelCost>1?"s":""}</div>
-          <div style="font-size:11px;font-weight:700;color:${canAfford?"#fff":"var(--muted)"};">${canAfford?"Ouvrir →":"Insuffisant"}</div>
+  let html="";
+
+  // ── Caisses ──
+  if(cases&&cases.length){
+    html+=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Caisses</div>`;
+    html+=`<div class="hc-grid">`;
+    cases.forEach(ch=>{
+      const cost=ch.cost||1;
+      const canAfford=tokens>=cost;
+      html+=`<div class="hc-card ${canAfford?"can-afford":"cant-afford"}" onclick="${canAfford?`openCaseShop('${ch.id}',${cost})`:""}">
+        ${ch.cover_url?`<img class="hc-cover" src="${ch.cover_url}" onerror="this.style.display='none'">`:`<div class="hc-cover-ph">🗃</div>`}
+        <div class="hc-info">
+          <div class="hc-title">${ch.name}</div>
+          <div class="hc-cost"><span class="hc-cost-val">${cost} 🪙</span></div>
         </div>
-      </div>
-    </div>`;
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  // ── Roue ──
+  const canAffordWheel=tokens>=wheelCost;
+  html+=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;margin-top:${cases&&cases.length?4:0}px">Roue</div>`;
+  html+=`<div onclick="${canAffordWheel?`openWheelShop(${wheelCost})`:""}\"
+    style="border-radius:16px;overflow:hidden;cursor:${canAffordWheel?"pointer":"not-allowed"};border:1px solid ${canAffordWheel?"rgba(255,255,255,.12)":"rgba(255,255,255,.05)"};background:#141414;opacity:${canAffordWheel?1:.45};max-width:200px"
+    ${canAffordWheel?'onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'rgba(255,255,255,.25)\'"':''}
+    ${canAffordWheel?'onmouseout="this.style.transform=\'\';this.style.borderColor=\'rgba(255,255,255,.12)\'"':''}>
+    ${wheelImage?`<img src="${wheelImage}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block" onerror="this.style.display='none'">`:`<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(135deg,#1a1a1a,#0d0d0d)">🎡</div>`}
+    <div style="padding:12px 14px">
+      <div style="font-size:14px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px">${wheelLabel}</div>
+      <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--muted)">${wheelCost} 🪙</div>
+    </div>
+  </div>`;
+
+  container.innerHTML=html;
 }
 
 
@@ -2654,7 +2767,273 @@ function previewWheelImage(){
   else if(preview){preview.style.display="none";}
 }
 
-// ── WHEEL (CSGO slider) ──
+// ── CASES ADMIN ──
+let caseRewardRows=[];
+
+function previewCaseCover(){
+  const url=document.getElementById("caf-cover").value.trim();
+  const p=document.getElementById("caf-cover-preview");
+  const i=document.getElementById("caf-cover-img");
+  if(url){p.style.display="block";i.src=url;}else{p.style.display="none";}
+}
+
+function updateCaseProbTotal(){
+  const rows=document.getElementById("caf-rewards-list").querySelectorAll(".car-row");
+  let total=0;rows.forEach(r=>{total+=parseInt(r.querySelector(".car-prob")?.value)||0;});
+  const el=document.getElementById("caf-prob-total");
+  if(el){el.textContent=`Total : ${total}%`;el.style.color=total===100?"var(--green)":"var(--danger)";}
+}
+
+function toggleCaseForm(){
+  const f=document.getElementById("case-form");
+  const isOpen=f.classList.contains("open");
+  caseRewardRows=[];
+  document.getElementById("caf-id").value="";
+  document.getElementById("caf-name").value="";
+  document.getElementById("caf-cover").value="";
+  document.getElementById("caf-cost").value="1";
+  document.getElementById("caf-cover-preview").style.display="none";
+  document.getElementById("caf-rewards-list").innerHTML="";
+  document.getElementById("case-form-title").textContent="Nouvelle caisse";
+  const el=document.getElementById("caf-prob-total");if(el)el.textContent="";
+  if(isOpen){f.classList.remove("open");}
+  else{f.classList.add("open");addCaseRewardRow();document.getElementById("caf-name").focus();}
+}
+
+async function editCase(id){
+  const f=document.getElementById("case-form");
+  f.classList.remove("open");
+  caseRewardRows=[];
+  document.getElementById("caf-rewards-list").innerHTML="";
+  const [cases,rewards]=await Promise.all([
+    dbGet(T_CHESTS+"?id=eq."+id),
+    dbGet(T_CHEST_REWARDS+"?chest_id=eq."+id+"&order=probability.desc")
+  ]);
+  if(!cases||!cases.length){toast("Caisse introuvable");return;}
+  const ch=cases[0];
+  document.getElementById("caf-id").value=ch.id;
+  document.getElementById("caf-name").value=ch.name||"";
+  document.getElementById("caf-cover").value=ch.cover_url||"";
+  document.getElementById("caf-cost").value=ch.cost||1;
+  if(ch.cover_url){document.getElementById("caf-cover-preview").style.display="block";document.getElementById("caf-cover-img").src=ch.cover_url;}
+  document.getElementById("case-form-title").textContent="Modifier la caisse";
+  (rewards||[]).forEach(r=>addCaseRewardRow(r.name,r.probability,r.rarity||"common",r.image_url||""));
+  if(!rewards||!rewards.length)addCaseRewardRow();
+  f.classList.add("open");
+  document.getElementById("caf-name").focus();
+  updateCaseProbTotal();
+}
+
+function addCaseRewardRow(name="",prob="",rarity="common",img=""){
+  const list=document.getElementById("caf-rewards-list");
+  const row=document.createElement("div");
+  row.className="chest-reward-row car-row";
+  row.style.cssText="flex-direction:column;align-items:stretch;gap:6px;padding:10px";
+  row.innerHTML=`
+    <div style="display:flex;gap:6px;align-items:center">
+      <input class="input" placeholder="Nom du lot" value="${name}" style="margin-bottom:0;flex:1" />
+      <input class="input car-prob" type="number" placeholder="%" min="1" max="100" value="${prob}" style="margin-bottom:0;width:58px;text-align:center;flex-shrink:0" oninput="updateCaseProbTotal()" />
+      <button class="btn btn-icon btn-danger btn-sm" onclick="this.closest('.car-row').remove();updateCaseProbTotal()">✕</button>
+    </div>
+    <div style="display:flex;gap:6px">
+      <select class="input car-rarity" style="margin-bottom:0;flex:1;font-size:12px">
+        <option value="common" ${rarity==="common"?"selected":""}>⬜ Commun</option>
+        <option value="rare" ${rarity==="rare"?"selected":""}>🔵 Rare</option>
+        <option value="epic" ${rarity==="epic"?"selected":""}>🟣 Épique</option>
+        <option value="legendary" ${rarity==="legendary"?"selected":""}>🟡 Légendaire</option>
+      </select>
+      <input class="input car-img" placeholder="URL image (optionnel)" value="${img}" style="margin-bottom:0;flex:2;font-size:12px" />
+    </div>`;
+  list.appendChild(row);
+  updateCaseProbTotal();
+}
+
+async function saveCase(){
+  const name=document.getElementById("caf-name").value.trim();
+  if(!name){toast("Titre requis");return;}
+  const cover_url=document.getElementById("caf-cover").value.trim()||null;
+  const cost=Math.max(1,parseInt(document.getElementById("caf-cost").value)||1);
+  const rows=document.getElementById("caf-rewards-list").querySelectorAll(".car-row");
+  const rewards=[];
+  rows.forEach(r=>{
+    const n=r.querySelectorAll("input")[0]?.value.trim();
+    const p=parseInt(r.querySelector(".car-prob")?.value)||0;
+    const rarity=r.querySelector(".car-rarity")?.value||"common";
+    const image_url=r.querySelector(".car-img")?.value.trim()||null;
+    if(n&&p>0)rewards.push({name:n,probability:p,rarity,image_url});
+  });
+  const id=document.getElementById("caf-id").value;
+  if(!id&&!rewards.length){toast("Ajoute au moins un lot");return;}
+  if(rewards.length){
+    const total=rewards.reduce((s,r)=>s+r.probability,0);
+    if(total!==100){toast(`Probabilités = ${total}% — doit être 100%`);return;}
+  }
+  if(id){
+    await dbPatch(T_CHESTS+"?id=eq."+id,{name,cover_url,cost});
+    if(rewards.length){
+      await dbDelete(T_CHEST_REWARDS+"?chest_id=eq."+id);
+      for(const r of rewards)await dbPost(T_CHEST_REWARDS,{chest_id:id,name:r.name,probability:r.probability,rarity:r.rarity,image_url:r.image_url});
+    }
+    toast("Caisse modifiée ✓");
+  } else {
+    const res=await dbPost(T_CHESTS,{name,cover_url,cost,active:true});
+    if(res&&res.code){toast("Erreur: "+res.message);return;}
+    const caseId=res&&res[0]?.id;
+    if(!caseId){toast("Erreur création");return;}
+    for(const r of rewards){
+      const rr=await dbPost(T_CHEST_REWARDS,{chest_id:caseId,name:r.name,probability:r.probability,rarity:r.rarity,image_url:r.image_url});
+      if(rr&&rr.code){toast("Erreur lot: "+rr.message);return;}
+    }
+    toast("Caisse créée ✓");
+  }
+  document.getElementById("case-form").classList.remove("open");
+  loadCasesAdmin();
+}
+
+async function loadCasesAdmin(){
+  const list=document.getElementById("cases-admin-list");
+  list.innerHTML='<div class="loader">Chargement...</div>';
+  const cases=await dbGet(T_CHESTS+"?order=created_at.asc");
+  if(!cases||!cases.length){list.innerHTML='<div class="empty-state">Aucune caisse · Crée la première</div>';return;}
+  list.innerHTML="";
+  for(const ch of cases){
+    const rewards=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+ch.id+"&order=probability.desc");
+    const total=(rewards||[]).reduce((s,r)=>s+r.probability,0);
+    const div=document.createElement("div");div.className="chest-admin-card";
+    const header=document.createElement("div");
+    header.style.cssText="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px";
+    if(ch.cover_url){
+      const img=document.createElement("img");
+      img.src=ch.cover_url;img.style.cssText="width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;border:1px solid var(--border)";
+      img.onerror=()=>img.style.display="none";
+      header.appendChild(img);
+    }
+    const info=document.createElement("div");info.style.flex="1;min-width:0";
+    info.innerHTML=`<div style="font-size:14px;font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${ch.cost||1} 🪙 · ${ch.active?"Actif":"Inactif"}</div>`;
+    const actions=document.createElement("div");actions.style.cssText="display:flex;gap:4px;flex-shrink:0";
+    const btnActive=document.createElement("button");btnActive.className="btn btn-sm";btnActive.textContent=ch.active?"● Actif":"○ Inactif";btnActive.onclick=()=>toggleCaseActive(ch.id,ch.active);
+    const btnEdit=document.createElement("button");btnEdit.className="btn btn-icon";btnEdit.textContent="✎";btnEdit.onclick=()=>editCase(ch.id);
+    const btnDel=document.createElement("button");btnDel.className="btn btn-icon btn-danger";btnDel.textContent="✕";btnDel.onclick=()=>deleteCase(ch.id,ch.name);
+    actions.append(btnActive,btnEdit,btnDel);
+    header.append(info,actions);div.appendChild(header);
+    const probLine=document.createElement("div");
+    probLine.style.cssText=`font-size:10px;font-family:'DM Mono',monospace;color:${total===100?"var(--green)":"var(--danger)"};margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em`;
+    probLine.textContent=`Lots : ${total}%${total!==100?" ⚠":"  ✓"}`;
+    div.appendChild(probLine);
+    (rewards||[]).forEach(r=>{
+      const row=document.createElement("div");row.className="chest-reward-row";
+      const nameSpan=document.createElement("span");nameSpan.className="chest-reward-name";nameSpan.textContent=r.name;
+      const probSpan=document.createElement("span");probSpan.className="chest-reward-prob";probSpan.textContent=r.probability+"%";
+      const rarSpan=document.createElement("span");rarSpan.style.cssText="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace";rarSpan.textContent=r.rarity||"common";
+      row.append(nameSpan,probSpan,rarSpan);div.appendChild(row);
+    });
+    list.appendChild(div);
+  }
+}
+
+async function toggleCaseActive(id,active){await dbPatch(T_CHESTS+"?id=eq."+id,{active:!active});toast(active?"Caisse désactivée":"Caisse activée");loadCasesAdmin();}
+async function deleteCase(id,name){if(!confirm("Supprimer \""+name+"\" ?"))return;await dbDelete(T_CHESTS+"?id=eq."+id);toast("Caisse supprimée");loadCasesAdmin();}
+
+// ── CASE OPENING (client) ──
+const RARITY_COLORS={common:"rgba(180,180,180,1)",rare:"rgba(75,145,255,1)",epic:"rgba(170,80,255,1)",legendary:"rgba(255,185,0,1)"};
+const RARITY_LABELS={common:"Commun",rare:"Rare",epic:"Épique",legendary:"Légendaire"};
+const HC_ITEM_W=104;
+let selectedCaseId=null,pendingCaseClientId=null;
+
+async function openCaseShop(caseId,cost){
+  const cData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
+  if(!cData||!cData.length)return;
+  const tokens=cData[0].tokens||0;
+  if(tokens<cost){toast("Pas assez de tokens");return;}
+  await dbPatch(T_CLIENTS+"?id=eq."+currentClientId,{tokens:tokens-cost});
+  await dbPost(T_TOKEN_LOGS,{client_id:currentClientId,type:"spent"});
+  const res=await dbPost(T_CLIENT_CHESTS,{client_id:currentClientId,chest_id:caseId,opened:false});
+  const clientChestId=res&&res[0]?.id;
+  if(!clientChestId){toast("Erreur — réessaie");return;}
+  document.getElementById("cv-shop-tokens").textContent=tokens-cost;
+  document.getElementById("cv-token-count").textContent=tokens-cost;
+  selectedCaseId=caseId;pendingCaseClientId=clientChestId;
+  await openCaseOpening(caseId,clientChestId);
+}
+
+async function openCaseOpening(caseId,clientChestId){
+  const [caseData,rewards]=await Promise.all([
+    dbGet(T_CHESTS+"?id=eq."+caseId),
+    dbGet(T_CHEST_REWARDS+"?chest_id=eq."+caseId)
+  ]);
+  if(!rewards||!rewards.length){toast("Caisse sans lots");return;}
+  const ch=caseData&&caseData[0];
+  document.getElementById("hc-opening-title").textContent=ch?ch.name:"Ouverture";
+  document.getElementById("hc-opening-sub").textContent="Bonne chance !";
+  const total=rewards.reduce((s,r)=>s+r.probability,0);
+  let rand=Math.random()*total,cumul=0,won=rewards[rewards.length-1];
+  for(const r of rewards){cumul+=r.probability;if(rand<=cumul){won=r;break;}}
+  buildHcTrack(rewards);
+  document.getElementById("hc-result").classList.remove("show");
+  const col=RARITY_COLORS[won.rarity||"common"];
+  const cur=document.getElementById("hc-cursor");
+  cur.style.background=col;cur.style.boxShadow=`0 0 12px ${col},0 0 28px ${col.replace("1)","0.3)")}`;
+  let style=document.getElementById("hc-cursor-style");
+  if(!style){style=document.createElement("style");style.id="hc-cursor-style";document.head.appendChild(style);}
+  style.textContent=`.hc-cursor::before{border-bottom-color:${col}}.hc-cursor::after{border-top-color:${col}}`;
+  document.getElementById("hc-opening-overlay").classList.add("open");
+  setTimeout(()=>runHcSpin(won,clientChestId),300);
+}
+
+function buildHcTrack(rewards){
+  const track=document.getElementById("hc-track");
+  track.innerHTML="";track.style.transform="translateX(0)";
+  for(let i=0;i<60;i++){
+    const r=rewards[i%rewards.length];
+    const div=document.createElement("div");
+    div.className=`hc-item ${r.rarity||"common"}`;
+    const name=r.name.length>14?r.name.slice(0,13)+"…":r.name;
+    div.innerHTML=r.image_url?`<img src="${r.image_url}" onerror="this.style.display='none'" /><div class="hc-item-name">${name}</div>`:`<div class="hc-item-name">${name}</div>`;
+    track.appendChild(div);
+  }
+}
+
+function runHcSpin(won,clientChestId){
+  const track=document.getElementById("hc-track");
+  const wrap=document.getElementById("hc-slider-wrap");
+  const wrapW=wrap.offsetWidth;const centerOffset=wrapW/2;
+  const targetIndex=42;
+  const items=track.querySelectorAll(".hc-item");
+  const winItem=items[targetIndex];
+  winItem.className=`hc-item ${won.rarity||"common"}`;
+  const winName=won.name.length>14?won.name.slice(0,13)+"…":won.name;
+  winItem.innerHTML=won.image_url?`<img src="${won.image_url}" onerror="this.style.display='none'" /><div class="hc-item-name">${winName}</div>`:`<div class="hc-item-name">${winName}</div>`;
+  const itemCenter=targetIndex*HC_ITEM_W+(HC_ITEM_W/2);
+  const jitter=(Math.random()-0.5)*16;
+  const finalT=-(itemCenter-centerOffset)+jitter;
+  const duration=4500;const start=performance.now();
+  function easeOutQuint(t){return 1-Math.pow(1-t,5);}
+  function animate(now){
+    const t=Math.min((now-start)/duration,1);
+    track.style.transform=`translateX(${finalT*easeOutQuint(t)}px)`;
+    if(t<1){requestAnimationFrame(animate);}
+    else{winItem.classList.add("winner");setTimeout(()=>showHcResult(won,clientChestId),700);}
+  }
+  requestAnimationFrame(animate);
+}
+
+async function showHcResult(won,clientChestId){
+  await dbPatch(T_CLIENT_CHESTS+"?id=eq."+clientChestId,{opened:true,chest_id:selectedCaseId,reward_name:won.name,opened_at:new Date().toISOString()});
+  const col=RARITY_COLORS[won.rarity||"common"];
+  const img=document.getElementById("hc-result-img");
+  if(won.image_url){img.src=won.image_url;img.style.display="block";img.style.border=`2px solid ${col}`;}else{img.style.display="none";}
+  document.getElementById("hc-result-rarity").textContent=RARITY_LABELS[won.rarity||"common"];
+  document.getElementById("hc-result-rarity").style.color=col;
+  document.getElementById("hc-result-name").textContent=won.name;
+  document.getElementById("hc-result").classList.add("show");
+  document.getElementById("hc-opening-sub").textContent="";
+}
+
+function closeHcOpening(){
+  document.getElementById("hc-opening-overlay").classList.remove("open");
+  selectedCaseId=null;pendingCaseClientId=null;
+  if(currentClientId)loadClientView(currentClientId);
+}
 let wheelAlreadyDebited=false;
 const ITEM_W=86;
 
