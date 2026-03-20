@@ -1633,7 +1633,12 @@ const dbDelete=(u)=>fetch(u,{method:"DELETE",headers:H});
 function toast(msg,d=2500){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),d);}
 function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));document.getElementById("view-"+id).classList.add("active");}
 function ini(n){return n.trim().split(" ").slice(0,2).map(w=>w[0]?.toUpperCase()||"").join("");}
-function fmtDate(iso){return new Date(iso).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris"});}
+function fmtDate(iso){
+  if(!iso)return"—";
+  // Force UTC si pas de suffixe timezone
+  const s=iso.endsWith("Z")||iso.includes("+")?iso:iso+"Z";
+  return new Date(s).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris"});
+}
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
