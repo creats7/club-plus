@@ -798,7 +798,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="stat-card blue"><div class="stat-label">Clients</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">inscrits</div></div>
       <div class="stat-card purple"><div class="stat-label">Tampons</div><div class="stat-value" id="s-stamps">—</div><div class="stat-sub">distribués</div></div>
       <div class="stat-card token"><div class="stat-label">Tokens actifs</div><div class="stat-value" id="s-tokens">—</div><div class="stat-sub">en circulation</div></div>
-      <div class="stat-card danger"><div class="stat-label">Spins total</div><div class="stat-value" id="s-spins">—</div><div class="stat-sub">roues lancées</div></div>
+      <div class="stat-card danger"><div class="stat-label">Openings</div><div class="stat-value" id="s-spins">—</div><div class="stat-sub">caisses ouvertes</div></div>
     </div>
     <div class="chart-card"><div class="chart-title">Tampons distribués — 8 dernières semaines</div><div class="chart-wrap"><canvas id="chart-stamps"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">Tokens gagnés vs utilisés — 8 semaines</div><div class="chart-wrap"><canvas id="chart-tokens"></canvas></div></div>
@@ -1072,7 +1072,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- HISTORIQUE -->
   <div id="panel-history" style="display:none">
     <div class="panel-header">
-      <div class="panel-title">Historique openings</div>
+      <div class="panel-title">Historique des gains</div>
       <button class="btn btn-sm" onclick="loadHistory()">↻ Actualiser</button>
     </div>
     <div id="history-list-spins"><div class="loader">Chargement...</div></div>
@@ -1622,7 +1622,7 @@ function renderDash(cl){
   document.getElementById("s-stamps").textContent=st;
   document.getElementById("s-tokens").textContent=tk;
   // s-spins chargé séparément
-  dbGet(T_SPINS+"?select=id").then(d=>{document.getElementById("s-spins").textContent=d?d.length:0;});
+  dbGet(T_CLIENT_CHESTS+"?opened=eq.true&select=id").then(d=>{document.getElementById("s-spins").textContent=d?d.length:0;});
 
   // Top clients actifs (par tampons totaux accumulés = stamps actuels + historique)
   const sorted=[...cl].sort((a,b)=>(b.stamps||0)-(a.stamps||0));
@@ -2498,19 +2498,27 @@ function switchHistTab(tab){
 }
 
 async function loadHistory(){
-  // Spins
-  const spinsList=document.getElementById("history-list-spins");
-  spinsList.innerHTML='<div class="loader">Chargement...</div>';
-  const spins=await dbGet(T_SPINS+"?order=created_at.desc&limit=50");
-  if(!spins||!spins.length){spinsList.innerHTML='<div class="empty-state">Aucun spin enregistré</div>';}
-  else{
-    const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
-    spinsList.innerHTML=spins.map(s=>`
-      <div class="spin-row">
-        <div><div class="spin-reward">🎡 ${s.reward_name}</div><div class="spin-meta">${clientMap[s.client_id]||"Client inconnu"}</div></div>
-        <div class="spin-meta">${fmtDate(s.created_at)}</div>
-      </div>`).join("");
+  const list=document.getElementById("history-list-spins");
+  list.innerHTML='<div class="loader">Chargement...</div>';
+  const logs=await dbGet(T_CLIENT_CHESTS+"?opened=eq.true&order=opened_at.desc&limit=100&select=*");
+  if(!logs||!logs.length){list.innerHTML='<div class="empty-state">Aucun opening enregistré</div>';return;}
+  const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
+  // Fetch chest names
+  const chestIds=[...new Set(logs.map(l=>l.chest_id).filter(Boolean))];
+  const chestMap={};
+  if(chestIds.length){
+    const chests=await dbGet(T_CHESTS+"?id=in.("+chestIds.join(",")+")&select=id,name");
+    (chests||[]).forEach(c=>chestMap[c.id]=c.name);
   }
+  const RCOL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(180,180,180,0.6)"};
+  list.innerHTML=logs.map(l=>`
+    <div class="spin-row">
+      <div style="flex:1;min-width:0">
+        <div class="spin-reward" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🗃 ${l.reward_name||"—"}</div>
+        <div class="spin-meta">${clientMap[l.client_id]||"Client inconnu"} · ${chestMap[l.chest_id]||"Caisse"}</div>
+      </div>
+      <div class="spin-meta" style="flex-shrink:0;text-align:right">${fmtDate(l.opened_at||l.created_at)}</div>
+    </div>`).join("");
 }
 
 // ── XP LEVEL SYSTEM ──
