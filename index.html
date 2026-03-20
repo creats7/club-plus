@@ -1407,7 +1407,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <img class="hc-result-img" id="hc-result-img" src="" style="display:none" />
     <div class="hc-result-rarity" id="hc-result-rarity"></div>
     <div class="hc-result-name" id="hc-result-name"></div>
-    <div class="hc-result-sub">Montre ce résultat pour récupérer ton lot !</div>
+    <div class="hc-result-sub" id="hc-result-sub">🎉 Bravo, tu as gagné !</div>
     <button class="btn-spin" style="justify-content:center" onclick="closeHcOpening()">Fermer</button>
   </div>
 </div>
@@ -3114,6 +3114,8 @@ async function showHcResult(won,clientChestId){
   document.getElementById("hc-result-rarity").textContent=RARITY_LABELS[won.rarity||"common"];
   document.getElementById("hc-result-rarity").style.color=col;
   document.getElementById("hc-result-name").textContent=won.name;
+  const isCommon=(won.rarity||"common")==="common";
+  document.getElementById("hc-result-sub").textContent=isCommon?"😅 Pas de chance cette fois !":"🎉 Bravo, tu as gagné !";
   document.getElementById("hc-result").classList.add("show");
   document.getElementById("hc-opening-sub").textContent="";
 }
