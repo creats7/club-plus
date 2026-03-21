@@ -786,7 +786,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .shop-qty-ctrl{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:4px 8px}
 .shop-qty-btn{background:none;border:none;color:#fff;font-size:18px;font-weight:700;cursor:pointer;padding:0 2px;line-height:1;font-family:'Inter',sans-serif}
 .shop-qty-val{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:20px;text-align:center}
-.cart-fab{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:#fff;color:#0a0a0a;border:none;border-radius:99px;padding:12px 22px;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;display:none;align-items:center;gap:8px;z-index:60;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap}
+.cart-fab{position:sticky;bottom:76px;left:50%;transform:translateX(-50%);width:fit-content;background:#fff;color:#0a0a0a;border:none;border-radius:99px;padding:12px 22px;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;display:none;align-items:center;gap:8px;z-index:60;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap;margin:16px auto 0}
 .cart-fab-badge{background:#0a0a0a;color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700;min-width:20px;text-align:center}
 /* ── ORDER TRACKER CLIENT ── */
 .cv-order-tracker{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;margin-bottom:12px;margin-top:12px}
@@ -2483,7 +2483,7 @@ async function loadProducts(){
         <div class="product-name">${p.name}</div>
         <div class="product-price">${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
         <div class="product-stock ${stockClass}">${p.stock} unité${p.stock!==1?"s":""}</div>
-        <div class="product-status ${p.active&&p.stock>0?"dispo":"rupture"}">${p.active&&p.stock>0?"Disponible":"Rupture"}</div>
+        <div class="product-status ${p.active&&p.stock>0?"dispo":"rupture"}">${p.active&&p.stock>0?"Dispo":"Rupture"}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
         <button class="btn btn-icon" onclick="editProduct('${p.id}','${p.name.replace(/'/g,"\\'")}',${p.price||0},${p.stock},'${(p.image_url||"").replace(/'/g,"\\'")}')">✎</button>
@@ -3094,7 +3094,7 @@ function renderProductList(){
       <div class="shop-product-body">
         <div class="shop-product-name">${p.name}</div>
         <div class="shop-product-price">${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
-        <div class="shop-product-dispo ${dispo?"ok":"out"}">${dispo?"Disponible":"Rupture"}</div>
+        <div class="shop-product-dispo ${dispo?"ok":"out"}">${dispo?"Dispo":"Rupture"}</div>
       </div>
       <div class="shop-product-actions">
         ${dispo?`
