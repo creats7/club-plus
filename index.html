@@ -1314,7 +1314,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <!-- Header commun -->
     <div class="cv-brand">
       <div class="cv-brand-logo">Crts<span class="cv-brand-plus">+</span></div>
-      <div class="cv-brand-tagline">Achète. Joue. Gagne.</div>
+      <div class="cv-brand-tagline">Achète. Joue. <span style="animation:plusGlow 2s ease-in-out infinite;display:inline;">Gagne.</span></div>
     </div>
 
     <!-- ── SECTION CARTE ── -->
@@ -1515,53 +1515,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <div class="order-overlay" id="cart-overlay" onclick="closeCartSheet()">
   <div class="order-sheet" onclick="event.stopPropagation()" style="max-height:85vh">
     <div class="order-sheet-handle"></div>
-    <div class="order-sheet-title">Mon panier</div>
+    <div class="order-sheet-title">Récapitulatif</div>
+    <!-- Liste produits -->
     <div id="cart-items-list" style="margin-bottom:16px"></div>
-    <!-- Infos client -->
-    <label class="modal-label">Nom complet</label>
-    <input class="input" id="cart-name" placeholder="Prénom Nom" />
-    <label class="modal-label">Téléphone</label>
-    <input class="input" id="cart-phone" placeholder="06 12 34 56 78" type="tel" />
-    <!-- Toggle livraison / retrait -->
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button id="cart-btn-livraison" onclick="setCartDeliveryMode('livraison')"
-        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,.08);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
-        🚚 Livraison
-      </button>
-      <button id="cart-btn-retrait" onclick="setCartDeliveryMode('retrait')"
-        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
-        📍 Retrait
-      </button>
+    <!-- Total -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:20px">
+      <div style="font-size:14px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em">Total</div>
+      <div id="cart-total" style="font-size:26px;font-weight:800;font-family:'DM Mono',monospace;animation:plusGlow 2s ease-in-out infinite;color:#4ade80">0.00 €</div>
     </div>
-    <div id="cart-livraison-block">
-      <label class="modal-label">Adresse de livraison</label>
-      <input class="input" id="cart-address" placeholder="ex: 12 rue de la Paix, Melun" oninput="resetCartFee()" />
-      <div id="cart-fee-box" style="display:none;background:var(--surface);border:1px solid var(--border2);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:13px">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="color:var(--muted)">Frais de livraison</span>
-          <span id="cart-fee-val" style="font-family:'DM Mono',monospace;font-weight:700">—</span>
-        </div>
-        <div id="cart-fee-detail" style="font-size:11px;color:var(--muted2);margin-top:3px;font-family:'DM Mono',monospace"></div>
-      </div>
-      <button onclick="calcCartFee()" id="cart-calc-btn"
-        style="width:100%;padding:9px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px">
-        📍 Utiliser ma position pour calculer les frais
-      </button>
-    </div>
-    <div id="cart-retrait-block" style="display:none">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:var(--muted)">
-        📍 Retrait gratuit — on te prépare ta commande
-      </div>
-    </div>
-    <label class="modal-label">Créneau souhaité</label>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <input class="input" id="cart-date" type="date" style="margin-bottom:0" />
-      <input class="input" id="cart-time" type="time" style="margin-bottom:0" />
-    </div>
-    <label class="modal-label">Note (optionnel)</label>
-    <input class="input" id="cart-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
     <div class="reg-error" id="cart-error"></div>
-    <button class="btn-spin" style="width:100%;justify-content:center;font-size:14px;padding:13px;background:#fff;color:#0a0a0a;border:none;border-radius:12px;font-weight:800" onclick="submitCart()">
+    <button style="width:100%;justify-content:center;font-size:15px;padding:15px;background:#fff;color:#0a0a0a;border:none;border-radius:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em" onclick="submitCart()">
       Confirmer la commande
     </button>
     <button class="btn" style="width:100%;justify-content:center;margin-top:8px" onclick="closeCartSheet()">Annuler</button>
@@ -3132,85 +3095,60 @@ async function loadClientProducts(){
 
 function openCartSheet(){
   if(getCartCount()===0)return;
-  // Render cart items
-  const list=document.getElementById("cart-items-list");
   const items=Object.values(cart);
+  const total=items.reduce((s,{product:p,qty})=>s+(p.price||0)*qty,0);
+
+  // Render recap
+  const list=document.getElementById("cart-items-list");
   list.innerHTML=items.map(({product:p,qty})=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-      ${p.image_url?`<img src="${p.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0">`:`<div style="width:40px;height:40px;background:rgba(255,255,255,.04);border-radius:8px;flex-shrink:0"></div>`}
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+      ${p.image_url
+        ?`<img src="${p.image_url}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">`
+        :`<div style="width:44px;height:44px;background:rgba(255,255,255,.04);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">📦</div>`}
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
-        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${qty} × ${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">x${qty} · ${p.price!=null?p.price.toFixed(2)+" €/u":"—"}</div>
       </div>
-      <div style="font-size:13px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0">${p.price!=null?(p.price*qty).toFixed(2)+" €":"—"}</div>
+      <div style="font-size:13px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0;color:rgba(255,255,255,.8)">${p.price!=null?(p.price*qty).toFixed(2)+" €":"—"}</div>
     </div>`).join("");
-  // Prefill client info
-  const cData=window._currentClientData;
-  if(cData){document.getElementById("cart-name").value=cData.name||"";document.getElementById("cart-phone").value=cData.phone||"";}
+
+  // Update total
+  document.getElementById("cart-total").textContent=total.toFixed(2)+" €";
   document.getElementById("cart-error").textContent="";
   document.getElementById("cart-overlay").classList.add("open");
 }
+
 function closeCartSheet(){document.getElementById("cart-overlay").classList.remove("open");}
-
-function setCartDeliveryMode(mode){
-  cartDeliveryMode=mode;cartFee=null;
-  document.getElementById("cart-livraison-block").style.display=mode==="livraison"?"block":"none";
-  document.getElementById("cart-retrait-block").style.display=mode==="retrait"?"block":"none";
-  document.getElementById("cart-btn-livraison").style.background=mode==="livraison"?"rgba(255,255,255,.08)":"transparent";
-  document.getElementById("cart-btn-livraison").style.color=mode==="livraison"?"var(--text)":"var(--muted)";
-  document.getElementById("cart-btn-retrait").style.background=mode==="retrait"?"rgba(255,255,255,.08)":"transparent";
-  document.getElementById("cart-btn-retrait").style.color=mode==="retrait"?"var(--text)":"var(--muted)";
-  if(mode==="retrait")cartFee=0;
-}
-function resetCartFee(){cartFee=null;document.getElementById("cart-fee-box").style.display="none";}
-
-async function calcCartFee(){
-  const btn=document.getElementById("cart-calc-btn");
-  if(btn){btn.textContent="📡 Localisation...";btn.disabled=true;}
-  try{
-    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000,maximumAge:30000,enableHighAccuracy:true}));
-    const km=haversineKm(SHOP_LAT,SHOP_LNG,pos.coords.latitude,pos.coords.longitude);
-    cartFee=km>10?4:0;
-    const box=document.getElementById("cart-fee-box");
-    box.style.display="block";
-    document.getElementById("cart-fee-val").textContent=cartFee===0?"Gratuit":"4 puffs mini";
-    document.getElementById("cart-fee-val").style.color=cartFee===0?"#4ade80":"inherit";
-    document.getElementById("cart-fee-detail").textContent=`${km.toFixed(1)} km — ${cartFee===4?"+ de 10 km":"livraison gratuite"}`;
-    if(btn){btn.textContent="✓ Calculé";btn.disabled=false;}
-  }catch(e){
-    cartFee=4;
-    const box=document.getElementById("cart-fee-box");
-    box.style.display="block";
-    document.getElementById("cart-fee-val").textContent="4 puffs mini";
-    document.getElementById("cart-fee-detail").textContent="Localisation non disponible";
-    if(btn){btn.textContent="✓ Calculé";btn.disabled=false;}
-  }
-}
 
 async function submitCart(){
   const err=document.getElementById("cart-error");
-  const name=document.getElementById("cart-name").value.trim();
-  const phone=document.getElementById("cart-phone").value.trim();
-  const address=cartDeliveryMode==="livraison"?document.getElementById("cart-address").value.trim():"Retrait sur place";
-  const date=document.getElementById("cart-date").value;
-  const time=document.getElementById("cart-time").value;
-  const note=document.getElementById("cart-note").value.trim();
-  if(!name){err.textContent="Entre ton nom";return;}
-  if(!phone){err.textContent="Entre ton téléphone";return;}
-  if(cartDeliveryMode==="livraison"&&!address){err.textContent="Entre ton adresse";return;}
-  if(cartDeliveryMode==="livraison"&&cartFee===null){err.textContent="Calcule les frais de livraison";return;}
-  const pickup_slot=date&&time?`${new Date(date).toLocaleDateString("fr-FR")} à ${time}`:null;
-  const feeNote=cartFee>0?` [Livraison : ${cartFee} puffs mini]`:"";
-  const finalNote=(note?note+feeNote:feeNote.trim())||null;
+  const c=window._currentClientData;
+  if(!c){err.textContent="Erreur client — réessaie";return;}
   const items=Object.values(cart);
+  if(!items.length){err.textContent="Panier vide";return;}
+
+  // Build note with full cart summary
+  const cartSummary=items.map(({product:p,qty})=>`${p.name} x${qty}`).join(", ");
+  const total=items.reduce((s,{product:p,qty})=>s+(p.price||0)*qty,0);
+  const note=`Panier: ${cartSummary} | Total: ${total.toFixed(2)}€`;
+
+  // Create one order per product line
   for(const {product:p,qty} of items){
     await dbPost(T_ORDERS,{
-      client_id:currentClientId,product_id:p.id,product_name:p.name,
-      product_price:p.price,quantity:qty,customer_name:name,
-      customer_phone:normalizePhone(phone),delivery_address:address||null,
-      pickup_slot,note:finalNote,status:"pending"
+      client_id:c.id,
+      product_id:p.id,
+      product_name:p.name,
+      product_price:p.price,
+      quantity:qty,
+      customer_name:c.name,
+      customer_phone:c.phone||"",
+      delivery_address:null,
+      pickup_slot:null,
+      note,
+      status:"pending"
     });
   }
+
   cart={};
   updateCartFab();
   renderProductList();
