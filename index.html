@@ -723,6 +723,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   0%,100%{text-shadow:0 0 0px rgba(255,255,255,0),0 0 0px rgba(255,255,255,0)}
   50%{text-shadow:0 0 12px rgba(255,255,255,0.9),0 0 28px rgba(255,255,255,0.5),0 0 48px rgba(255,255,255,0.25)}
 }
+@keyframes redGlow{
+  0%,100%{text-shadow:0 0 0px rgba(248,113,113,0)}
+  50%{text-shadow:0 0 10px rgba(248,113,113,0.9),0 0 24px rgba(248,113,113,0.5)}
+}
 @keyframes greenGlow{
   0%,100%{text-shadow:0 0 0px rgba(74,222,128,0)}
   50%{text-shadow:0 0 12px rgba(74,222,128,0.9),0 0 28px rgba(74,222,128,0.5),0 0 48px rgba(74,222,128,0.2)}
@@ -1566,7 +1570,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="font-size:12px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em">Total</div>
         <div id="cart-total" style="font-size:26px;font-weight:800;font-family:'DM Mono',monospace;animation:greenGlow 2s ease-in-out infinite;color:#4ade80">0.00 €</div>
       </div>
-      <div class="reg-error" id="cart-error"></div>
+      <div id="cart-error" style="display:none;font-size:13px;font-weight:600;color:#f87171;font-family:'DM Mono',monospace;text-align:center;margin-bottom:10px;animation:redGlow 1.5s ease-in-out infinite"></div>
       <button style="width:100%;justify-content:center;font-size:15px;padding:15px;background:#fff;color:#0a0a0a;border:none;border-radius:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:block" onclick="submitCart()">
         Confirmer la commande
       </button>
@@ -3158,7 +3162,15 @@ function openCartSheet(){
 
   // Update total
   document.getElementById("cart-total").textContent=total.toFixed(2)+" €";
-  document.getElementById("cart-error").textContent="";
+  const totalQtyCheck=Object.values(cart).reduce((s,i)=>s+i.qty,0);
+  const errEl=document.getElementById("cart-error");
+  if(totalQtyCheck===1){
+    errEl.textContent="⚠ Livraison à partir de 2 puffs minimum";
+    errEl.style.display="block";
+  } else {
+    errEl.textContent="";
+    errEl.style.display="none";
+  }
   document.getElementById("cart-overlay").classList.add("open");
 }
 
