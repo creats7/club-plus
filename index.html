@@ -184,7 +184,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .quick-badge{position:absolute;top:10px;right:10px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:2px 7px;font-family:'DM Mono',monospace}
 
 /* ── PENDING ORDERS ── */
-.pending-order-row{background:var(--surface);border:1px solid rgba(251,191,36,0.18);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pending-order-row{background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .pending-order-info{min-width:0}
 .pending-order-product{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pending-order-client{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
@@ -332,10 +332,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .order-meta-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
 .order-meta-row span{color:var(--text)}
 .order-status{display:inline-block;font-size:11px;font-weight:600;border-radius:99px;padding:3px 10px;font-family:'DM Mono',monospace}
-.order-status.pending{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.25)}
+.order-status.pending{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15)}
 .order-status.confirmed{background:rgba(124,111,247,0.12);color:var(--accent3);border:1px solid rgba(124,111,247,0.25)}
-.order-status.preparing{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.25)}
-.order-status.ready{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25)}
+.order-status.preparing{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15)}
+.order-status.ready{background:rgba(167,139,250,0.12);color:rgba(167,139,250,1);border:1px solid rgba(167,139,250,0.25)}
 .order-status.delivered{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
 .order-status.cancelled{background:rgba(248,113,113,0.1);color:var(--danger);border:1px solid rgba(248,113,113,0.2)}
 
@@ -1106,7 +1106,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div style="display:flex;gap:6px">
         <select class="input" id="order-filter" onchange="filterOrders(this.value)" style="margin-bottom:0;font-size:12px;padding:5px 8px;width:auto">
           <option value="all">Toutes</option>
-          <option value="pending">En attente</option>
+          <option value="all">Toutes</option>
+          <option value="pending">Reçues</option>
           <option value="confirmed">Confirmées</option>
           <option value="delivered">Livrées</option>
         </select>
@@ -2159,21 +2160,17 @@ async function loadClientOrders(clientId){
   ow.style.display="block";
   ow.innerHTML=active.map(o=>{
     const statusConf={
-      pending:{label:"En attente",color:"rgba(251,191,36,1)",bg:"rgba(251,191,36,.1)",idx:0},
-      confirmed:{label:"Confirmée",color:"rgba(96,165,250,1)",bg:"rgba(96,165,250,.1)",idx:1},
-      preparing:{label:"En préparation",color:"rgba(167,139,250,1)",bg:"rgba(167,139,250,.1)",idx:2},
-      ready:{label:"Prête",color:"rgba(74,222,128,1)",bg:"rgba(74,222,128,.1)",idx:3},
-      delivered:{label:"Livrée",color:"rgba(74,222,128,1)",bg:"rgba(74,222,128,.1)",idx:4},
+      pending:{label:"Reçue",color:"rgba(200,200,210,0.8)",bg:"rgba(200,200,210,.07)",idx:0},
+      confirmed:{label:"Confirmée",color:"rgba(167,139,250,1)",bg:"rgba(167,139,250,.1)",idx:1},
+      delivered:{label:"Livrée",color:"rgba(74,222,128,1)",bg:"rgba(74,222,128,.1)",idx:2},
     };
     const st=statusConf[o.status]||statusConf.pending;
     const steps=[
-      {key:"pending",label:"Envoyée",icon:"📤"},
+      {key:"pending",label:"Reçue",icon:"○"},
       {key:"confirmed",label:"Confirmée",icon:"✓"},
-      {key:"ready",label:"Prête",icon:"📦"},
-      {key:"delivered",label:"Récupérée",icon:"🎉"},
+      {key:"delivered",label:"Livrée",icon:"◈"},
     ];
-    const curIdx=steps.findIndex(s=>["pending"].includes(o.status)?0:["confirmed","preparing"].includes(o.status)?1:o.status==="ready"?2:3);
-    const actualIdx=o.status==="pending"?0:["confirmed","preparing"].includes(o.status)?1:o.status==="ready"?2:3;
+    const actualIdx=o.status==="pending"?0:o.status==="confirmed"?1:2;
     return `<div class="cv-order-tracker">
       <div class="cv-ot-header">
         <div class="cv-ot-product">${o.product_name}${o.quantity>1?" ×"+o.quantity:""}</div>
@@ -2181,7 +2178,7 @@ async function loadClientOrders(clientId){
       </div>
       <div class="cv-ot-steps">
         <div class="cv-ot-line">
-          <div class="cv-ot-line-fill" style="width:${Math.round((actualIdx/3)*100)}%"></div>
+          <div class="cv-ot-line-fill" style="width:${Math.round((actualIdx/2)*100)}%"></div>
         </div>
         ${steps.map((s,i)=>{
           const done=i<actualIdx,active=i===actualIdx;
