@@ -765,6 +765,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-cta-order .cta-sub{font-size:11px;font-weight:500;color:rgba(0,0,0,.4);font-family:'DM Mono',monospace;letter-spacing:.04em}
 .cv-cta-order .cta-arrow{width:34px;height:34px;background:#0a0a0a;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:ctaArrow 2.5s ease-in-out infinite}
 .cv-footer{font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;animation:fadeUp .5s ease .2s both;text-align:center}
+/* ── ORDER TRACKER CLIENT ── */
+.cv-order-tracker{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;margin-bottom:12px;margin-top:12px}
+.cv-ot-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px}
+.cv-ot-product{font-size:14px;font-weight:700;letter-spacing:-.02em;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cv-ot-status{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:99px;flex-shrink:0}
+.cv-ot-steps{display:flex;align-items:flex-start;justify-content:space-between;position:relative;padding-bottom:2px}
+.cv-ot-line{position:absolute;top:13px;left:13px;right:13px;height:1.5px;background:rgba(255,255,255,.07);z-index:0}
+.cv-ot-line-fill{height:100%;background:rgba(255,255,255,.35);transition:width .6s ease;border-radius:1px}
+.cv-ot-step{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1;flex:1}
+.cv-ot-dot{width:26px;height:26px;border-radius:50%;border:1.5px solid;display:flex;align-items:center;justify-content:center;background:var(--surface);transition:all .3s}
+.cv-ot-lbl{font-size:9px;font-family:'DM Mono',monospace;text-align:center;line-height:1.3;letter-spacing:.03em}
+.cv-ot-meta{font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin-top:10px}
+.cv-ot-actions{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:6px}
 .spin-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
 .spin-row:last-child{border-bottom:none}.spin-reward{font-weight:600;letter-spacing:-.01em}.spin-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--border2);border-radius:var(--rs);padding:10px 18px;font-size:13px;color:var(--text);opacity:0;transition:opacity .3s;pointer-events:none;z-index:400;white-space:nowrap;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -1317,6 +1330,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </button>
         </div>
       </div>
+
+      <!-- Commande en cours -->
+      <div id="cv-orders" style="display:none"></div>
 
       <!-- CTA Commander -->
       <button class="cv-cta-v2" onclick="switchClientTab('commandes')">
@@ -2136,30 +2152,55 @@ function buildTracker(status){
 
 async function loadClientOrders(clientId){
   const ow=document.getElementById("cv-orders");
-  const ol=document.getElementById("cv-orders-list");
   const orders=await dbGet(T_ORDERS+"?client_id=eq."+clientId+"&order=created_at.desc&limit=10");
   if(!orders||!orders.length){ow.style.display="none";return;}
-  // Affiche uniquement les commandes actives (pas livrées ni annulées)
   const active=orders.filter(o=>o.status!=="delivered"&&o.status!=="cancelled");
   if(!active.length){ow.style.display="none";return;}
   ow.style.display="block";
-  ol.innerHTML=active.map(o=>`
-    <div class="delivery-tracker">
-      <div class="tracker-product">
-        <span>${o.product_name}${o.quantity>1?" ×"+o.quantity:""}</span>
-        ${o.product_price!=null?`<span class="tracker-price">${o.product_price.toFixed(2)} €</span>`:""}
+  ow.innerHTML=active.map(o=>{
+    const statusConf={
+      pending:{label:"En attente",color:"rgba(251,191,36,1)",bg:"rgba(251,191,36,.1)",idx:0},
+      confirmed:{label:"Confirmée",color:"rgba(96,165,250,1)",bg:"rgba(96,165,250,.1)",idx:1},
+      preparing:{label:"En préparation",color:"rgba(167,139,250,1)",bg:"rgba(167,139,250,.1)",idx:2},
+      ready:{label:"Prête",color:"rgba(74,222,128,1)",bg:"rgba(74,222,128,.1)",idx:3},
+      delivered:{label:"Livrée",color:"rgba(74,222,128,1)",bg:"rgba(74,222,128,.1)",idx:4},
+    };
+    const st=statusConf[o.status]||statusConf.pending;
+    const steps=[
+      {key:"pending",label:"Envoyée",icon:"📤"},
+      {key:"confirmed",label:"Confirmée",icon:"✓"},
+      {key:"ready",label:"Prête",icon:"📦"},
+      {key:"delivered",label:"Récupérée",icon:"🎉"},
+    ];
+    const curIdx=steps.findIndex(s=>["pending"].includes(o.status)?0:["confirmed","preparing"].includes(o.status)?1:o.status==="ready"?2:3);
+    const actualIdx=o.status==="pending"?0:["confirmed","preparing"].includes(o.status)?1:o.status==="ready"?2:3;
+    return `<div class="cv-order-tracker">
+      <div class="cv-ot-header">
+        <div class="cv-ot-product">${o.product_name}${o.quantity>1?" ×"+o.quantity:""}</div>
+        <div class="cv-ot-status" style="color:${st.color};background:${st.bg}">${st.label}</div>
       </div>
-      ${buildTracker(o.status)}
-      <div style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:4px;display:flex;justify-content:space-between;align-items:center">
-        <span>${fmtDate(o.created_at)}</span>
-        ${o.pickup_slot?`<span>🕐 ${o.pickup_slot}</span>`:""}
+      <div class="cv-ot-steps">
+        <div class="cv-ot-line">
+          <div class="cv-ot-line-fill" style="width:${Math.round((actualIdx/3)*100)}%"></div>
+        </div>
+        ${steps.map((s,i)=>{
+          const done=i<actualIdx,active=i===actualIdx;
+          const col=done?"rgba(255,255,255,.9)":active?st.color:"rgba(255,255,255,.2)";
+          return `<div class="cv-ot-step">
+            <div class="cv-ot-dot" style="border-color:${done||active?col:"rgba(255,255,255,.1)"};background:${done?"rgba(255,255,255,.15)":active?st.bg:"transparent"}">
+              <span style="font-size:11px">${done?"✓":active?s.icon:""}</span>
+            </div>
+            <div class="cv-ot-lbl" style="color:${active?"rgba(255,255,255,.9)":done?"rgba(255,255,255,.5)":"rgba(255,255,255,.25)"}">${s.label}</div>
+          </div>`;
+        }).join("")}
       </div>
+      ${o.pickup_slot?`<div class="cv-ot-meta">🕐 ${o.pickup_slot}</div>`:""}
       ${o.status==="pending"?`
-      <div class="cv-order-actions" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-        <button class="btn btn-sm btn-accent" onclick="openEditOrder('${o.id}','${o.product_name.replace(/'/g,"\\'")}',${o.product_price||0},'${(o.delivery_address||"").replace(/'/g,"\\'")}','${(o.note||"").replace(/'/g,"\\'")}','${(o.pickup_slot||"").replace(/'/g,"\\'")}')">✎ Modifier</button>
-        <button class="btn btn-sm btn-danger" onclick="cancelClientOrder('${o.id}')">Annuler</button>
+      <div class="cv-ot-actions">
+        <button class="btn btn-sm" onclick="cancelClientOrder('${o.id}')">Annuler</button>
       </div>`:""}
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 function openEditOrder(id,productName,price,address,note,slot){
@@ -2236,23 +2277,24 @@ async function calcDeliveryFee(){
     const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000,maximumAge:30000,enableHighAccuracy:true}));
     const clientLat=pos.coords.latitude,clientLng=pos.coords.longitude;
     const km=haversineKm(SHOP_LAT,SHOP_LNG,clientLat,clientLng);
-    const fee=km>10?4:2;
+    const fee=km>10?4:0;
     calculatedFee=fee;
     const feeBox=document.getElementById("os-fee-box");
     const feeVal=document.getElementById("os-fee-val");
     const feeDetail=document.getElementById("os-fee-detail");
     feeBox.style.display="block";
-    feeVal.textContent=fee+" puff"+(fee>1?"s":"")+" mini";
-    feeDetail.textContent=`Distance : ${km.toFixed(1)} km — ${fee===4?"+ de 10 km":"moins de 10 km"}`;
+    feeVal.textContent=fee===0?"Gratuit":"4 puffs mini";
+    feeVal.style.color=fee===0?"#4ade80":"inherit";
+    feeDetail.textContent=`Distance : ${km.toFixed(1)} km — ${fee===4?"+ de 10 km ➜ frais de livraison":"moins de 10 km ➜ livraison gratuite"}`;
     if(btn){btn.textContent="✓ Calculé";btn.disabled=false;}
   } catch(e){
-    // Géoloc refusée ou indisponible — fallback tarif max par sécurité
     calculatedFee=4;
     const feeBox=document.getElementById("os-fee-box");
     const feeVal=document.getElementById("os-fee-val");
     const feeDetail=document.getElementById("os-fee-detail");
     feeBox.style.display="block";
     feeVal.textContent="4 puffs mini";
+    feeVal.style.color="inherit";
     feeDetail.textContent="Localisation non disponible — tarif maximum appliqué";
     if(btn){btn.textContent="✓ Calculé";btn.disabled=false;}
   }
