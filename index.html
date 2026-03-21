@@ -777,13 +777,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .shop-product-name{font-size:14px;font-weight:700;letter-spacing:-.02em;margin-bottom:3px;line-height:1.3}
 .shop-product-price{font-size:13px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.7);margin-bottom:4px}
 .shop-product-stock{font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3)}
+.shop-product-dispo{font-size:10px;font-weight:600;border-radius:99px;padding:2px 8px;display:inline-block;font-family:'DM Mono',monospace}
+.shop-product-dispo.ok{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
+.shop-product-dispo.out{background:rgba(248,113,113,.08);color:var(--danger);border:1px solid rgba(248,113,113,.18)}
 .shop-product-actions{flex-shrink:0;display:flex;align-items:center}
 .shop-add-btn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s}
 .shop-add-btn:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28)}
 .shop-qty-ctrl{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:4px 8px}
 .shop-qty-btn{background:none;border:none;color:#fff;font-size:18px;font-weight:700;cursor:pointer;padding:0 2px;line-height:1;font-family:'Inter',sans-serif}
 .shop-qty-val{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:20px;text-align:center}
-.cart-fab{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#fff;color:#0a0a0a;border:none;border-radius:99px;padding:12px 20px;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;z-index:60;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap}
+.cart-fab{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:#fff;color:#0a0a0a;border:none;border-radius:99px;padding:12px 22px;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;display:none;align-items:center;gap:8px;z-index:60;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap}
 .cart-fab-badge{background:#0a0a0a;color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700;min-width:20px;text-align:center}
 /* ── ORDER TRACKER CLIENT ── */
 .cv-order-tracker{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;margin-bottom:12px;margin-top:12px}
@@ -2206,7 +2209,7 @@ function switchClientTab(tab){
     if(n)n.classList.toggle("active",t===tab);
   });
   if(tab==="shop"&&currentClientId)loadClientShop(currentClientId);
-  if(tab==="commandes"&&currentClientId)loadClientProducts();
+  if(tab==="commandes"&&currentClientId){loadClientProducts();setTimeout(updateCartFab,100);}
 }
 
 function clientLogout(){
@@ -3049,8 +3052,14 @@ function updateCartFab(){
   const n=getCartCount();
   const fab=document.getElementById("cart-fab");
   const badge=document.getElementById("cart-fab-badge");
-  if(fab)fab.style.display=n>0?"flex":"none";
-  if(badge)badge.textContent=n;
+  if(fab){
+    // Always visible on commandes tab
+    const onShop=document.getElementById("cvs-commandes")?.classList.contains("active");
+    fab.style.display=onShop?"flex":"none";
+    fab.style.opacity=n>0?"1":"0.4";
+    fab.style.pointerEvents=n>0?"auto":"none";
+  }
+  if(badge)badge.textContent=n||"0";
 }
 function addToCart(productId){
   const p=window._productsCache?.find(x=>x.id===productId);
@@ -3085,7 +3094,7 @@ function renderProductList(){
       <div class="shop-product-body">
         <div class="shop-product-name">${p.name}</div>
         <div class="shop-product-price">${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
-        <div class="shop-product-stock">${p.stock===0?"Rupture de stock":p.stock<=3?p.stock+" restant"+(p.stock>1?"s":"")+" ":"En stock"}</div>
+        <div class="shop-product-dispo ${dispo?"ok":"out"}">${dispo?"Disponible":"Rupture"}</div>
       </div>
       <div class="shop-product-actions">
         ${dispo?`
