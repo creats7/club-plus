@@ -1517,7 +1517,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <input type="hidden" id="edit-id" />
     <div class="modal-field"><label class="modal-label">Nom</label><input class="input" id="edit-name" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Téléphone</label><input class="input" id="edit-phone" style="margin-bottom:0" /></div>
-    <div class="modal-field"><label class="modal-label">Tampons (0–10)</label><input class="input" id="edit-stamps" type="number" min="0" max="10" style="margin-bottom:0" /></div>
+    <div class="modal-field"><label class="modal-label">Achats total</label><input class="input" id="edit-stamps" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Tokens</label><input class="input" id="edit-tokens" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-actions">
       <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveEdit()">Enregistrer</button>
@@ -1964,7 +1964,7 @@ function renderDash(cl){
         <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
         ${c.phone?`<div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">👻 ${c.phone}</div>`:""}
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${c.stamps||0}/10</div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${c.stamps||0} achats</div>
     </div>`).join(""):'<div style="color:var(--muted);font-size:13px">Aucun client</div>';
 }
 
@@ -2047,7 +2047,7 @@ function renderList(cl){
   list.innerHTML="";
   cl.forEach(c=>{
     const stamps=c.stamps||0;
-    const full=stamps>=10;
+    const full=false;
     const div=document.createElement("div");div.className="client-card";
     div.innerHTML=`
       <div class="client-top">
@@ -2097,7 +2097,7 @@ function closeEdit(){document.getElementById("edit-modal").classList.remove("ope
 async function saveEdit(){
   const id=document.getElementById("edit-id").value,name=document.getElementById("edit-name").value.trim();
   const phone=document.getElementById("edit-phone").value.trim();
-  const stamps=Math.max(0,Math.min(10,parseInt(document.getElementById("edit-stamps").value)||0));
+  const stamps=Math.max(0,parseInt(document.getElementById("edit-stamps").value)||0);
   const tokens=Math.max(0,parseInt(document.getElementById("edit-tokens").value)||0);
   if(!name)return;
   await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps,tokens});
