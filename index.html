@@ -2012,6 +2012,19 @@ async function doLogin(){
 let referralConfig={parrain:3,filleul:3};
 
 async function loadReferral(){
+  // Load referral config from shop_config
+  const cfg=await dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain,referral_filleul)");
+  if(cfg&&cfg.length){
+    cfg.forEach(r=>{
+      if(r.key==="referral_parrain")referralConfig.parrain=r.value||3;
+      if(r.key==="referral_filleul")referralConfig.filleul=r.value||3;
+    });
+  }
+  const p=document.getElementById("ref-tokens-parrain");
+  const f=document.getElementById("ref-tokens-filleul");
+  if(p)p.value=referralConfig.parrain;
+  if(f)f.value=referralConfig.filleul;
+
   // Load all clients with referred_by
   const all=await dbGet(T_CLIENTS+"?order=created_at.desc");
   if(!all)return;
@@ -2051,9 +2064,11 @@ async function loadReferral(){
   }).join("");
 }
 
-function saveReferralConfig(){
+async function saveReferralConfig(){
   referralConfig.parrain=Math.max(1,parseInt(document.getElementById("ref-tokens-parrain").value)||3);
   referralConfig.filleul=Math.max(1,parseInt(document.getElementById("ref-tokens-filleul").value)||3);
+  await dbPatch(T_SHOP_CONFIG+"?key=eq.referral_parrain",{value:referralConfig.parrain});
+  await dbPatch(T_SHOP_CONFIG+"?key=eq.referral_filleul",{value:referralConfig.filleul});
   toast("Config parrainage enregistrée ✓");
 }
 
@@ -4193,6 +4208,14 @@ document.addEventListener("DOMContentLoaded", function(){
   buildPin();
   buildOfferColors();
   loadShopConfig();
+
+  // Load referral config at startup
+  dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain,referral_filleul)").then(cfg=>{
+    if(cfg&&cfg.length)cfg.forEach(r=>{
+      if(r.key==="referral_parrain")referralConfig.parrain=r.value||3;
+      if(r.key==="referral_filleul")referralConfig.filleul=r.value||3;
+    });
+  });
 
   const cid=new URLSearchParams(window.location.search).get("client");
   const isAdmin=localStorage.getItem("clubplus_admin")==="1";
