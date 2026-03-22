@@ -1811,7 +1811,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="hc-result-rarity" id="hc-result-rarity"></div>
     <div class="hc-result-name" id="hc-result-name"></div>
     <div class="hc-result-sub" id="hc-result-sub">🎉 Bravo, tu as gagné !</div>
-    <button class="btn-spin" style="justify-content:center" onclick="closeHcOpening()">Fermer</button>
+    <div id="hc-result-actions" style="display:flex;flex-direction:column;gap:8px;width:100%"></div>
   </div>
 </div>
 
@@ -3956,6 +3956,22 @@ async function showHcResult(won,clientChestId){
 
   document.getElementById("hc-result").classList.add("show");
   document.getElementById("hc-opening-sub").textContent="";
+
+  // Boutons dynamiques selon tokens restants
+  const tokData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
+  const tokLeft=tokData&&tokData.length?tokData[0].tokens||0:0;
+  const canReopen=tokLeft>=_pendingCaseCost;
+  const actionsEl=document.getElementById("hc-result-actions");
+  actionsEl.innerHTML=canReopen
+    ?`<button class="btn-spin" style="justify-content:center;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;padding:14px;border-radius:12px;width:100%;cursor:pointer" onclick="closeHcOpening();setTimeout(()=>openCaseShop('${_pendingCaseId}',${_pendingCaseCost}),200)">
+        Rejouer — ${_pendingCaseCost} ◈
+      </button>
+      <button style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`
+    :`<button class="btn-spin" style="justify-content:center;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;padding:14px;border-radius:12px;width:100%;cursor:pointer" onclick="closeHcOpening();switchClientTab('commandes')">
+        Acheter des puffs 📦
+      </button>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);text-align:center;margin-top:2px">Pas assez de tokens — chaque achat en rapporte</div>
+      <button style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`;
 }
 
 function spawnRarityEffect(rarity,col,container){
