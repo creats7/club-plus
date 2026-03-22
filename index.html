@@ -826,6 +826,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .shop-qty-ctrl{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:4px 8px}
 .shop-qty-btn{background:none;border:none;color:#fff;font-size:18px;font-weight:700;cursor:pointer;padding:0 2px;line-height:1;font-family:'Inter',sans-serif}
 .shop-qty-val{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:20px;text-align:center}
+.cv-how{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.cv-how-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px}
+.cv-how-icon{font-size:18px;flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border-radius:9px}
+.cv-how-text{display:flex;flex-direction:column;gap:2px}
+.cv-how-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.02em}
+.cv-how-sub{font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;line-height:1.4}
 .cart-fab{
   position:sticky;bottom:76px;left:50%;transform:translateX(-50%);
   width:fit-content;
@@ -1425,6 +1431,32 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- Commande en cours -->
       <div id="cv-orders" style="display:none"></div>
+
+
+      <!-- Comment ça marche -->
+      <div class="cv-how">
+        <div class="cv-how-item">
+          <div class="cv-how-icon">📦</div>
+          <div class="cv-how-text">
+            <div class="cv-how-title">Achète</div>
+            <div class="cv-how-sub">Chaque puff = 1 achat enregistré sur ta carte</div>
+          </div>
+        </div>
+        <div class="cv-how-item">
+          <div class="cv-how-icon">◈</div>
+          <div class="cv-how-text">
+            <div class="cv-how-title">Gagne des tokens</div>
+            <div class="cv-how-sub">À chaque palier atteint, tu reçois des tokens bonus</div>
+          </div>
+        </div>
+        <div class="cv-how-item">
+          <div class="cv-how-icon">🗃</div>
+          <div class="cv-how-text">
+            <div class="cv-how-title">Ouvre des caisses</div>
+            <div class="cv-how-sub">Dépense tes tokens dans le shop pour tenter ta chance</div>
+          </div>
+        </div>
+      </div>
 
       <!-- CTA Commander -->
       <button class="cv-cta-v2" onclick="switchClientTab('commandes')" style="justify-content:center;text-align:center;flex-direction:column;gap:4px">
@@ -2983,14 +3015,7 @@ async function loadClientView(id){
   if(fillEl){
     setTimeout(()=>{
       fillEl.style.width=pct+"%";
-      // Couleur normale sauf si on atteint exactement le palier → flash vert
-      if(nextTier&&pct>=100){
-        fillEl.style.background="linear-gradient(90deg,rgba(74,222,128,.5),rgba(74,222,128,.9))";
-        fillEl.style.boxShadow="0 0 10px rgba(74,222,128,.4)";
-      } else {
-        fillEl.style.background="linear-gradient(90deg,rgba(255,255,255,.3),rgba(255,255,255,.7))";
-        fillEl.style.boxShadow="none";
-      }
+      fillEl.style.background="linear-gradient(90deg,rgba(255,255,255,.3),rgba(255,255,255,.7))";
     },100);
   }
 
