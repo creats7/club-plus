@@ -2274,6 +2274,11 @@ function renderList(cl){
               ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
               ${(c.tokens||0)>0?`<div class="token-badge">◈ ${c.tokens}</div>`:""}
             </div>
+            ${c.referral_code?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);letter-spacing:.08em">CODE</span>
+              <span style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7)">${c.referral_code}</span>
+              <button onclick="navigator.clipboard.writeText('${c.referral_code}').then(()=>toast('Code copié ✓'))" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Copier</button>
+            </div>`:""}
           </div>
         </div>
         <div class="client-actions">
