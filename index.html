@@ -3967,11 +3967,19 @@ async function showHcResult(won,clientChestId){
         Rejouer — ${_pendingCaseCost} ◈
       </button>
       <button style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`
-    :`<button class="btn-spin" style="justify-content:center;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;padding:14px;border-radius:12px;width:100%;cursor:pointer" onclick="closeHcOpening();switchClientTab('commandes')">
-        Acheter des puffs 📦
+    :`<button onclick="closeHcOpening();setTimeout(()=>switchClientTab('commandes'),250);"
+        style="width:100%;justify-content:center;font-size:14px;padding:15px 20px;border-radius:18px;
+               background:rgba(255,255,255,0.08);
+               backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+               border:1px solid rgba(255,255,255,0.18);
+               box-shadow:0 4px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.25);
+               color:#fff;cursor:pointer;font-family:'Inter',sans-serif;
+               display:flex;flex-direction:column;align-items:center;gap:3px;
+               position:relative;overflow:hidden;">
+        <span style="font-size:14px;font-weight:800;letter-spacing:-.03em">Voir les puffs 👀</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em">Une puff = une récompense</span>
       </button>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);text-align:center;margin-top:2px">Pas assez de tokens — chaque achat en rapporte</div>
-      <button style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`;
+      <button style="width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`;
 }
 
 function spawnRarityEffect(rarity,col,container){
