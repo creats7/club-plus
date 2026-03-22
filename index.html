@@ -633,24 +633,26 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem}
 .cv-card-name{font-size:19px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:3px}
 .cv-card-sub{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);letter-spacing:.14em;text-transform:uppercase}
-/* Tampons v2 */
-.cv-stamps-v2{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1.25rem}
-@keyframes stampPopV2{0%{transform:scale(.5) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0deg);opacity:1}}
-.cv-stamp-v2{aspect-ratio:1;border-radius:12px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;position:relative;transition:all .2s}
-.cv-stamp-v2.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff;animation:stampPopV2 .4s cubic-bezier(.34,1.5,.64,1) both;box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
-.cv-stamp-v2.on.bonus{background:rgba(200,200,210,.1);border-color:rgba(200,200,210,.4);box-shadow:0 0 10px rgba(200,200,210,.1)}
-.cv-stamp-v2.bonus-empty{border-color:rgba(200,200,210,.2);background:rgba(200,200,210,.03)}
-.cv-stamp-v2-num{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:1px}
-.cv-stamp-bonus-dot{position:absolute;bottom:3px;right:3px;width:5px;height:5px;border-radius:50%;background:rgba(200,200,210,0.8)}
-.cv-stamp-bonus-dot.empty{background:rgba(200,200,210,0.25)}
-/* Progression */
-.cv-prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.cv-prog-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em}
-.cv-prog-count{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
-.cv-prog-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:7px}
-.cv-prog-fill{height:100%;border-radius:2px;background:rgba(255,255,255,.6);transition:width 1s cubic-bezier(.4,0,.2,1)}
-.cv-prog-hint{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
-.cv-prog-hint strong{color:var(--text)}
+/* ── XP BAR ── */
+@keyframes xpFill{from{width:0%}to{width:var(--xp-w)}}
+.cv-xp-section{margin-bottom:12px}
+.cv-xp-labels{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.cv-xp-current-label{font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:rgba(255,255,255,.9)}
+.cv-xp-next-label{font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.35)}
+.cv-xp-next-label strong{color:rgba(255,255,255,.75)}
+.cv-xp-track{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:visible;margin-bottom:8px;position:relative}
+.cv-xp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.4),rgba(255,255,255,.7));transition:width 1.2s cubic-bezier(.4,0,.2,1);position:relative;z-index:1}
+.cv-xp-fill::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.6)}
+.cv-xp-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:#fff;z-index:2;border:2px solid rgba(255,255,255,.3)}
+.cv-xp-marker.bonus{background:#fff;box-shadow:0 0 6px rgba(255,255,255,.5)}
+.cv-xp-hint{font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3)}
+.cv-xp-hint strong{color:rgba(255,255,255,.8)}
+.cv-tier-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:5px;border:1px solid rgba(255,255,255,.06)}
+.cv-tier-row.next{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.07)}
+.cv-tier-name{font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.5)}
+.cv-tier-name.next{color:rgba(255,255,255,.85);font-weight:600}
+.cv-tier-reward{font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.6);font-weight:600}
+.cv-tier-reward.next{color:#fff}
 /* Wallet */
 .cv-wallet-row{display:flex;align-items:center;justify-content:space-between}
 .cv-wallet-left{display:flex;align-items:center;gap:10px}
@@ -949,7 +951,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </button>
       <button class="sidebar-item" id="nav-stamp_rewards" onclick="switchTab('stamp_rewards')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        <span>Cases tampons</span>
+        <span>Paliers XP</span>
       </button>
       <button class="sidebar-item" id="nav-products" onclick="switchTab('products')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -1235,8 +1237,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div class="quick-card green" onclick="switchTab('stamp_rewards')">
         <div class="quick-icon">🃏</div>
-        <div class="quick-label">Cases tampons</div>
-        <div class="quick-sub">Tokens par case</div>
+        <div class="quick-label">Paliers XP</div>
+        <div class="quick-sub">Tokens par palier</div>
       </div>
       <div class="quick-card token" onclick="switchTab('products')">
         <div class="quick-icon">📦</div>
@@ -1294,10 +1296,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- STAMP REWARDS ADMIN -->
   <div id="panel-stamp_rewards" style="display:none">
     <div class="panel-header">
-      <div class="panel-title">Tokens par case</div>
+      <div class="panel-title">Tokens par palier</div>
       <button class="btn btn-accent btn-sm" onclick="saveStampRewards()">💾 Enregistrer</button>
     </div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Configure combien de tokens chaque case de la carte de fidélité rapporte au client.</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Configure les paliers XP — à chaque achat correspondant au palier, le client gagne les tokens définis.</p>
     <div id="stamp-rewards-list"></div>
   </div>
 
@@ -1371,30 +1373,37 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- Carte principale -->
       <div class="cv-card-v2">
-        <!-- Header: nom + niveau -->
+        <!-- Header: nom + total XP -->
         <div class="cv-card-header">
           <div>
             <div class="cv-card-name" id="cv-name-display">—</div>
             <div class="cv-card-sub">Carte de fidélité</div>
           </div>
-
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:800;font-family:'DM Mono',monospace;color:#fff;line-height:1" id="cv-total-xp">0</div>
+            <div style="font-size:8px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-top:2px">achats</div>
+          </div>
         </div>
 
-        <!-- Grille tampons 5x2 -->
-        <div class="cv-stamps-v2" id="cv-stamps"></div>
+        <!-- XP Bar -->
+        <div class="cv-xp-section">
+          <div class="cv-xp-labels">
+            <span class="cv-xp-current-label">Palier <span id="cv-current-tier">1</span></span>
+            <span class="cv-xp-next-label">Palier <span id="cv-next-tier">2</span> dans <strong id="cv-xp-remaining">1</strong> achat</span>
+          </div>
+          <div class="cv-xp-track">
+            <div class="cv-xp-fill" id="cv-xp-fill" style="width:0%"></div>
+            <!-- Markers paliers bonus -->
+            <div id="cv-xp-markers"></div>
+          </div>
+          <div class="cv-xp-hint" id="cv-xp-hint"></div>
+        </div>
 
-        <!-- Barre progression -->
-        <div class="cv-prog-row">
-          <span class="cv-prog-label">Progression</span>
-          <span class="cv-prog-count" id="cv-count">0<span style="opacity:.4">/10</span></span>
-        </div>
-        <div class="cv-prog-track">
-          <div class="cv-prog-fill" id="cv-fill" style="width:0%"></div>
-        </div>
-        <div class="cv-prog-hint" id="cv-countdown"></div>
+        <!-- Prochains paliers -->
+        <div id="cv-next-tiers" style="margin-bottom:14px"></div>
 
         <!-- Séparateur -->
-        <div style="height:1px;background:rgba(255,255,255,.06);margin:16px 0"></div>
+        <div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0 14px"></div>
 
         <!-- Wallet tokens + bouton -->
         <div class="cv-wallet-row">
@@ -2058,13 +2067,11 @@ function renderList(cl){
           <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
       </div>
-      <div class="stamps-row">${[...Array(10)].map((_,i)=>`<div class="stamp ${i<stamps?"on":""}">${i<stamps?`<svg viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`:""}</div>`).join("")}</div>
       <div class="stamp-controls">
-        <div class="stamp-count"><span class="n">${stamps}</span>/10${full?' &nbsp;<span class="complete-tag">COMPLET</span>':""}</div>
+        <div class="stamp-count"><span class="n">${stamps}</span> achats · <span style="color:rgba(255,255,255,.5)">${c.tokens||0} ◈</span></div>
         <div class="stamp-btns">
           <button class="btn btn-sm" onclick="chg('${c.id}',${stamps},${c.tokens||0},-1)" ${stamps===0?"disabled":""}>−</button>
-          <button class="btn btn-sm" onclick="rst('${c.id}','${c.name.replace(/'/g,"\\'")}')">Reset</button>
-          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)" ${full?"disabled":""}>+ Tampon</button>
+          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)">+ Achat</button>
           <button class="btn btn-sm" style="color:var(--token);border-color:var(--token-border);background:var(--token-dim)" onclick="giveToken('${c.id}',${c.tokens||0})">◈ +1</button>
         </div>
       </div>`;
@@ -2110,22 +2117,23 @@ function invalidateStampCache(){stampRewardsCache=null;}
 async function chg(id,curStamps,curTokens,d){
   if(d===1){
     const rewards=await getStampRewards();
-    const nextSlot=curStamps+1; // case qui va être cochée (1-10)
-    const slotCapped=Math.min(nextSlot,10);
-    const slotReward=rewards.find(r=>r.slot===slotCapped);
+    const newTotalStamps=(curStamps||0)+1; // total global, jamais reset
+    // Cherche si ce palier total déclenche une récompense
+    const slotReward=rewards.find(r=>r.slot===newTotalStamps);
     const tokensEarned=slotReward?slotReward.tokens:1;
     const newTokens=curTokens+tokensEarned;
-    let newStamps=nextSlot>=10?0:nextSlot;
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens});
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newTotalStamps,tokens:newTokens,total_stamps:newTotalStamps});
     await dbPost(T_STAMP_LOGS,{client_id:id});
     await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-    const msg=nextSlot>=10?`🎉 Carte complète ! +${tokensEarned} token${tokensEarned>1?"s":""} ◈`:`✦ Tampon case ${slotCapped} — +${tokensEarned} ◈`;
+    const msg=slotReward&&slotReward.tokens>1
+      ?`🎉 Palier ${newTotalStamps} — Bonus +${tokensEarned} ◈`
+      :`✦ Achat #${newTotalStamps} — +${tokensEarned} ◈`;
     toast(msg);
   } else {
     const newStamps=Math.max(0,curStamps-1);
     const newTokens=Math.max(0,curTokens-1);
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens});
-    toast("Tampon retiré");
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens,total_stamps:newStamps});
+    toast("Achat retiré");
   }
   await loadAll();
 }
@@ -2924,45 +2932,74 @@ async function loadClientView(id){
   }
   const c=cData[0];
   window._currentClientData=c;
-  const stamps=c.stamps||0;
+  const totalXP=c.total_stamps||0;
   const tokens=c.tokens||0;
-  const rem=10-stamps;
 
   // Nom client
   const nameEl=document.getElementById("cv-name-display");
   if(nameEl)nameEl.textContent=c.name||"—";
 
-  // Carte tampons
-  document.getElementById("cv-count").innerHTML=stamps+'<span style="opacity:.4">/10</span>';
-  document.getElementById("cv-fill").style.width=(stamps*10)+"%";
-  const cd=document.getElementById("cv-countdown");
-  if(rem===0)cd.innerHTML='<span style="color:#4ade80;font-weight:600">✓ Carte complète !</span>';
-  else{
-    const nextSlot=stamps+1;
-    const sr=rewards.find(r=>r.slot===nextSlot);
-    const nextTokens=sr?sr.tokens:1;
-    cd.innerHTML=`Prochain tampon → <strong>+${nextTokens} ◈</strong>`;
+  // Total achats
+  const totalEl=document.getElementById("cv-total-xp");
+  if(totalEl)totalEl.textContent=totalXP;
+
+  // Barre XP — construite depuis stamp_rewards (paliers = slots)
+  // Paliers = liste triée des slots configurés
+  const sortedTiers=rewards.slice().sort((a,b)=>a.slot-b.slot);
+
+  // Trouver le palier actuel et suivant
+  const passedTiers=sortedTiers.filter(r=>totalXP>=r.slot);
+  const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot);
+  const currentTierIdx=passedTiers.length; // combien on a dépassé
+  const nextTier=upcomingTiers[0]||null;
+  const prevTier=passedTiers[passedTiers.length-1]||null;
+
+  // Calcul progression entre prevTier et nextTier
+  let pct=0;
+  if(!nextTier){pct=100;}
+  else if(!prevTier){pct=Math.min(100,(totalXP/nextTier.slot)*100);}
+  else{pct=Math.min(100,((totalXP-prevTier.slot)/(nextTier.slot-prevTier.slot))*100);}
+
+  // Labels
+  document.getElementById("cv-current-tier").textContent=currentTierIdx+1;
+  document.getElementById("cv-next-tier").textContent=currentTierIdx+2;
+  const remEl=document.getElementById("cv-xp-remaining");
+  if(remEl)remEl.textContent=nextTier?nextTier.slot-totalXP:"0";
+
+  // Hint
+  const hint=document.getElementById("cv-xp-hint");
+  if(hint){
+    if(nextTier)hint.innerHTML=`Palier ${currentTierIdx+2} → <strong>+${nextTier.tokens} ◈</strong> dans ${nextTier.slot-totalXP} achat${nextTier.slot-totalXP>1?"s":""}`;
+    else hint.innerHTML=`<span style="color:#4ade80">✓ Tous les paliers atteints !</span>`;
   }
 
-  // Grille tampons v2
-  document.getElementById("cv-stamps").innerHTML=[...Array(10)].map((_,i)=>{
-    const slotNum=i+1;
-    const sr=rewards.find(r=>r.slot===slotNum);
-    const tok=sr?sr.tokens:1;
-    const isBonus=tok>1;
-    if(i<stamps){
-      return `<div class="cv-stamp-v2 on${isBonus?" bonus":""}" style="animation-delay:${i*.04}s">
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-          <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        ${isBonus?`<div class="cv-stamp-bonus-dot"></div>`:""}
-      </div>`;
-    }
-    return `<div class="cv-stamp-v2${isBonus?" bonus-empty":""}">
-      <span class="cv-stamp-v2-num">${tok}<span style="font-size:7px">◈</span></span>
-      ${isBonus?`<div class="cv-stamp-bonus-dot empty"></div>`:""}
-    </div>`;
-  }).join("");
+  // Barre fill
+  const fillEl=document.getElementById("cv-xp-fill");
+  if(fillEl)setTimeout(()=>fillEl.style.width=pct+"%",100);
+
+  // Markers sur la barre pour les prochains paliers
+  const markersEl=document.getElementById("cv-xp-markers");
+  if(markersEl&&nextTier&&prevTier){
+    const range=nextTier.slot-(prevTier?prevTier.slot:0);
+    markersEl.innerHTML=upcomingTiers.slice(0,4).map(t=>{
+      const tp=prevTier?((t.slot-prevTier.slot)/range)*100:((t.slot/nextTier.slot)*100);
+      const clamped=Math.min(98,Math.max(2,tp));
+      return `<div class="cv-xp-marker${t.tokens>1?" bonus":""}" style="left:${clamped}%;top:50%;transform:translate(-50%,-50%);position:absolute"></div>`;
+    }).join("");
+  }else if(markersEl)markersEl.innerHTML="";
+
+  // Prochains paliers (3 max)
+  const nextTiersEl=document.getElementById("cv-next-tiers");
+  if(nextTiersEl){
+    const show=upcomingTiers.slice(0,3);
+    if(show.length){
+      nextTiersEl.innerHTML=show.map((t,i)=>`
+        <div class="cv-tier-row${i===0?" next":""}">
+          <span class="cv-tier-name${i===0?" next":""}">Palier ${currentTierIdx+1+i+1} — achat #${t.slot}</span>
+          <span class="cv-tier-reward${i===0?" next":""}">+${t.tokens} ◈</span>
+        </div>`).join("");
+    }else nextTiersEl.innerHTML="";
+  }
 
   // Wallet tokens
   document.getElementById("cv-token-count").textContent=tokens;
