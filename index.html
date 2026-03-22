@@ -978,6 +978,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         <span>Stats</span>
       </button>
+      <button class="sidebar-item" id="nav-referral" onclick="switchTab('referral')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Parrainage</span>
+      </button>
     </div>
     <button class="sidebar-logout" onclick="logout()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1320,6 +1324,48 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <button class="btn btn-sm" onclick="loadHistory()">↻ Actualiser</button>
     </div>
     <div id="history-list-spins"><div class="loader">Chargement...</div></div>
+  </div>
+
+
+  <!-- PARRAINAGE -->
+  <div id="panel-referral" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Parrainage</div>
+    </div>
+
+    <!-- Config tokens -->
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">Récompense par parrainage</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Parrain reçoit</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input id="ref-tokens-parrain" type="number" min="1" max="50" value="3"
+              style="width:60px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:6px;text-align:center;outline:none">
+            <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">◈ tokens</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Filleul reçoit</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input id="ref-tokens-filleul" type="number" min="1" max="50" value="3"
+              style="width:60px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:6px;text-align:center;outline:none">
+            <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">◈ tokens</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-accent btn-sm" onclick="saveReferralConfig()" style="width:100%;justify-content:center">Enregistrer</button>
+    </div>
+
+    <!-- Stats globales -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px" id="ref-stats-grid">
+      <div class="stat-card blue"><div class="stat-label">Parrainages</div><div class="stat-value" id="ref-stat-total">—</div><div class="stat-sub">total</div></div>
+      <div class="stat-card token"><div class="stat-label">Tokens distribués</div><div class="stat-value" id="ref-stat-tokens">—</div><div class="stat-sub">via parrainage</div></div>
+    </div>
+
+    <!-- Liste parrainages -->
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">Historique des parrainages</div>
+    <div id="ref-list"><div class="loader">Chargement...</div></div>
   </div>
 
   </div><!-- end admin-body -->
@@ -1831,8 +1877,8 @@ function fmtDate(iso){
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards"];
-const NAV_ITEMS=["home","clients","orders","cases","more","history","stamp_rewards","products","offers","challenges","stats"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards","referral"];
+const NAV_ITEMS=["home","clients","orders","cases","more","history","stamp_rewards","products","offers","challenges","stats","referral"];
 
 function switchTab(tab){
   ALL_PANELS.forEach(t=>{
@@ -1859,6 +1905,7 @@ function switchTab(tab){
   if(tab==="cases")loadCasesAdmin();
   if(tab==="stamp_rewards")loadStampRewards();
   if(tab==="history")loadHistory();
+  if(tab==="referral")loadReferral();
 }
 
 async function loadHome(){
@@ -1959,6 +2006,55 @@ async function doLogin(){
   loadClientView(data[0].id);
 }
 
+// ── PARRAINAGE ADMIN ──
+let referralConfig={parrain:3,filleul:3};
+
+async function loadReferral(){
+  // Load all clients with referred_by
+  const all=await dbGet(T_CLIENTS+"?order=created_at.desc");
+  if(!all)return;
+
+  // Build lookup map
+  const map={};
+  all.forEach(c=>map[c.id]=c);
+
+  // Filter filleuls (those who have referred_by set)
+  const filleuls=all.filter(c=>c.referred_by);
+
+  // Stats
+  document.getElementById("ref-stat-total").textContent=filleuls.length;
+  document.getElementById("ref-stat-tokens").textContent=filleuls.length*(referralConfig.parrain+referralConfig.filleul);
+
+  // List
+  const list=document.getElementById("ref-list");
+  if(!filleuls.length){
+    list.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun parrainage pour le moment</div>';
+    return;
+  }
+  list.innerHTML=filleuls.map(f=>{
+    const parrain=map[f.referred_by]||null;
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${ini(f.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${f.name}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">
+          Parrainé par <strong style="color:rgba(255,255,255,.7)">${parrain?parrain.name:"Inconnu"}</strong>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted)">${fmtDate(f.created_at)}</div>
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--token);margin-top:3px">+${referralConfig.filleul} ◈</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function saveReferralConfig(){
+  referralConfig.parrain=Math.max(1,parseInt(document.getElementById("ref-tokens-parrain").value)||3);
+  referralConfig.filleul=Math.max(1,parseInt(document.getElementById("ref-tokens-filleul").value)||3);
+  toast("Config parrainage enregistrée ✓");
+}
+
 function copyReferralCode(){
   const code=document.getElementById("cv-referral-code")?.textContent;
   if(!code||code==="—")return;
@@ -2004,8 +2100,9 @@ async function doSignup(){
   const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
   if(check&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
 
-  const REFERRAL_TOKENS=3; // tokens parrain + filleul
-  const newTokens=referredBy?REFERRAL_TOKENS:0;
+  const REFERRAL_TOKENS_FILLEUL=referralConfig?.filleul||3;
+  const REFERRAL_TOKENS_PARRAIN=referralConfig?.parrain||3;
+  const newTokens=referredBy?REFERRAL_TOKENS_FILLEUL:0;
   const res=await dbPost(T_CLIENTS,{
     name,phone,stamps:0,tokens:newTokens,total_stamps:0,
     referral_code:referralCode,
@@ -2017,11 +2114,11 @@ async function doSignup(){
       const parrainData=await dbGet(T_CLIENTS+"?id=eq."+referredBy+"&limit=1");
       if(parrainData&&parrainData.length){
         const curTok=parrainData[0].tokens||0;
-        await dbPatch(T_CLIENTS+"?id=eq."+referredBy,{tokens:curTok+REFERRAL_TOKENS});
+        await dbPatch(T_CLIENTS+"?id=eq."+referredBy,{tokens:curTok+REFERRAL_TOKENS_PARRAIN});
         await dbPost(T_TOKEN_LOGS,{client_id:referredBy,type:"earned"});
       }
       await dbPost(T_TOKEN_LOGS,{client_id:res[0].id,type:"earned"});
-      document.getElementById("signup-success").textContent=`Bienvenue ! +${REFERRAL_TOKENS} ◈ offerts 🎉`;
+      document.getElementById("signup-success").textContent=`Bienvenue ! +${REFERRAL_TOKENS_FILLEUL} ◈ offerts 🎉`;
     } else {
       document.getElementById("signup-success").textContent="Carte créée ! Redirection...";
     }
