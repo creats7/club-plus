@@ -828,7 +828,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .shop-qty-val{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:20px;text-align:center}
 .cv-how{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
 .cv-how-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px}
-.cv-how-icon{font-size:18px;flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border-radius:9px}
+.cv-how-icon{flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border-radius:9px;color:rgba(255,255,255,.55)}
 .cv-how-text{display:flex;flex-direction:column;gap:2px}
 .cv-how-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.02em}
 .cv-how-sub{font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;line-height:1.4}
@@ -1432,37 +1432,43 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <!-- Commande en cours -->
       <div id="cv-orders" style="display:none"></div>
 
+      <!-- CTA Commander -->
+      <button class="cv-cta-v2" onclick="switchClientTab('commandes')" style="justify-content:center;text-align:center;flex-direction:column;gap:4px">
+        <div class="cv-cta-v2-title">Voir les puffs 👀</div>
+        <div class="cv-cta-v2-sub">Une puff = une récompense</div>
+      </button>
+
 
       <!-- Comment ça marche -->
       <div class="cv-how">
         <div class="cv-how-item">
-          <div class="cv-how-icon">📦</div>
+          <div class="cv-how-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
           <div class="cv-how-text">
             <div class="cv-how-title">Achète</div>
             <div class="cv-how-sub">Chaque puff = 1 achat enregistré sur ta carte</div>
           </div>
         </div>
         <div class="cv-how-item">
-          <div class="cv-how-icon">◈</div>
+          <div class="cv-how-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+          </div>
           <div class="cv-how-text">
             <div class="cv-how-title">Gagne des tokens</div>
             <div class="cv-how-sub">À chaque palier atteint, tu reçois des tokens bonus</div>
           </div>
         </div>
         <div class="cv-how-item">
-          <div class="cv-how-icon">🗃</div>
+          <div class="cv-how-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 12v4"/><path d="M10 14h4"/></svg>
+          </div>
           <div class="cv-how-text">
             <div class="cv-how-title">Ouvre des caisses</div>
             <div class="cv-how-sub">Dépense tes tokens dans le shop pour tenter ta chance</div>
           </div>
         </div>
       </div>
-
-      <!-- CTA Commander -->
-      <button class="cv-cta-v2" onclick="switchClientTab('commandes')" style="justify-content:center;text-align:center;flex-direction:column;gap:4px">
-        <div class="cv-cta-v2-title">Voir les puffs 👀</div>
-        <div class="cv-cta-v2-sub">Une puff = une récompense</div>
-      </button>
 
       <!-- Changer de compte -->
       <div style="text-align:center;margin-top:14px">
