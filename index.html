@@ -1393,10 +1393,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </div>
           <div class="cv-xp-track">
             <div class="cv-xp-fill" id="cv-xp-fill" style="width:0%"></div>
-            <!-- Markers paliers bonus -->
             <div id="cv-xp-markers"></div>
           </div>
-          <div class="cv-xp-hint" id="cv-xp-hint"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+            <div class="cv-xp-hint" id="cv-xp-hint"></div>
+            <div id="cv-xp-end-reward" style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:rgba(255,255,255,.5)"></div>
+          </div>
         </div>
 
         <!-- Prochains paliers -->
@@ -2943,50 +2945,61 @@ async function loadClientView(id){
   const totalEl=document.getElementById("cv-total-xp");
   if(totalEl)totalEl.textContent=totalXP;
 
-  // Barre XP — construite depuis stamp_rewards (paliers = slots)
-  // Paliers = liste triée des slots configurés
+  // Paliers triés
   const sortedTiers=rewards.slice().sort((a,b)=>a.slot-b.slot);
 
-  // Trouver le palier actuel et suivant
+  // Palier actuel = dernier palier atteint (totalXP >= slot)
+  // Palier suivant = prochain slot non encore atteint (totalXP < slot)
+  // Achat 1 = palier 1 : on utilise totalXP strict (>= slot, pas >)
   const passedTiers=sortedTiers.filter(r=>totalXP>=r.slot);
   const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot);
-  const currentTierIdx=passedTiers.length; // combien on a dépassé
+  const currentTierIdx=passedTiers.length;
   const nextTier=upcomingTiers[0]||null;
   const prevTier=passedTiers[passedTiers.length-1]||null;
 
-  // Calcul progression entre prevTier et nextTier
-  let pct=0;
-  if(!nextTier){pct=100;}
-  else if(!prevTier){pct=Math.min(100,(totalXP/nextTier.slot)*100);}
-  else{pct=Math.min(100,((totalXP-prevTier.slot)/(nextTier.slot-prevTier.slot))*100);}
+  // Progression : de prevTier.slot (ou 0) vers nextTier.slot
+  const fromSlot=prevTier?prevTier.slot:0;
+  const toSlot=nextTier?nextTier.slot:(prevTier?prevTier.slot+10:10);
+  const pct=Math.min(100,Math.max(0,((totalXP-fromSlot)/(toSlot-fromSlot))*100));
+  const rem=nextTier?nextTier.slot-totalXP:0;
 
-  // Labels
+  // Labels paliers
   document.getElementById("cv-current-tier").textContent=currentTierIdx+1;
   document.getElementById("cv-next-tier").textContent=currentTierIdx+2;
+
+  // Remaining en vert
   const remEl=document.getElementById("cv-xp-remaining");
-  if(remEl)remEl.textContent=nextTier?nextTier.slot-totalXP:"0";
+  if(remEl)remEl.innerHTML=`<span style="color:#4ade80;font-weight:700">${rem}</span>`;
 
   // Hint
   const hint=document.getElementById("cv-xp-hint");
   if(hint){
-    if(nextTier)hint.innerHTML=`Palier ${currentTierIdx+2} → <strong>+${nextTier.tokens} ◈</strong> dans ${nextTier.slot-totalXP} achat${nextTier.slot-totalXP>1?"s":""}`;
+    if(nextTier)hint.innerHTML=`Prochain palier → <strong>+${nextTier.tokens} ◈</strong>`;
     else hint.innerHTML=`<span style="color:#4ade80">✓ Tous les paliers atteints !</span>`;
   }
 
-  // Barre fill
+  // Barre fill + récompense au bout
   const fillEl=document.getElementById("cv-xp-fill");
-  if(fillEl)setTimeout(()=>fillEl.style.width=pct+"%",100);
+  if(fillEl){
+    setTimeout(()=>{
+      fillEl.style.width=pct+"%";
+      // Couleur normale sauf si on atteint exactement le palier → flash vert
+      if(nextTier&&pct>=100){
+        fillEl.style.background="linear-gradient(90deg,rgba(74,222,128,.5),rgba(74,222,128,.9))";
+        fillEl.style.boxShadow="0 0 10px rgba(74,222,128,.4)";
+      } else {
+        fillEl.style.background="linear-gradient(90deg,rgba(255,255,255,.3),rgba(255,255,255,.7))";
+        fillEl.style.boxShadow="none";
+      }
+    },100);
+  }
 
-  // Markers sur la barre pour les prochains paliers
-  const markersEl=document.getElementById("cv-xp-markers");
-  if(markersEl&&nextTier&&prevTier){
-    const range=nextTier.slot-(prevTier?prevTier.slot:0);
-    markersEl.innerHTML=upcomingTiers.slice(0,4).map(t=>{
-      const tp=prevTier?((t.slot-prevTier.slot)/range)*100:((t.slot/nextTier.slot)*100);
-      const clamped=Math.min(98,Math.max(2,tp));
-      return `<div class="cv-xp-marker${t.tokens>1?" bonus":""}" style="left:${clamped}%;top:50%;transform:translate(-50%,-50%);position:absolute"></div>`;
-    }).join("");
-  }else if(markersEl)markersEl.innerHTML="";
+  // Récompense au bout de la barre
+  const markerEl=document.getElementById("cv-xp-end-reward");
+  if(markerEl){
+    markerEl.textContent=nextTier?`+${nextTier.tokens} ◈`:"✓";
+    markerEl.style.color=nextTier?"rgba(255,255,255,.6)":"#4ade80";
+  }
 
   // Prochains paliers (3 max)
   const nextTiersEl=document.getElementById("cv-next-tiers");
@@ -2995,7 +3008,7 @@ async function loadClientView(id){
     if(show.length){
       nextTiersEl.innerHTML=show.map((t,i)=>`
         <div class="cv-tier-row${i===0?" next":""}">
-          <span class="cv-tier-name${i===0?" next":""}">Palier ${currentTierIdx+1+i+1} — achat #${t.slot}</span>
+          <span class="cv-tier-name${i===0?" next":""}">Achat #${t.slot}</span>
           <span class="cv-tier-reward${i===0?" next":""}">+${t.tokens} ◈</span>
         </div>`).join("");
     }else nextTiersEl.innerHTML="";
