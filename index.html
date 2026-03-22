@@ -916,6 +916,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <input class="input" id="signup-name" placeholder="ex: Lucas Martin" />
         <label class="modal-label">Numéro de téléphone</label>
         <input class="input" id="signup-phone" placeholder="06 12 34 56 78" type="tel" />
+        <label class="modal-label">Code parrain <span style="color:rgba(255,255,255,.3);font-weight:400">(optionnel)</span></label>
+        <input class="input" id="signup-referral" placeholder="ex: LUCAS7" style="text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace" oninput="this.value=this.value.toUpperCase()" />
         <div class="reg-error" id="signup-error"></div>
         <div class="reg-success" id="signup-success"></div>
         <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doSignup()">Créer ma carte</button>
@@ -1391,6 +1393,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <div style="font-size:8px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-top:2px">achats</div>
           </div>
         </div>
+        <!-- Code parrainage -->
+        <div id="cv-referral-row" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:8px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px">Ton code parrain</div>
+            <div style="font-size:14px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.12em;color:#fff" id="cv-referral-code">—</div>
+          </div>
+          <button onclick="copyReferralCode()" style="background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif" id="cv-referral-copy-btn">Copier</button>
+        </div>
 
         <!-- XP Bar -->
         <div class="cv-xp-section">
@@ -1703,7 +1713,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="order-success-snap-icon">👻</div>
       <div>
         <div class="order-success-snap-label">Contacte-moi sur Snapchat</div>
-        <div class="order-success-snap-handle">mxnce.l</div>
+        <div class="order-success-snap-handle">crts.exe</div>
       </div>
     </div>
     <button onclick="document.getElementById('order-success-overlay').classList.remove('open')" class="btn-spin" style="width:100%;justify-content:center;margin-top:1.25rem;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;padding:14px;border-radius:12px">Super, merci !</button>
@@ -1949,9 +1959,25 @@ async function doLogin(){
   loadClientView(data[0].id);
 }
 
+function copyReferralCode(){
+  const code=document.getElementById("cv-referral-code")?.textContent;
+  if(!code||code==="—")return;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=document.getElementById("cv-referral-copy-btn");
+    if(btn){btn.textContent="Copié ✓";btn.style.color="#4ade80";setTimeout(()=>{btn.textContent="Copier";btn.style.color="#fff";},2000);}
+  }).catch(()=>toast("Code : "+code));
+}
+
+function genReferralCode(name){
+  const prefix=name.replace(/\s+/g,"").toUpperCase().slice(0,4).padEnd(4,"X");
+  const num=Math.floor(Math.random()*90+10);
+  return prefix+num;
+}
+
 async function doSignup(){
   const name=document.getElementById("signup-name").value.trim();
   const raw=document.getElementById("signup-phone").value.trim();
+  const refInput=document.getElementById("signup-referral").value.trim().toUpperCase();
   document.getElementById("signup-error").textContent="";
   document.getElementById("signup-success").textContent="";
   if(!name){document.getElementById("signup-error").textContent="Entre ton nom";return;}
@@ -1962,10 +1988,44 @@ async function doSignup(){
     document.getElementById("signup-error").textContent="Ce numéro est déjà inscrit — connecte-toi !";
     return;
   }
-  const res=await dbPost(T_CLIENTS,{name,phone,stamps:0,tokens:0,total_stamps:0});
+  // Vérifier code parrain
+  let referredBy=null;
+  if(refInput){
+    const parrain=await dbGet(T_CLIENTS+"?referral_code=eq."+encodeURIComponent(refInput)+"&limit=1");
+    if(!parrain||!parrain.length){
+      document.getElementById("signup-error").textContent="Code parrain invalide";
+      return;
+    }
+    referredBy=parrain[0].id;
+  }
+  // Générer code unique
+  let referralCode=genReferralCode(name);
+  // S'assurer qu'il est unique
+  const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
+  if(check&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
+
+  const REFERRAL_TOKENS=3; // tokens parrain + filleul
+  const newTokens=referredBy?REFERRAL_TOKENS:0;
+  const res=await dbPost(T_CLIENTS,{
+    name,phone,stamps:0,tokens:newTokens,total_stamps:0,
+    referral_code:referralCode,
+    referred_by:referredBy||null
+  });
   if(res&&res.length){
-    document.getElementById("signup-success").textContent="Carte créée ! Redirection...";
-    setTimeout(()=>loadClientView(res[0].id),1200);
+    // Récompenser le parrain
+    if(referredBy){
+      const parrainData=await dbGet(T_CLIENTS+"?id=eq."+referredBy+"&limit=1");
+      if(parrainData&&parrainData.length){
+        const curTok=parrainData[0].tokens||0;
+        await dbPatch(T_CLIENTS+"?id=eq."+referredBy,{tokens:curTok+REFERRAL_TOKENS});
+        await dbPost(T_TOKEN_LOGS,{client_id:referredBy,type:"earned"});
+      }
+      await dbPost(T_TOKEN_LOGS,{client_id:res[0].id,type:"earned"});
+      document.getElementById("signup-success").textContent=`Bienvenue ! +${REFERRAL_TOKENS} ◈ offerts 🎉`;
+    } else {
+      document.getElementById("signup-success").textContent="Carte créée ! Redirection...";
+    }
+    setTimeout(()=>loadClientView(res[0].id),1400);
   } else {
     document.getElementById("signup-error").textContent="Erreur — réessaie";
   }
@@ -2979,6 +3039,16 @@ async function loadClientView(id){
   // Nom client
   const nameEl=document.getElementById("cv-name-display");
   if(nameEl)nameEl.textContent=c.name||"—";
+
+  // Code parrainage
+  const refRow=document.getElementById("cv-referral-row");
+  const refCode=document.getElementById("cv-referral-code");
+  if(c.referral_code){
+    if(refRow)refRow.style.display="flex";
+    if(refCode)refCode.textContent=c.referral_code;
+  } else {
+    if(refRow)refRow.style.display="none";
+  }
 
   // Total achats
   const totalEl=document.getElementById("cv-total-xp");
