@@ -1,4 +1,4 @@
-const CACHE = "clubplus-v3";
+const CACHE = "clubplus-v4";
 const ASSETS = [
   "/club-plus/",
   "/club-plus/index.html",
@@ -21,9 +21,12 @@ self.addEventListener("activate", e => {
   );
 });
 
-// Ne JAMAIS cacher les requêtes API/données dynamiques
 self.addEventListener("fetch", e => {
   const url = e.request.url;
+
+  // Laisser passer TOUT ce qui contient un hash auth
+  if (url.includes("access_token") || url.includes("type=magiclink") || url.includes("type=recovery")) return;
+
   if (url.includes("supabase.co") || url.includes("/rest/") ||
       url.includes("googleapis") || url.includes("cdnjs") ||
       url.includes("jsdelivr") || e.request.method !== "GET") return;
