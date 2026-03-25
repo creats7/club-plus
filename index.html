@@ -1701,16 +1701,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="font-size:12px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em">Total</div>
         <div id="cart-total" style="font-size:26px;font-weight:800;font-family:'DM Mono',monospace;animation:greenGlow 2s ease-in-out infinite;color:#4ade80">0.00 €</div>
       </div>
-      <!-- Token reward preview -->
-      <div id="cart-token-preview" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;margin-bottom:12px">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Tu vas gagner</div>
-        <div id="cart-token-lines" style="display:flex;flex-direction:column;gap:4px"></div>
-        <div style="height:1px;background:rgba(255,255,255,.06);margin:8px 0"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:11px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace">Total tokens</div>
-          <div id="cart-token-total" style="font-size:16px;font-weight:800;font-family:'DM Mono',monospace;color:#fff">+0 ◈</div>
-        </div>
-      </div>
+
       <div id="cart-error" style="display:none;font-size:13px;font-weight:600;color:#f87171;font-family:'DM Mono',monospace;text-align:center;margin-bottom:10px;animation:redGlow 1.5s ease-in-out infinite"></div>
       <button style="width:100%;justify-content:center;font-size:15px;padding:15px;background:#fff;color:#0a0a0a;border:none;border-radius:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:block" onclick="submitCart()">
         Confirmer la commande
@@ -3589,36 +3580,6 @@ async function openCartSheet(){
 
   // Update total
   document.getElementById("cart-total").textContent=total.toFixed(2)+" €";
-
-  // Token reward preview
-  const rewards=await getStampRewards();
-  const currentXP=window._currentClientData?.total_stamps||0;
-  const puffCount=items.reduce((s,{qty})=>s+qty,0);
-  const sortedTiers=rewards.slice().sort((a,b)=>a.slot-b.slot);
-  let tokensEarned=0;
-  const bonusTiers=[];
-  for(let i=1;i<=puffCount;i++){
-    const nextXP=currentXP+i;
-    const tier=sortedTiers.find(t=>t.slot===nextXP);
-    const t=tier?tier.tokens:1;
-    tokensEarned+=t;
-    if(tier&&tier.tokens>1)bonusTiers.push({xp:nextXP,tokens:tier.tokens});
-  }
-  const preview=document.getElementById("cart-token-preview");
-  const lines=document.getElementById("cart-token-lines");
-  const tokenTotalEl=document.getElementById("cart-token-total");
-  if(preview&&lines&&tokenTotalEl){
-    preview.style.display="block";
-    lines.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.5)">${puffCount} puff${puffCount>1?"s":""} × 1 ◈</span>
-      <span style="font-size:12px;font-weight:600;font-family:'DM Mono',monospace;color:rgba(255,255,255,.7)">+${puffCount} ◈</span>
-    </div>`+bonusTiers.map(t=>`
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:11px;font-family:'DM Mono',monospace;color:#a78bfa">✦ Palier #${t.xp}</span>
-      <span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:#a78bfa">+${t.tokens-1} ◈ bonus</span>
-    </div>`).join("");
-    tokenTotalEl.textContent="+"+tokensEarned+" ◈";
-  }
 
   const totalQtyCheck=Object.values(cart).reduce((s,i)=>s+i.qty,0);
   const errEl=document.getElementById("cart-error");
