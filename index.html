@@ -3486,7 +3486,7 @@ async function loadClientShop(clientId){
     const rws=rewardsMap[ch.id]||[];
     const rwJson=JSON.stringify(rws.map(r=>({name:r.name,rarity:r.rarity||"common",image_url:r.image_url||null}))).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
 
-    return `<div class="hc-card ${cs?"coming-soon":"can-afford"}">
+    return `<div class="hc-card can-afford">
       <div class="hc-cover-wrap">
         ${ch.cover_url
           ?`<img class="hc-cover" src="${ch.cover_url}" style="${cs?"filter:blur(8px) brightness(0.4);pointer-events:none":""}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
@@ -3498,11 +3498,13 @@ async function loadClientShop(clientId){
       <div class="hc-info">
         <div style="flex:1;min-width:0">
           <div class="hc-title">${ch.name}</div>
-          ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}${!unlocked?` &nbsp;<span style="font-size:12px">🔒</span>`:""}</div>`
+          ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}${!unlocked&&!cs?` &nbsp;🔒`:""}</div>`
             :!cs&&!unlocked?`<div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin:3px 0 5px">Achat #${unlockAt} requis &nbsp;🔒</div>`:''}
-          ${cs?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6);margin-bottom:4px">Bientôt disponible</div>`
-            :unlocked?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:#4ade80;margin-bottom:4px">✓ Débloquée</div>`:''}
+          ${cs?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6);margin-bottom:4px">Bientôt disponible</div>`:''}
         </div>
+        ${!cs&&unlocked
+          ?`<button class="hc-open-btn" onclick="openCaseFree('${ch.id}')">Ouvrir →</button>`
+          :cs?``:`<div style="font-size:18px;opacity:.4">🔒</div>`}
       </div>
     </div>`;
   }).join("")+`</div>`;
@@ -3914,6 +3916,16 @@ function closeCaseInfo(){document.getElementById("case-info-overlay").classList.
 const RARITY_COLORS={common:"rgba(180,180,180,1)",rare:"rgba(75,145,255,1)",epic:"rgba(170,80,255,1)",legendary:"rgba(255,185,0,1)"};
 const RARITY_LABELS={common:"Commun",rare:"Rare",epic:"Épique",legendary:"Légendaire"};
 const HC_ITEM_W=104;
+async function openCaseFree(caseId){
+  if(!currentClientId)return;
+  // Create client_chest record then launch opening directly
+  const res=await dbPost(T_CLIENT_CHESTS,{client_id:currentClientId,chest_id:caseId,opened:false});
+  const clientChestId=res&&res[0]?.id;
+  if(!clientChestId){toast("Erreur — réessaie");return;}
+  selectedCaseId=caseId;pendingCaseClientId=clientChestId;
+  await openCaseOpening(caseId,clientChestId);
+}
+
 let selectedCaseId=null,pendingCaseClientId=null;
 
 let _pendingCaseId=null,_pendingCaseCost=0,_pendingCaseName="";
