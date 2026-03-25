@@ -1697,6 +1697,46 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<!-- ADMIN ORDER MODAL -->
+<div class="order-overlay" id="admin-order-overlay" onclick="closeAdminOrderModal()">
+  <div class="order-sheet" onclick="event.stopPropagation()">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-title">Réserver pour un client</div>
+    <div id="admin-order-client-info" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:rgba(255,255,255,.7)"></div>
+    <label class="modal-label">Produit(s) — description libre</label>
+    <input class="input" id="aom-product" placeholder="ex: JNR Fabublue 16K x2, Dragon Fruit x1" />
+    <label class="modal-label">Prix total (€)</label>
+    <input class="input" id="aom-price" type="number" min="0" step="0.01" placeholder="ex: 20.00" />
+    <label class="modal-label">Mode</label>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button id="aom-btn-livraison" onclick="setAdminOrderMode('livraison')"
+        style="flex:1;padding:9px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,.08);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+        🚚 Livraison
+      </button>
+      <button id="aom-btn-retrait" onclick="setAdminOrderMode('retrait')"
+        style="flex:1;padding:9px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+        📍 Retrait
+      </button>
+    </div>
+    <div id="aom-address-block">
+      <label class="modal-label">Adresse de livraison</label>
+      <input class="input" id="aom-address" placeholder="ex: 12 rue de la Paix, Melun" />
+    </div>
+    <label class="modal-label">Créneau</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <input class="input" id="aom-date" type="date" style="margin-bottom:0" />
+      <input class="input" id="aom-time" type="time" style="margin-bottom:0" />
+    </div>
+    <label class="modal-label">Note (optionnel)</label>
+    <input class="input" id="aom-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
+    <div class="reg-error" id="aom-error"></div>
+    <button style="width:100%;padding:13px;border-radius:12px;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px" onclick="submitAdminOrder()">
+      Confirmer la réservation
+    </button>
+    <button class="btn" style="width:100%;justify-content:center" onclick="closeAdminOrderModal()">Annuler</button>
+  </div>
+</div>
+
 <!-- ORDER MODAL (bottom sheet) -->
 <div class="order-overlay" id="order-overlay" onclick="closeOrderModal()">
   <div class="order-sheet" onclick="event.stopPropagation()">
@@ -2082,6 +2122,66 @@ async function saveReferralConfig(){
   toast("Config parrainage enregistrée ✓");
 }
 
+// ── ADMIN ORDER MODAL ──
+let _adminOrderClientId=null,_adminOrderMode="livraison";
+
+function openAdminOrderModal(clientId,name,phone){
+  _adminOrderClientId=clientId;
+  _adminOrderMode="livraison";
+  document.getElementById("admin-order-client-info").textContent=`${name}${phone?" · "+phone:""}`;
+  document.getElementById("aom-product").value="";
+  document.getElementById("aom-price").value="";
+  document.getElementById("aom-address").value="";
+  document.getElementById("aom-date").value="";
+  document.getElementById("aom-time").value="";
+  document.getElementById("aom-note").value="";
+  document.getElementById("aom-error").textContent="";
+  setAdminOrderMode("livraison");
+  document.getElementById("admin-order-overlay").classList.add("open");
+}
+
+function closeAdminOrderModal(){
+  document.getElementById("admin-order-overlay").classList.remove("open");
+}
+
+function setAdminOrderMode(mode){
+  _adminOrderMode=mode;
+  document.getElementById("aom-address-block").style.display=mode==="livraison"?"block":"none";
+  document.getElementById("aom-btn-livraison").style.background=mode==="livraison"?"rgba(255,255,255,.08)":"transparent";
+  document.getElementById("aom-btn-livraison").style.color=mode==="livraison"?"var(--text)":"var(--muted)";
+  document.getElementById("aom-btn-retrait").style.background=mode==="retrait"?"rgba(255,255,255,.08)":"transparent";
+  document.getElementById("aom-btn-retrait").style.color=mode==="retrait"?"var(--text)":"var(--muted)";
+}
+
+async function submitAdminOrder(){
+  const err=document.getElementById("aom-error");
+  const product=document.getElementById("aom-product").value.trim();
+  const price=parseFloat(document.getElementById("aom-price").value)||0;
+  const address=_adminOrderMode==="livraison"?document.getElementById("aom-address").value.trim():"Retrait sur place";
+  const date=document.getElementById("aom-date").value;
+  const time=document.getElementById("aom-time").value;
+  const note=document.getElementById("aom-note").value.trim();
+  if(!product){err.textContent="Décris le produit";return;}
+  const client=allClients.find(c=>c.id===_adminOrderClientId);
+  const pickup_slot=date&&time?`${new Date(date).toLocaleDateString("fr-FR")} à ${time}`:date?new Date(date).toLocaleDateString("fr-FR"):null;
+  await dbPost(T_ORDERS,{
+    client_id:_adminOrderClientId,
+    product_id:null,
+    product_name:product,
+    product_price:price||null,
+    quantity:1,
+    customer_name:client?.name||"",
+    customer_phone:client?.phone||"",
+    delivery_address:address||null,
+    pickup_slot,
+    note:note||null,
+    status:"confirmed"
+  });
+  closeAdminOrderModal();
+  toast("✓ Réservation créée — statut : Confirmée");
+  loadOrders();
+}
+
 function copyReferralCode(){
   const code=document.getElementById("cv-referral-code")?.textContent;
   if(!code||code==="—")return;
@@ -2303,6 +2403,7 @@ function renderList(cl){
           <button class="btn btn-sm" onclick="chg('${c.id}',${stamps},${c.tokens||0},-1)" ${stamps===0?"disabled":""}>−</button>
           <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)">+ Achat</button>
           <button class="btn btn-sm" style="color:var(--token);border-color:var(--token-border);background:var(--token-dim)" onclick="giveToken('${c.id}',${c.tokens||0})">◈ +1</button>
+          <button class="btn btn-sm" style="color:#a78bfa;border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08)" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
         </div>
       </div>`;
     list.appendChild(div);
