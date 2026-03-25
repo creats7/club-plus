@@ -2133,6 +2133,7 @@ async function doSignup(){
   err.textContent="";succ.textContent="";
   if(!name){err.textContent="Entre ton prénom";return;}
   if(!email||!email.includes("@")){err.textContent="Entre une adresse email valide";return;}
+  try{
   // Check not already registered
   const existing=await dbGet(T_CLIENTS+"?email=eq."+encodeURIComponent(email)+"&limit=1");
   if(existing&&existing.length){err.textContent="Email déjà inscrit — connecte-toi !";return;}
@@ -2156,7 +2157,10 @@ async function doSignup(){
     name,email,phone:null,stamps:0,tokens:newTokens,total_stamps:0,
     referral_code:referralCode,referred_by:referredBy||null
   });
-  if(!res||!res.length){err.textContent="Erreur création — réessaie";return;}
+  if(!res||!res.length){
+    err.textContent=res?.message||res?.code?"Erreur: "+(res?.message||res?.code):"Erreur création — vérifie que la colonne 'email' existe dans Supabase";
+    return;
+  }
   // Reward parrain
   if(referredBy){
     const parrainData=await dbGet(T_CLIENTS+"?id=eq."+referredBy+"&limit=1");
@@ -2175,6 +2179,11 @@ async function doSignup(){
     localStorage.setItem("clubplus_pending_email",email);
   } else {
     err.textContent="Compte créé mais erreur d'envoi. Connecte-toi avec ton email.";
+  }
+  }catch(e){
+    document.getElementById("signup-error").textContent="Erreur : "+e.message;
+    document.getElementById("signup-btn").disabled=false;
+    document.getElementById("signup-btn").textContent="Créer ma carte";
   }
 }
 
