@@ -1505,7 +1505,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div style="height:1px;background:rgba(255,255,255,.06);margin:14px 0"></div>
           <button onclick="switchClientTab('shop')" style="width:100%;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:12px 16px;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:space-between;animation:plusGlow 2s ease-in-out infinite">
             <div style="display:flex;align-items:center;gap:10px">
-              <span style="font-size:20px">🎁</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 12v4"/><path d="M10 14h4"/></svg>
               <div style="text-align:left">
                 <div style="font-size:14px;font-weight:800;letter-spacing:-.02em" id="cv-chests-count-label">1 caisse à ouvrir</div>
                 <div style="font-size:10px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;margin-top:1px">Appuie pour ouvrir</div>
@@ -3355,7 +3355,7 @@ async function loadClientView(id){
   if(hint){
     if(nextTier&&nextTier.chest_id){
       const cn=chestNameMap[nextTier.chest_id]||"une caisse";
-      hint.innerHTML=`Prochain palier → <strong>🎁 ${cn}</strong>`;
+      hint.innerHTML=`Prochain palier → <strong>${cn}</strong>`;
     } else if(nextTier){
       hint.innerHTML=`Prochain palier dans <strong>${rem} achat${rem>1?"s":""}</strong>`;
     } else {
@@ -3374,7 +3374,7 @@ async function loadClientView(id){
   const markerEl=document.getElementById("cv-xp-end-reward");
   if(markerEl){
     const nextChestName=nextTier?.chest_id?chestNameMap[nextTier.chest_id]:null;
-    markerEl.textContent=nextChestName?"🎁":"✓";
+    markerEl.textContent="✓";
     markerEl.style.color=nextTier?"rgba(255,255,255,.6)":"#4ade80";
     markerEl.title=nextChestName||"";
   }
@@ -3903,7 +3903,7 @@ function openCaseInfo(name,rwJson){
     <div class="case-info-row">
       ${r.image_url
         ?`<img class="case-info-img" src="${r.image_url}" onerror="this.style.display='none'">`
-        :`<div class="case-info-img-ph">🎁</div>`}
+        :`<div class="case-info-img-ph">🗃</div>`}
       <div class="case-info-name">${r.name}</div>
       <div class="case-info-rarity" style="color:${RCOL[r.rarity||'common']}">${RLBL[r.rarity||'common']}</div>
     </div>`).join("");
@@ -4331,7 +4331,7 @@ async function showWheelResult(){
     res.textContent="✦ "+spinResult.name;
   }
   res.style.color="var(--text)";res.style.display="block";
-  document.getElementById("wheel-result-sub").textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Montre ce résultat pour récupérer ton lot 🎁";
+  document.getElementById("wheel-result-sub").textContent=isLosing?"Pas de chance cette fois… retente !":"Bonus débloqué ! Montre ce résultat pour récupérer ton lot 🗃";
   document.getElementById("wheel-result-sub").style.display="block";
   document.getElementById("wheel-spin-btn").style.display="none";
   document.getElementById("wheel-close-btn").style.display="inline-flex";
