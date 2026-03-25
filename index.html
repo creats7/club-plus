@@ -1337,10 +1337,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- STAMP REWARDS ADMIN -->
   <div id="panel-stamp_rewards" style="display:none">
     <div class="panel-header">
-      <div class="panel-title">Tokens par palier</div>
-      <button class="btn btn-accent btn-sm" onclick="saveStampRewards()">💾 Enregistrer</button>
+      <div class="panel-title">Paliers — Caisses</div>
     </div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Configure les paliers XP — à chaque achat correspondant au palier, le client gagne les tokens définis.</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5">À chaque palier atteint, une caisse est débloquée pour le client.</p>
     <div id="stamp-rewards-list"></div>
   </div>
 
@@ -2439,7 +2438,7 @@ async function saveEdit(){
 let stampRewardsCache=null;
 async function getStampRewards(){
   if(!stampRewardsCache){
-    const d=await dbGet(T_STAMP_REWARDS+"?order=slot.asc");
+    const d=await dbGet(T_STAMP_REWARDS+"?order=slot.asc&select=slot,tokens,chest_id");
     stampRewardsCache=d||[];
   }
   return stampRewardsCache;
@@ -3324,19 +3323,21 @@ async function loadClientView(id){
   const totalEl=document.getElementById("cv-total-xp");
   if(totalEl)totalEl.textContent=totalXP;
 
-  // Paliers triés
+  // Paliers triés — fetch chest names for tiers that have chest_id
   const sortedTiers=rewards.slice().sort((a,b)=>a.slot-b.slot);
+  const tierChestIds=[...new Set(sortedTiers.filter(t=>t.chest_id).map(t=>t.chest_id))];
+  const chestNameMap={};
+  if(tierChestIds.length){
+    const chestData=await dbGet(T_CHESTS+"?id=in.("+tierChestIds.join(",")+")"+"&select=id,name");
+    (chestData||[]).forEach(ch=>chestNameMap[ch.id]=ch.name);
+  }
 
-  // Palier actuel = dernier palier atteint (totalXP >= slot)
-  // Palier suivant = prochain slot non encore atteint (totalXP < slot)
-  // Achat 1 = palier 1 : on utilise totalXP strict (>= slot, pas >)
   const passedTiers=sortedTiers.filter(r=>totalXP>=r.slot);
   const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot);
   const currentTierIdx=passedTiers.length;
   const nextTier=upcomingTiers[0]||null;
   const prevTier=passedTiers[passedTiers.length-1]||null;
 
-  // Progression : de prevTier.slot (ou 0) vers nextTier.slot
   const fromSlot=prevTier?prevTier.slot:0;
   const toSlot=nextTier?nextTier.slot:(prevTier?prevTier.slot+10:10);
   const pct=Math.min(100,Math.max(0,((totalXP-fromSlot)/(toSlot-fromSlot))*100));
@@ -3346,54 +3347,60 @@ async function loadClientView(id){
   document.getElementById("cv-current-tier").textContent=currentTierIdx+1;
   document.getElementById("cv-next-tier").textContent=currentTierIdx+2;
 
-  // Remaining en vert
   const remEl=document.getElementById("cv-xp-remaining");
   if(remEl)remEl.innerHTML=`<span style="color:#4ade80;font-weight:700">${rem}</span>`;
 
-  // Hint
+  // Hint — montre la caisse à débloquer
   const hint=document.getElementById("cv-xp-hint");
   if(hint){
-    if(nextTier)hint.innerHTML=`Prochain palier → <strong>+${nextTier.tokens} ◈</strong>`;
-    else hint.innerHTML=`<span style="color:#4ade80">✓ Tous les paliers atteints !</span>`;
+    if(nextTier&&nextTier.chest_id){
+      const cn=chestNameMap[nextTier.chest_id]||"une caisse";
+      hint.innerHTML=`Prochain palier → <strong>🎁 ${cn}</strong>`;
+    } else if(nextTier){
+      hint.innerHTML=`Prochain palier dans <strong>${rem} achat${rem>1?"s":""}</strong>`;
+    } else {
+      hint.innerHTML=`<span style="color:#4ade80">✓ Tous les paliers atteints !</span>`;
+    }
   }
 
-  // Barre fill + récompense au bout
+  // Barre fill
   const fillEl=document.getElementById("cv-xp-fill");
-  if(fillEl){
-    setTimeout(()=>{
-      fillEl.style.width=pct+"%";
-      fillEl.style.background="linear-gradient(90deg,rgba(255,255,255,.3),rgba(255,255,255,.7))";
-    },100);
-  }
+  if(fillEl)setTimeout(()=>{
+    fillEl.style.width=pct+"%";
+    fillEl.style.background="linear-gradient(90deg,rgba(255,255,255,.3),rgba(255,255,255,.7))";
+  },100);
 
   // Récompense au bout de la barre
   const markerEl=document.getElementById("cv-xp-end-reward");
   if(markerEl){
-    markerEl.textContent=nextTier?`+${nextTier.tokens} ◈`:"✓";
+    const nextChestName=nextTier?.chest_id?chestNameMap[nextTier.chest_id]:null;
+    markerEl.textContent=nextChestName?"🎁":"✓";
     markerEl.style.color=nextTier?"rgba(255,255,255,.6)":"#4ade80";
+    markerEl.title=nextChestName||"";
   }
 
-  // Prochains paliers (3 max)
+  // Prochains paliers avec nom de caisse
   const nextTiersEl=document.getElementById("cv-next-tiers");
   if(nextTiersEl){
-    const show=upcomingTiers.slice(0,3);
+    const show=upcomingTiers.filter(t=>t.chest_id).slice(0,3);
     if(show.length){
-      nextTiersEl.innerHTML=show.map((t,i)=>`
-        <div class="cv-tier-row${i===0?" next":""}">
+      nextTiersEl.innerHTML=show.map((t,i)=>{
+        const cn=chestNameMap[t.chest_id]||"Caisse";
+        return `<div class="cv-tier-row${i===0?" next":""}">
           <span class="cv-tier-name${i===0?" next":""}">Achat #${t.slot}</span>
-          <span class="cv-tier-reward${i===0?" next":""}">+${t.tokens} ◈</span>
-        </div>`).join("");
+          <span class="cv-tier-reward${i===0?" next":""}">🎁 ${cn}</span>
+        </div>`;
+      }).join("");
     }else nextTiersEl.innerHTML="";
   }
 
-  // Caisses disponibles selon paliers
-  const allCases=await dbGet(T_CHESTS+"?active=eq.true&coming_soon=eq.false&order=cost.asc");
-  const availableChests=(allCases||[]).filter(ch=>totalXP>=(ch.cost||1));
+  // Caisses débloquées = paliers atteints avec chest_id
+  const unlockedChestIds=passedTiers.filter(t=>t.chest_id).map(t=>t.chest_id);
   const chestsEl=document.getElementById("cv-chests-available");
   const chestsLabel=document.getElementById("cv-chests-count-label");
   if(chestsEl){
-    chestsEl.style.display=availableChests.length>0?"block":"none";
-    if(chestsLabel)chestsLabel.textContent=availableChests.length+" caisse"+(availableChests.length>1?"s":"")+" à découvrir";
+    chestsEl.style.display=unlockedChestIds.length>0?"block":"none";
+    if(chestsLabel)chestsLabel.textContent=unlockedChestIds.length+" caisse"+(unlockedChestIds.length>1?"s":"")+" débloquée"+(unlockedChestIds.length>1?"s":"");
   }
 
 
@@ -4325,37 +4332,47 @@ async function openWheelShop(cost){
 }
 
 async function loadStampRewards(){
-  const rewards=await dbGet(T_STAMP_REWARDS+"?order=slot.asc");
+  const [rewards, chests]=await Promise.all([
+    dbGet(T_STAMP_REWARDS+"?order=slot.asc"),
+    dbGet(T_CHESTS+"?active=eq.true&order=cost.asc&select=id,name,cover_url")
+  ]);
   invalidateStampCache();
   const list=document.getElementById("stamp-rewards-list");
   if(!list)return;
+
+  const chestOptions=(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
+
   list.innerHTML=(rewards||[]).map(r=>`
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
       <div style="width:40px;height:40px;border-radius:9px;background:rgba(255,255,255,.07);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;flex-shrink:0;color:var(--text)">#${r.slot}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">Achat n°${r.slot}</div>
-        <div style="font-size:11px;color:var(--muted)">Palier XP</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px">Achat n°${r.slot}</div>
+        <select data-slot="${r.slot}" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px;outline:none">
+          <option value="">— Aucune caisse —</option>
+          ${(chests||[]).map(ch=>`<option value="${ch.id}" ${r.chest_id===ch.id?"selected":""}>${ch.name}</option>`).join("")}
+        </select>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <input data-slot="${r.slot}" type="number" min="0" max="99" value="${r.tokens}"
-          style="width:52px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;font-weight:700;padding:5px;outline:none" />
-        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">◈</div>
-        <button onclick="deleteTier(${r.slot})" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(248,113,113,.25);background:rgba(248,113,113,.06);color:var(--danger);font-size:14px;cursor:pointer">✕</button>
-      </div>
+      <button onclick="deleteTier(${r.slot})" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(248,113,113,.25);background:rgba(248,113,113,.06);color:var(--danger);font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
     </div>`).join("")+`
   <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
-    <input id="sr-new-slot" type="number" min="1" placeholder="Palier (ex: 25)" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px;font-family:'DM Mono',monospace;font-size:13px;outline:none">
-    <input id="sr-new-tokens" type="number" min="1" max="99" placeholder="◈" style="width:60px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px;text-align:center;font-family:'DM Mono',monospace;font-size:13px;outline:none">
-    <button onclick="addTier()" class="btn btn-accent btn-sm">+ Ajouter</button>
+    <input id="sr-new-slot" type="number" min="1" placeholder="Palier n°" style="width:90px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px;font-family:'DM Mono',monospace;font-size:13px;outline:none;flex-shrink:0">
+    <select id="sr-new-chest" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px;font-family:'DM Mono',monospace;font-size:12px;outline:none">
+      <option value="">— Choisir une caisse —</option>
+      ${chestOptions}
+    </select>
+    <button onclick="addTier()" class="btn btn-accent btn-sm" style="flex-shrink:0">+ Ajouter</button>
+  </div>
+  <div style="margin-top:8px">
+    <button onclick="saveStampRewards()" class="btn btn-accent" style="width:100%;justify-content:center">💾 Enregistrer</button>
   </div>`;
 }
 
 async function saveStampRewards(){
-  const inputs=document.querySelectorAll("#stamp-rewards-list input[data-slot]");
-  for(const inp of inputs){
-    const slot=parseInt(inp.dataset.slot);
-    const tokens=Math.max(1,parseInt(inp.value)||1);
-    await dbPatch(T_STAMP_REWARDS+"?slot=eq."+slot,{tokens});
+  const selects=document.querySelectorAll("#stamp-rewards-list select[data-slot]");
+  for(const sel of selects){
+    const slot=parseInt(sel.dataset.slot);
+    const chest_id=sel.value||null;
+    await dbPatch(T_STAMP_REWARDS+"?slot=eq."+slot,{chest_id});
   }
   invalidateStampCache();
   toast("Paliers enregistrés ✓");
@@ -4363,19 +4380,20 @@ async function saveStampRewards(){
 
 async function addTier(){
   const slotEl=document.getElementById("sr-new-slot");
-  const tokEl=document.getElementById("sr-new-tokens");
+  const chestEl=document.getElementById("sr-new-chest");
   const slot=parseInt(slotEl.value);
-  const tokens=Math.max(1,parseInt(tokEl.value)||1);
+  const chest_id=chestEl.value||null;
   if(!slot||slot<1){toast("Entre un numéro de palier valide");return;}
-  await dbPost(T_STAMP_REWARDS,{slot,tokens});
+  if(!chest_id){toast("Choisis une caisse");return;}
+  await dbPost(T_STAMP_REWARDS,{slot,tokens:1,chest_id});
   invalidateStampCache();
-  slotEl.value="";tokEl.value="";
+  slotEl.value="";chestEl.value="";
   toast("Palier "+slot+" ajouté ✓");
   loadStampRewards();
 }
 
 async function deleteTier(slot){
-  await fetch(T_STAMP_REWARDS+"?slot=eq."+slot,{method:"DELETE",headers:{...HEADERS,"Prefer":"return=minimal"}});
+  await fetch(T_STAMP_REWARDS+"?slot=eq."+slot,{method:"DELETE",headers:{...H,"Prefer":"return=minimal"}});
   invalidateStampCache();
   toast("Palier supprimé");
   loadStampRewards();
