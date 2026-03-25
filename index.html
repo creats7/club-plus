@@ -1501,18 +1501,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <!-- Séparateur -->
         <div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0 14px"></div>
 
-        <!-- Wallet tokens + bouton -->
-        <div class="cv-wallet-row">
-          <div class="cv-wallet-left">
-            <div class="cv-wallet-icon">◈</div>
-            <div>
-              <div class="cv-wallet-count" id="cv-token-count">0</div>
-              <div class="cv-wallet-lbl">tokens disponibles</div>
+        <!-- Caisses disponibles -->
+        <div id="cv-chests-available" style="display:none">
+          <div style="height:1px;background:rgba(255,255,255,.06);margin:14px 0"></div>
+          <button onclick="switchClientTab('shop')" style="width:100%;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:12px 16px;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:space-between;animation:plusGlow 2s ease-in-out infinite">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">🎁</span>
+              <div style="text-align:left">
+                <div style="font-size:14px;font-weight:800;letter-spacing:-.02em" id="cv-chests-count-label">1 caisse à ouvrir</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;margin-top:1px">Appuie pour ouvrir</div>
+              </div>
             </div>
-          </div>
-          <button class="cv-wallet-btn" onclick="switchClientTab('shop')">
-            Dépenser
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>
@@ -1566,18 +1566,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <!-- ── SECTION SHOP (cases) ── -->
     <div class="cv-section" id="cvs-shop">
-      <!-- Solde tokens -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div>
-          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Mon solde</div>
-          <div style="font-family:'DM Mono',monospace;font-size:26px;font-weight:700;line-height:1" id="cv-shop-tokens">0</div>
-          <div style="font-size:11px;color:var(--muted)">tokens</div>
-        </div>
-        <div style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:22px">◈</div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px">Les caisses</div>
+        <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Se débloquent par palier d'achats</div>
       </div>
       <div id="cv-shop-items"></div>
       <div id="cv-shop-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:3rem 0">
-        Accumule des tokens pour ouvrir des cases !
+        Aucune caisse disponible
       </div>
     </div>
 
@@ -1627,7 +1622,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="cv-nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
       </div>
-      <div class="cv-nav-label">Shop</div>
+      <div class="cv-nav-label">Caisses</div>
       <div class="cv-nav-badge" id="cvnav-badge-shop" style="display:none"></div>
     </button>
   </nav>
@@ -3400,8 +3395,15 @@ async function loadClientView(id){
     }else nextTiersEl.innerHTML="";
   }
 
-  // Wallet tokens
-  document.getElementById("cv-token-count").textContent=tokens;
+  // Caisses disponibles selon paliers
+  const allCases=await dbGet(T_CHESTS+"?active=eq.true&coming_soon=eq.false&order=cost.asc");
+  const availableChests=(allCases||[]).filter(ch=>totalXP>=(ch.cost||1));
+  const chestsEl=document.getElementById("cv-chests-available");
+  const chestsLabel=document.getElementById("cv-chests-count-label");
+  if(chestsEl){
+    chestsEl.style.display=availableChests.length>0?"block":"none";
+    if(chestsLabel)chestsLabel.textContent=availableChests.length+" caisse"+(availableChests.length>1?"s":"")+" à découvrir";
+  }
 
 
 
@@ -3434,72 +3436,55 @@ async function loadClientView(id){
 
 // ── SHOP TOKENS ──
 async function loadClientShop(clientId){
-  const cData=await dbGet(T_CLIENTS+"?id=eq."+clientId+"&select=tokens");
-  if(!cData||!cData.length)return;
-  const tokens=cData[0].tokens||0;
-  document.getElementById("cv-shop-tokens").textContent=tokens;
-  document.getElementById("cv-token-count").textContent=tokens;
-
-  await loadShopConfig();
+  const totalXP=window._currentClientData?.total_stamps||0;
   const cases=await dbGet(T_CHESTS+"?active=eq.true&order=cost.asc");
+  // Get tier config — cost field = palier XP requis
+  const container=document.getElementById("cv-shop-items");
+  const empty=document.getElementById("cv-shop-empty");
+  if(!cases||!cases.length){empty.style.display="block";container.innerHTML="";return;}
+  empty.style.display="none";
+
+  const rewardsMap={};
+  await Promise.all(cases.map(async ch=>{
+    const rarityOrder={legendary:0,epic:1,rare:2,common:3};
+    const rw=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+ch.id);
+    rewardsMap[ch.id]=(rw||[]).sort((a,b)=>(rarityOrder[a.rarity||"common"]||3)-(rarityOrder[b.rarity||"common"]||3));
+  }));
+
+  container.innerHTML=`<div class="hc-grid">`+cases.map(ch=>{
+    const cs=!!ch.coming_soon;
+    const unlockAt=ch.cost||1; // cost = palier requis
+    const unlocked=totalXP>=unlockAt;
+    const rws=rewardsMap[ch.id]||[];
+    const rwJson=JSON.stringify(rws.map(r=>({name:r.name,rarity:r.rarity||"common",image_url:r.image_url||null}))).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+
+    return `<div class="hc-card ${cs?"coming-soon":unlocked?"can-afford":"cant-afford"}" style="${!unlocked&&!cs?"opacity:.5":""}">
+      <div class="hc-cover-wrap">
+        ${ch.cover_url
+          ?`<img class="hc-cover" src="${ch.cover_url}" style="${cs||!unlocked?"filter:blur(8px) brightness(0.4);pointer-events:none":""}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
+          :`<div class="hc-cover-ph" style="${cs||!unlocked?"filter:blur(6px) brightness(0.4)":""}">🗃</div>`}
+        ${cs?`<div class="hc-coming-badge">✦ Coming Soon</div>`
+          :!unlocked?`<div class="hc-coming-badge" style="background:rgba(0,0,0,.8);font-size:10px">🔒 Palier ${unlockAt}</div>`
+          :`<button class="hc-info-btn" onclick="event.stopPropagation();openCaseInfo('${ch.name.replace(/'/g,"\\'")}','${rwJson}')" title="Voir le contenu">i</button>`}
+      </div>
+      <div class="hc-info">
+        <div style="flex:1;min-width:0">
+          <div class="hc-title">${ch.name}</div>
+          ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}</div>`:''}
+          ${cs?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6);margin-bottom:4px">Bientôt disponible</div>`
+            :unlocked?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:#4ade80;margin-bottom:4px">✓ Débloquée</div>`
+            :`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-bottom:4px">Achat #${unlockAt} requis</div>`}
+        </div>
+        <button class="hc-info-btn" style="position:static;width:auto;height:auto;padding:6px 10px;border-radius:8px;font-size:11px;${cs||!unlocked?"opacity:.3;cursor:not-allowed":""}" ${cs||!unlocked?"disabled":""} onclick="${!cs&&unlocked?`openCaseInfo('${ch.name.replace(/'/g,"\\'")}','${rwJson}')`:""}">${cs?"Soon":unlocked?"Voir →":"🔒"}</button>
+      </div>
+    </div>`;
+  }).join("")+`</div>`;
+}
 
   const container=document.getElementById("cv-shop-items");
   const empty=document.getElementById("cv-shop-empty");
   empty.style.display="none";
 
-  let html="";
-
-  // ── Caisses ──
-  if(cases&&cases.length){
-    // Fetch rewards for all cases in parallel
-    const rewardsMap={};
-    await Promise.all(cases.map(async ch=>{
-      const rarityOrder={legendary:0,epic:1,rare:2,common:3};
-      const rw=await dbGet(T_CHEST_REWARDS+"?chest_id=eq."+ch.id);
-      rewardsMap[ch.id]=(rw||[]).sort((a,b)=>(rarityOrder[a.rarity||"common"]||3)-(rarityOrder[b.rarity||"common"]||3));
-    }));
-
-    html+=`<div class="hc-grid">`;
-    cases.forEach(ch=>{
-      const cost=ch.cost||1;
-      const canAfford=tokens>=cost;
-      const rws=rewardsMap[ch.id]||[];
-      const RCOL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(180,180,180,0.6)"};
-      const RLBL={legendary:"Légendaire",epic:"Épique",rare:"Rare",common:"Commun"};
-      // build escaped rewards JSON for info modal
-      const rwJson=JSON.stringify(rws.map(r=>({name:r.name,rarity:r.rarity||"common",image_url:r.image_url||null}))).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
-      const cs=!!ch.coming_soon;
-      html+=`<div class="hc-card ${cs?"coming-soon":canAfford?"can-afford":"cant-afford"}" onclick="${(!cs&&canAfford)?`openCaseShop('${ch.id}',${cost})`:""}">
-        <div class="hc-cover-wrap">
-          ${ch.cover_url
-            ?`<img class="hc-cover" src="${ch.cover_url}" style="${cs?"filter:blur(10px) brightness(0.4);pointer-events:none":""}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
-            :`<div class="hc-cover-ph" style="${cs?"filter:blur(6px) brightness(0.4)":""}">🗃</div>`}
-          <div class="hc-cover-glow"></div>
-          ${cs
-            ?`<div class="hc-coming-badge">✦ Coming Soon</div>`
-            :`<button class="hc-info-btn" onclick="event.stopPropagation();openCaseInfo('${ch.name.replace(/'/g,"\\'")}','${rwJson}')" title="Voir le contenu">i</button>`
-          }
-        </div>
-        <div class="hc-info">
-          <div style="flex:1;min-width:0">
-            <div class="hc-title">${ch.name}</div>
-            ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}</div>`:''}
-            ${cs?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6);margin-bottom:4px">Bientôt disponible</div>`:''}
-            <div class="hc-cost" style="${cs?"opacity:.4":""}"><span class="hc-cost-val">${cost}</span>&nbsp;◈ token${cost>1?"s":""}</div>
-          </div>
-          <button class="hc-open-btn" ${cs?"disabled style=\"opacity:.3;cursor:not-allowed\"":canAfford?"":"disabled style=\"opacity:.4;cursor:not-allowed\""}>
-            ${cs?"Bientôt":canAfford?"Ouvrir →":"Insuffisant"}
-          </button>
-        </div>
-      </div>`;
-    });
-    html+=`</div>`;
-  } else {
-    html=`<div style="text-align:center;color:var(--muted);font-size:13px;padding:3rem 0;opacity:.5">Aucune caisse disponible</div>`;
-  }
-
-  container.innerHTML=html;
-}
 
 
 
