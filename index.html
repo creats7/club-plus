@@ -3439,22 +3439,27 @@ async function loadClientShop(clientId){
       const RLBL={legendary:"Légendaire",epic:"Épique",rare:"Rare",common:"Commun"};
       // build escaped rewards JSON for info modal
       const rwJson=JSON.stringify(rws.map(r=>({name:r.name,rarity:r.rarity||"common",image_url:r.image_url||null}))).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
-      html+=`<div class="hc-card ${canAfford?"can-afford":"cant-afford"}" onclick="${canAfford?`openCaseShop('${ch.id}',${cost})`:""}">
+      const cs=!!ch.coming_soon;
+      html+=`<div class="hc-card ${cs?"coming-soon":canAfford?"can-afford":"cant-afford"}" onclick="${(!cs&&canAfford)?`openCaseShop('${ch.id}',${cost})`:""}">
         <div class="hc-cover-wrap">
           ${ch.cover_url
-            ?`<img class="hc-cover" src="${ch.cover_url}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
-            :`<div class="hc-cover-ph">🗃</div>`}
+            ?`<img class="hc-cover" src="${ch.cover_url}" style="${cs?"filter:blur(10px) brightness(0.4);pointer-events:none":""}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
+            :`<div class="hc-cover-ph" style="${cs?"filter:blur(6px) brightness(0.4)":""}">🗃</div>`}
           <div class="hc-cover-glow"></div>
-          <button class="hc-info-btn" onclick="event.stopPropagation();openCaseInfo('${ch.name.replace(/'/g,"\\'")}','${rwJson}')" title="Voir le contenu">i</button>
+          ${cs
+            ?`<div class="hc-coming-badge">✦ Coming Soon</div>`
+            :`<button class="hc-info-btn" onclick="event.stopPropagation();openCaseInfo('${ch.name.replace(/'/g,"\\'")}','${rwJson}')" title="Voir le contenu">i</button>`
+          }
         </div>
         <div class="hc-info">
           <div style="flex:1;min-width:0">
             <div class="hc-title">${ch.name}</div>
-            ${ch.description?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}</div>`:''}
-            <div class="hc-cost"><span class="hc-cost-val">${cost}</span>&nbsp;◈ token${cost>1?"s":""}</div>
+            ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}</div>`:''}
+            ${cs?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6);margin-bottom:4px">Bientôt disponible</div>`:''}
+            <div class="hc-cost" style="${cs?"opacity:.4":""}"><span class="hc-cost-val">${cost}</span>&nbsp;◈ token${cost>1?"s":""}</div>
           </div>
-          <button class="hc-open-btn" ${canAfford?"":"disabled style=\"opacity:.4;cursor:not-allowed\""}>
-            ${canAfford?"Ouvrir →":"Insuffisant"}
+          <button class="hc-open-btn" ${cs?"disabled style=\"opacity:.3;cursor:not-allowed\"":canAfford?"":"disabled style=\"opacity:.4;cursor:not-allowed\""}>
+            ${cs?"Bientôt":canAfford?"Ouvrir →":"Insuffisant"}
           </button>
         </div>
       </div>`;
