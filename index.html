@@ -3379,16 +3379,46 @@ async function loadClientView(id){
     markerEl.title=nextChestName||"";
   }
 
-  // Prochains paliers avec nom de caisse
+  // Prochains paliers avec image caisse + rareté dominante
   const nextTiersEl=document.getElementById("cv-next-tiers");
   if(nextTiersEl){
     const show=upcomingTiers.filter(t=>t.chest_id).slice(0,3);
     if(show.length){
+      // Fetch chest cover + dominant rarity for each
+      const chestDetails={};
+      await Promise.all(show.map(async t=>{
+        const [chData,rwData]=await Promise.all([
+          dbGet(T_CHESTS+"?id=eq."+t.chest_id+"&select=id,name,cover_url"),
+          dbGet(T_CHEST_REWARDS+"?chest_id=eq."+t.chest_id+"&select=rarity&order=probability.desc&limit=1")
+        ]);
+        const ch=chData&&chData[0]||{};
+        const topRarity=rwData&&rwData[0]?.rarity||"common";
+        const RCOL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(200,200,210,.6)"};
+        const RBRD={legendary:"rgba(255,185,0,.3)",epic:"rgba(170,80,255,.25)",rare:"rgba(75,145,255,.25)",common:"rgba(255,255,255,.1)"};
+        const RBGL={legendary:"rgba(255,185,0,.08)",epic:"rgba(170,80,255,.08)",rare:"rgba(75,145,255,.08)",common:"rgba(255,255,255,.04)"};
+        const RLBL={legendary:"Légendaire",epic:"Épique",rare:"Rare",common:"Commun"};
+        chestDetails[t.chest_id]={...ch,rarity:topRarity,col:RCOL[topRarity],brd:RBRD[topRarity],bgl:RBGL[topRarity],lbl:RLBL[topRarity]};
+      }));
+
       nextTiersEl.innerHTML=show.map((t,i)=>{
-        const cn=chestNameMap[t.chest_id]||"Caisse";
-        return `<div class="cv-tier-row${i===0?" next":""}">
-          <span class="cv-tier-name${i===0?" next":""}">Achat #${t.slot}</span>
-          <span class="cv-tier-reward${i===0?" next":""}">🎁 ${cn}</span>
+        const d=chestDetails[t.chest_id]||{};
+        const isNext=i===0;
+        return `<div class="cv-tier-row${isNext?" next":""}" style="border-color:${isNext?d.brd:"rgba(255,255,255,.06)"};background:${isNext?d.bgl:"rgba(255,255,255,.03)"}">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111">
+              ${d.cover_url
+                ?`<img src="${d.cover_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+                :`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🗃</div>`}
+            </div>
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:700;color:${isNext?"#fff":"rgba(255,255,255,.6)"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name||"Caisse"}</div>
+              <div style="font-size:9px;font-family:'DM Mono',monospace;color:${d.col||"rgba(255,255,255,.4)"};margin-top:1px">${d.lbl||""}</div>
+            </div>
+          </div>
+          <div style="flex-shrink:0;text-align:right">
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.35)">Achat #${t.slot}</div>
+            ${isNext?`<div style="font-size:9px;color:#4ade80;font-family:'DM Mono',monospace;margin-top:1px">dans ${rem} achat${rem>1?"s":""}</div>`:""}
+          </div>
         </div>`;
       }).join("");
     }else nextTiersEl.innerHTML="";
