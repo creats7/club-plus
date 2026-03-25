@@ -3464,13 +3464,18 @@ async function loadClientView(id){
     }else nextTiersEl.innerHTML="";
   }
 
-  // Caisses débloquées = paliers atteints avec chest_id
+  // Caisses débloquées = paliers atteints avec chest_id, pas encore ouvertes
   const unlockedChestIds=passedTiers.filter(t=>t.chest_id).map(t=>t.chest_id);
   const chestsEl=document.getElementById("cv-chests-available");
   const chestsLabel=document.getElementById("cv-chests-count-label");
-  if(chestsEl){
-    chestsEl.style.display=unlockedChestIds.length>0?"block":"none";
-    if(chestsLabel)chestsLabel.textContent=unlockedChestIds.length+" caisse"+(unlockedChestIds.length>1?"s":"")+" débloquée"+(unlockedChestIds.length>1?"s":"");
+  if(chestsEl&&unlockedChestIds.length>0){
+    const openedRecs=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+id+"&opened=eq.true&select=chest_id");
+    const openedSet=new Set((openedRecs||[]).map(r=>r.chest_id));
+    const notYetOpened=unlockedChestIds.filter(cid=>!openedSet.has(cid));
+    chestsEl.style.display=notYetOpened.length>0?"block":"none";
+    if(chestsLabel)chestsLabel.textContent=notYetOpened.length+" caisse"+(notYetOpened.length>1?"s":"")+" à ouvrir";
+  } else if(chestsEl){
+    chestsEl.style.display="none";
   }
 
 
