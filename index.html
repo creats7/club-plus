@@ -905,7 +905,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <!-- ══ INSCRIPTION CLIENT ══ -->
 <div class="view" id="view-register">
   <div class="reg-wrap">
-    <div class="reg-logo">Club+ · Fidélité</div>
+    <div class="reg-logo">Crts+ · Fidélité</div>
     <div class="reg-title">Bienvenue 👋</div>
     <div class="reg-sub">Crée ta carte ou accède à la tienne</div>
     <div class="reg-card">
@@ -916,23 +916,36 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- LOGIN -->
       <div id="rpanel-login">
-        <label class="modal-label">Numéro de téléphone</label>
-        <input class="input" id="login-phone" placeholder="06 12 34 56 78" type="tel" />
+        <label class="modal-label">Adresse email</label>
+        <input class="input" id="login-email" placeholder="ton@email.com" type="email" autocomplete="email" />
         <div class="reg-error" id="login-error"></div>
-        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doLogin()">Accéder à ma carte</button>
+        <div class="reg-success" id="login-success"></div>
+        <button class="btn btn-accent" style="width:100%;justify-content:center" id="login-btn" onclick="doLogin()">Recevoir mon lien de connexion</button>
+        <div id="login-sent" style="display:none;margin-top:12px;text-align:center">
+          <div style="font-size:28px;margin-bottom:8px">📬</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">Lien envoyé !</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.5">Vérifie ta boîte mail et clique sur le lien pour accéder à ta carte.</div>
+          <button class="btn btn-sm" style="margin-top:12px;width:100%;justify-content:center" onclick="resetLoginForm()">← Changer d'email</button>
+        </div>
       </div>
 
       <!-- SIGNUP -->
       <div id="rpanel-signup" style="display:none">
         <label class="modal-label">Prénom Nom</label>
         <input class="input" id="signup-name" placeholder="ex: Lucas Martin" />
-        <label class="modal-label">Numéro de téléphone</label>
-        <input class="input" id="signup-phone" placeholder="06 12 34 56 78" type="tel" />
+        <label class="modal-label">Adresse email</label>
+        <input class="input" id="signup-email" placeholder="ton@email.com" type="email" autocomplete="email" />
         <label class="modal-label">Code parrain <span style="color:rgba(255,255,255,.3);font-weight:400">(optionnel)</span></label>
         <input class="input" id="signup-referral" placeholder="ex: LUCAS7" style="text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace" oninput="this.value=this.value.toUpperCase()" />
         <div class="reg-error" id="signup-error"></div>
         <div class="reg-success" id="signup-success"></div>
-        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doSignup()">Créer ma carte</button>
+        <button class="btn btn-accent" style="width:100%;justify-content:center" id="signup-btn" onclick="doSignup()">Créer ma carte</button>
+        <div id="signup-sent" style="display:none;margin-top:12px;text-align:center">
+          <div style="font-size:28px;margin-bottom:8px">📬</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">Vérifie ta boîte mail !</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.5">Un lien de vérification t'a été envoyé. Clique dessus pour activer ta carte.</div>
+          <button class="btn btn-sm" style="margin-top:12px;width:100%;justify-content:center" onclick="resetSignupForm()">← Recommencer</button>
+        </div>
       </div>
     </div>
     <div class="cv-footer" style="margin-top:1.5rem;text-align:center">
@@ -2056,19 +2069,140 @@ function switchRegTab(tab){
   document.getElementById("signup-success").textContent="";
 }
 
-function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
+function resetLoginForm(){
+  document.getElementById("login-sent").style.display="none";
+  document.getElementById("login-btn").style.display="block";
+  document.getElementById("login-email").value="";
+  document.getElementById("login-error").textContent="";
+}
+
+function resetSignupForm(){
+  document.getElementById("signup-sent").style.display="none";
+  document.getElementById("signup-btn").style.display="block";
+  document.getElementById("signup-name").value="";
+  document.getElementById("signup-email").value="";
+  document.getElementById("signup-referral").value="";
+  document.getElementById("signup-error").textContent="";
+  document.getElementById("signup-success").textContent="";
+}
+
+const SUPA_AUTH=SUPA_URL.replace("/rest/v1","").replace("https://","https://")+"/auth/v1";
+
+async function sendMagicLink(email){
+  const res=await fetch(SUPA_AUTH+"/magiclink",{
+    method:"POST",
+    headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({email})
+  });
+  return res.ok;
+}
 
 async function doLogin(){
-  const raw=document.getElementById("login-phone").value.trim();
-  if(!raw){document.getElementById("login-error").textContent="Entre ton numéro";return;}
-  const phone=normalizePhone(raw);
-  const data=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+  const email=document.getElementById("login-email").value.trim().toLowerCase();
+  const err=document.getElementById("login-error");
+  err.textContent="";
+  if(!email||!email.includes("@")){err.textContent="Entre une adresse email valide";return;}
+  // Check if client exists
+  const data=await dbGet(T_CLIENTS+"?email=eq."+encodeURIComponent(email)+"&limit=1");
   if(!data||!data.length){
-    document.getElementById("login-error").textContent="Numéro introuvable — inscris-toi !";
+    err.textContent="Email introuvable — inscris-toi d'abord !";
     return;
   }
-  document.getElementById("login-error").textContent="";
-  loadClientView(data[0].id);
+  const btn=document.getElementById("login-btn");
+  btn.textContent="Envoi...";btn.disabled=true;
+  const ok=await sendMagicLink(email);
+  btn.textContent="Recevoir mon lien de connexion";btn.disabled=false;
+  if(ok){
+    btn.style.display="none";
+    document.getElementById("login-sent").style.display="block";
+    // Store email for after redirect
+    localStorage.setItem("clubplus_pending_email",email);
+  } else {
+    err.textContent="Erreur d'envoi — réessaie";
+  }
+}
+
+function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
+
+async function doSignup(){
+  const name=document.getElementById("signup-name").value.trim();
+  const email=document.getElementById("signup-email").value.trim().toLowerCase();
+  const refInput=document.getElementById("signup-referral").value.trim().toUpperCase();
+  const err=document.getElementById("signup-error");
+  const succ=document.getElementById("signup-success");
+  err.textContent="";succ.textContent="";
+  if(!name){err.textContent="Entre ton prénom";return;}
+  if(!email||!email.includes("@")){err.textContent="Entre une adresse email valide";return;}
+  // Check not already registered
+  const existing=await dbGet(T_CLIENTS+"?email=eq."+encodeURIComponent(email)+"&limit=1");
+  if(existing&&existing.length){err.textContent="Email déjà inscrit — connecte-toi !";return;}
+  // Vérifier code parrain
+  let referredBy=null;
+  if(refInput){
+    const parrain=await dbGet(T_CLIENTS+"?referral_code=eq."+encodeURIComponent(refInput)+"&limit=1");
+    if(!parrain||!parrain.length){err.textContent="Code parrain invalide";return;}
+    referredBy=parrain[0].id;
+  }
+  // Générer code unique
+  let referralCode=genReferralCode(name);
+  const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
+  if(check&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
+
+  const REFERRAL_TOKENS_FILLEUL=referralConfig?.filleul||3;
+  const REFERRAL_TOKENS_PARRAIN=referralConfig?.parrain||3;
+  const newTokens=referredBy?REFERRAL_TOKENS_FILLEUL:0;
+  // Create client record
+  const res=await dbPost(T_CLIENTS,{
+    name,email,phone:null,stamps:0,tokens:newTokens,total_stamps:0,
+    referral_code:referralCode,referred_by:referredBy||null
+  });
+  if(!res||!res.length){err.textContent="Erreur création — réessaie";return;}
+  // Reward parrain
+  if(referredBy){
+    const parrainData=await dbGet(T_CLIENTS+"?id=eq."+referredBy+"&limit=1");
+    if(parrainData&&parrainData.length){
+      await dbPatch(T_CLIENTS+"?id=eq."+referredBy,{tokens:(parrainData[0].tokens||0)+REFERRAL_TOKENS_PARRAIN});
+    }
+  }
+  // Send magic link
+  const btn=document.getElementById("signup-btn");
+  btn.textContent="Envoi du lien...";btn.disabled=true;
+  const ok=await sendMagicLink(email);
+  btn.textContent="Créer ma carte";btn.disabled=false;
+  if(ok){
+    btn.style.display="none";
+    document.getElementById("signup-sent").style.display="block";
+    localStorage.setItem("clubplus_pending_email",email);
+  } else {
+    err.textContent="Compte créé mais erreur d'envoi. Connecte-toi avec ton email.";
+  }
+}
+
+// Handle magic link redirect (Supabase adds #access_token to URL)
+async function handleAuthRedirect(){
+  const hash=window.location.hash;
+  if(!hash.includes("access_token"))return false;
+  const params=new URLSearchParams(hash.replace("#",""));
+  const accessToken=params.get("access_token");
+  if(!accessToken)return false;
+  // Get user info from Supabase Auth
+  const userRes=await fetch(SUPA_AUTH+"/user",{
+    headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+accessToken}
+  });
+  if(!userRes.ok)return false;
+  const userData=await userRes.json();
+  const email=userData.email;
+  if(!email)return false;
+  // Find client by email
+  const clients=await dbGet(T_CLIENTS+"?email=eq."+encodeURIComponent(email)+"&limit=1");
+  if(clients&&clients.length){
+    // Clean URL
+    history.replaceState(null,"",window.location.pathname+window.location.search);
+    localStorage.removeItem("clubplus_pending_email");
+    loadClientView(clients[0].id);
+    return true;
+  }
+  return false;
 }
 
 // ── PARRAINAGE ADMIN ──
@@ -4408,6 +4542,14 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   });
 
+  // Handle magic link redirect first
+  handleAuthRedirect().then(redirected=>{
+    if(redirected)return;
+    init();
+  });
+});
+
+async function init(){
   const cid=new URLSearchParams(window.location.search).get("client");
   const isAdmin=localStorage.getItem("clubplus_admin")==="1";
 
@@ -4430,7 +4572,7 @@ document.addEventListener("DOMContentLoaded", function(){
       regs.forEach(r=>r.unregister());
     });
   }
-});
+}
 </script>
 </body>
 </html>
