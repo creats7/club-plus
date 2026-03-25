@@ -3481,29 +3481,28 @@ async function loadClientShop(clientId){
 
   container.innerHTML=`<div class="hc-grid">`+cases.map(ch=>{
     const cs=!!ch.coming_soon;
-    const unlockAt=ch.cost||1; // cost = palier requis
+    const unlockAt=ch.cost||1;
     const unlocked=totalXP>=unlockAt;
     const rws=rewardsMap[ch.id]||[];
     const rwJson=JSON.stringify(rws.map(r=>({name:r.name,rarity:r.rarity||"common",image_url:r.image_url||null}))).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
 
-    return `<div class="hc-card ${cs?"coming-soon":unlocked?"can-afford":"cant-afford"}" style="${!unlocked&&!cs?"opacity:.5":""}">
+    return `<div class="hc-card ${cs?"coming-soon":"can-afford"}">
       <div class="hc-cover-wrap">
         ${ch.cover_url
-          ?`<img class="hc-cover" src="${ch.cover_url}" style="${cs||!unlocked?"filter:blur(8px) brightness(0.4);pointer-events:none":""}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
-          :`<div class="hc-cover-ph" style="${cs||!unlocked?"filter:blur(6px) brightness(0.4)":""}">🗃</div>`}
-        ${cs?`<div class="hc-coming-badge">✦ Coming Soon</div>`
-          :!unlocked?`<div class="hc-coming-badge" style="background:rgba(0,0,0,.8);font-size:10px">🔒 Palier ${unlockAt}</div>`
+          ?`<img class="hc-cover" src="${ch.cover_url}" style="${cs?"filter:blur(8px) brightness(0.4);pointer-events:none":""}" onerror="this.parentElement.innerHTML='<div class=hc-cover-ph>🗃</div>'">`
+          :`<div class="hc-cover-ph">🗃</div>`}
+        ${cs
+          ?`<div class="hc-coming-badge">✦ Coming Soon</div>`
           :`<button class="hc-info-btn" onclick="event.stopPropagation();openCaseInfo('${ch.name.replace(/'/g,"\\'")}','${rwJson}')" title="Voir le contenu">i</button>`}
       </div>
       <div class="hc-info">
         <div style="flex:1;min-width:0">
           <div class="hc-title">${ch.name}</div>
-          ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}</div>`:''}
+          ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}${!unlocked?` &nbsp;<span style="font-size:12px">🔒</span>`:""}</div>`
+            :!cs&&!unlocked?`<div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin:3px 0 5px">Achat #${unlockAt} requis &nbsp;🔒</div>`:''}
           ${cs?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6);margin-bottom:4px">Bientôt disponible</div>`
-            :unlocked?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:#4ade80;margin-bottom:4px">✓ Débloquée</div>`
-            :`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-bottom:4px">Achat #${unlockAt} requis</div>`}
+            :unlocked?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:#4ade80;margin-bottom:4px">✓ Débloquée</div>`:''}
         </div>
-        <button class="hc-info-btn" style="position:static;width:auto;height:auto;padding:6px 10px;border-radius:8px;font-size:11px;${cs||!unlocked?"opacity:.3;cursor:not-allowed":""}" ${cs||!unlocked?"disabled":""} onclick="${!cs&&unlocked?`openCaseInfo('${ch.name.replace(/'/g,"\\'")}','${rwJson}')`:""}">${cs?"Soon":unlocked?"Voir →":"🔒"}</button>
       </div>
     </div>`;
   }).join("")+`</div>`;
