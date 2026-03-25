@@ -1590,7 +1590,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="shop-header">
         <div class="shop-title">Commander</div>
         <div class="shop-sub">Livraison · Retrait</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;margin-top:5px;letter-spacing:.04em">Livraison à partir de 2 puffs</div>
+        
       </div>
       <!-- Grille produits -->
       <div id="cv-products-list"></div>
@@ -1692,7 +1692,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div style="padding:1.5rem 1.5rem 0;flex-shrink:0">
       <div class="order-sheet-handle" style="margin-bottom:1.25rem"></div>
       <div class="order-sheet-title">Récapitulatif</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin-bottom:12px">Livraison disponible à partir de 2 puffs</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin-bottom:12px"></div>
     </div>
     <!-- Zone scrollable -->
     <div style="flex:1;overflow-y:auto;padding:0 1.5rem;min-height:0">
@@ -3573,7 +3573,7 @@ function openCartSheet(){
   const totalQtyCheck=Object.values(cart).reduce((s,i)=>s+i.qty,0);
   const errEl=document.getElementById("cart-error");
   if(totalQtyCheck===1){
-    errEl.textContent="⚠ Livraison à partir de 2 puffs minimum";
+    errEl.textContent="";
     errEl.style.display="block";
   } else {
     errEl.textContent="";
