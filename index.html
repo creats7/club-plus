@@ -2088,12 +2088,23 @@ function resetSignupForm(){
 
 const SUPA_AUTH=SUPA_URL.replace("/rest/v1","").replace("https://","https://")+"/auth/v1";
 
+const REDIRECT_URL="https://creats7.github.io/club-plus/";
+
 async function sendMagicLink(email){
-  const res=await fetch(SUPA_AUTH+"/magiclink",{
+  // Supabase Auth v2 — OTP email
+  const res=await fetch(SUPA_AUTH+"/otp",{
     method:"POST",
     headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify({email})
+    body:JSON.stringify({
+      email,
+      create_user:false,
+      options:{emailRedirectTo:REDIRECT_URL}
+    })
   });
+  if(!res.ok){
+    const body=await res.json().catch(()=>({}));
+    console.error("Magic link error:",body);
+  }
   return res.ok;
 }
 
