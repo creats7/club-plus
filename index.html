@@ -1349,7 +1349,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div id="panel-history" style="display:none">
     <div class="panel-header">
       <div class="panel-title">Historique des gains</div>
-      <button class="btn btn-sm" onclick="loadHistory()">↻ Actualiser</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="loadHistory()">↻</button>
+        <button class="btn btn-sm btn-danger" onclick="clearAllHistory()">🗑 Tout effacer</button>
+      </div>
     </div>
     <div id="history-list-spins"><div class="loader">Chargement...</div></div>
   </div>
@@ -3222,12 +3225,26 @@ async function loadHistory(){
         </div>
         <div class="spin-meta">${clientMap[l.client_id]||"Client inconnu"} · ${chestMap[l.chest_id]||"Caisse"}</div>
       </div>
-      <div class="spin-meta" style="flex-shrink:0;text-align:right">${fmtDate(l.opened_at||l.created_at)}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div class="spin-meta" style="text-align:right">${fmtDate(l.opened_at||l.created_at)}</div>
+        <button onclick="deleteHistoryEntry('${l.id}')" style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--danger);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">🗑</button>
+      </div>
     </div>`;
   }).join("");
 }
 
-// ── XP LEVEL SYSTEM ──
+async function deleteHistoryEntry(id){
+  await dbDelete(T_CLIENT_CHESTS+"?id=eq."+id);
+  toast("Entrée supprimée");
+  loadHistory();
+}
+
+async function clearAllHistory(){
+  if(!confirm("Effacer tout l'historique des openings ?"))return;
+  await dbDelete(T_CLIENT_CHESTS+"?opened=eq.true");
+  toast("Historique effacé ✓");
+  loadHistory();
+}
 
 // ── XP LEVEL SYSTEM ──
 // Niveau = floor(sqrt(total_stamps)) — croissance progressive infinie
