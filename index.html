@@ -899,6 +899,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
     <div class="pin-grid" id="pin-grid"></div>
     <div class="pin-error" id="pin-error"></div>
+    <div style="margin-top:1.5rem;text-align:center"><span onclick="showView('register')" style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);cursor:pointer;letter-spacing:.08em">← Compte client</span></div>
   </div>
 </div>
 
@@ -938,7 +939,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
     <div class="cv-footer" style="margin-top:1.5rem;text-align:center">
-      <span onclick="showView('pin')" style="cursor:pointer;opacity:0.3;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.1em;user-select:none">· · ·</span>
+      <span onclick="showView('pin')" style="cursor:pointer;opacity:0.3;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.1em;user-select:none">Accès admin</span>
     </div>
   </div>
 </div>
@@ -1903,7 +1904,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <script>
 const SUPA_URL="https://lfpkmempuvggxcdpfdrk.supabase.co";
 const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmcGttZW1wdXZnZ3hjZHBmZHJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzIwNTUsImV4cCI6MjA4OTM0ODA1NX0.db8OBcAQYU6vAJzsa-UaXB6iZzkcJSobyxmMhwX7pbI";
-const ADMIN_PIN="1234";
+const ADMIN_PIN="2607";
 const H={"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json","Prefer":"return=representation"};
 const T_CLIENTS=SUPA_URL+"/rest/v1/clients";
 const T_OFFERS=SUPA_URL+"/rest/v1/offers";
