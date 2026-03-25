@@ -1060,7 +1060,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="stats-grid">
       <div class="stat-card blue"><div class="stat-label">Clients</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">inscrits</div></div>
       <div class="stat-card purple"><div class="stat-label">Tampons</div><div class="stat-value" id="s-stamps">—</div><div class="stat-sub">distribués</div></div>
-      <div class="stat-card token"><div class="stat-label">Tokens actifs</div><div class="stat-value" id="s-tokens">—</div><div class="stat-sub">en circulation</div></div>
+      
       <div class="stat-card danger"><div class="stat-label">Openings</div><div class="stat-value" id="s-spins">—</div><div class="stat-sub">caisses ouvertes</div></div>
     </div>
     <div class="chart-card"><div class="chart-title">Tampons distribués — 8 dernières semaines</div><div class="chart-wrap"><canvas id="chart-stamps"></canvas></div></div>
@@ -1390,7 +1390,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <!-- Stats globales -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px" id="ref-stats-grid">
       <div class="stat-card blue"><div class="stat-label">Parrainages</div><div class="stat-value" id="ref-stat-total">—</div><div class="stat-sub">total</div></div>
-      <div class="stat-card token"><div class="stat-label">Tokens distribués</div><div class="stat-value" id="ref-stat-tokens">—</div><div class="stat-sub">via parrainage</div></div>
+      
     </div>
 
     <!-- Liste parrainages -->
@@ -1707,6 +1707,22 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </button>
       <button class="btn" style="width:100%;justify-content:center;margin-top:8px" onclick="closeCartSheet()">Annuler</button>
     </div>
+  </div>
+</div>
+
+<!-- GIVE CASE MODAL -->
+<div class="order-overlay" id="give-case-overlay" onclick="closeGiveCaseModal()">
+  <div class="order-sheet" onclick="event.stopPropagation()">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-title">Donner une caisse</div>
+    <div id="give-case-client-info" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:rgba(255,255,255,.7)"></div>
+    <label class="modal-label">Choisir une caisse</label>
+    <select id="give-case-select" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:10px;font-family:'DM Mono',monospace;font-size:13px;outline:none;margin-bottom:14px">
+      <option value="">— Choisir —</option>
+    </select>
+    <div class="reg-error" id="give-case-error"></div>
+    <button style="width:100%;padding:13px;border-radius:12px;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px" onclick="submitGiveCase()">Donner la caisse</button>
+    <button class="btn" style="width:100%;justify-content:center" onclick="closeGiveCaseModal()">Annuler</button>
   </div>
 </div>
 
@@ -2134,7 +2150,6 @@ async function loadReferral(){
 
   // Stats
   document.getElementById("ref-stat-total").textContent=filleuls.length;
-  document.getElementById("ref-stat-tokens").textContent=filleuls.length*(referralConfig.parrain+referralConfig.filleul);
 
   // List
   const list=document.getElementById("ref-list");
@@ -2228,6 +2243,33 @@ async function submitAdminOrder(){
   loadOrders();
 }
 
+// ── DONNER UNE CAISSE ──
+let _giveCaseClientId=null;
+
+async function openGiveCaseModal(clientId,name){
+  _giveCaseClientId=clientId;
+  document.getElementById("give-case-client-info").textContent=name;
+  document.getElementById("give-case-error").textContent="";
+  // Load chests
+  const chests=await dbGet(T_CHESTS+"?active=eq.true&order=cost.asc&select=id,name");
+  const sel=document.getElementById("give-case-select");
+  sel.innerHTML='<option value="">— Choisir —</option>'+(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
+  document.getElementById("give-case-overlay").classList.add("open");
+}
+
+function closeGiveCaseModal(){
+  document.getElementById("give-case-overlay").classList.remove("open");
+}
+
+async function submitGiveCase(){
+  const chestId=document.getElementById("give-case-select").value;
+  const err=document.getElementById("give-case-error");
+  if(!chestId){err.textContent="Choisis une caisse";return;}
+  await dbPost(T_CLIENT_CHESTS,{client_id:_giveCaseClientId,chest_id:chestId,opened:false});
+  closeGiveCaseModal();
+  toast("Caisse offerte ✓");
+}
+
 function updateCsToggle(){
   const chk=document.getElementById("caf-coming-soon");
   const track=document.getElementById("caf-cs-track");
@@ -2274,7 +2316,6 @@ function renderDash(cl){
   const tot=cl.length,st=cl.reduce((s,c)=>s+c.stamps,0),tk=cl.reduce((s,c)=>s+(c.tokens||0),0);
   document.getElementById("s-total").textContent=tot;
   document.getElementById("s-stamps").textContent=st;
-  document.getElementById("s-tokens").textContent=tk;
   // s-spins chargé séparément
   dbGet(T_CLIENT_CHESTS+"?opened=eq.true&select=id").then(d=>{document.getElementById("s-spins").textContent=d?d.length:0;});
 
@@ -2382,7 +2423,6 @@ function renderList(cl){
             <div class="client-name-text">${c.name}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
               ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
-              ${(c.tokens||0)>0?`<div class="token-badge">◈ ${c.tokens}</div>`:""}
             </div>
             ${c.referral_code?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px">
               <span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);letter-spacing:.08em">CODE</span>
@@ -2402,7 +2442,6 @@ function renderList(cl){
         <div class="stamp-btns">
           <button class="btn btn-sm" onclick="chg('${c.id}',${stamps},${c.tokens||0},-1)" ${stamps===0?"disabled":""}>−</button>
           <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)">+ Achat</button>
-          <button class="btn btn-sm" style="color:var(--token);border-color:var(--token-border);background:var(--token-dim)" onclick="giveToken('${c.id}',${c.tokens||0})">◈ +1</button>
           <button class="btn btn-sm" style="color:#a78bfa;border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08)" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
         </div>
       </div>`;
