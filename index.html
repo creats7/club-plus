@@ -2365,64 +2365,6 @@ function genReferralCode(name){
   return prefix+num;
 }
 
-async function doSignup(){
-  const name=document.getElementById("signup-name").value.trim();
-  const raw=document.getElementById("signup-phone").value.trim();
-  const refInput=document.getElementById("signup-referral").value.trim().toUpperCase();
-  document.getElementById("signup-error").textContent="";
-  document.getElementById("signup-success").textContent="";
-  if(!name){document.getElementById("signup-error").textContent="Entre ton nom";return;}
-  if(!raw){document.getElementById("signup-error").textContent="Entre ton numéro";return;}
-  const phone=normalizePhone(raw);
-  const existing=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
-  if(existing&&existing.length){
-    document.getElementById("signup-error").textContent="Ce numéro est déjà inscrit — connecte-toi !";
-    return;
-  }
-  // Vérifier code parrain
-  let referredBy=null;
-  if(refInput){
-    const parrain=await dbGet(T_CLIENTS+"?referral_code=eq."+encodeURIComponent(refInput)+"&limit=1");
-    if(!parrain||!parrain.length){
-      document.getElementById("signup-error").textContent="Code parrain invalide";
-      return;
-    }
-    referredBy=parrain[0].id;
-  }
-  // Générer code unique
-  let referralCode=genReferralCode(name);
-  // S'assurer qu'il est unique
-  const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
-  if(check&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
-
-  const REFERRAL_TOKENS_FILLEUL=referralConfig?.filleul||3;
-  const REFERRAL_TOKENS_PARRAIN=referralConfig?.parrain||3;
-  const newTokens=referredBy?REFERRAL_TOKENS_FILLEUL:0;
-  const res=await dbPost(T_CLIENTS,{
-    name,phone,stamps:0,tokens:newTokens,total_stamps:0,
-    referral_code:referralCode,
-    referred_by:referredBy||null
-  });
-  if(res&&res.length){
-    // Récompenser le parrain
-    if(referredBy){
-      const parrainData=await dbGet(T_CLIENTS+"?id=eq."+referredBy+"&limit=1");
-      if(parrainData&&parrainData.length){
-        const curTok=parrainData[0].tokens||0;
-        await dbPatch(T_CLIENTS+"?id=eq."+referredBy,{tokens:curTok+REFERRAL_TOKENS_PARRAIN});
-        await dbPost(T_TOKEN_LOGS,{client_id:referredBy,type:"earned"});
-      }
-      await dbPost(T_TOKEN_LOGS,{client_id:res[0].id,type:"earned"});
-      document.getElementById("signup-success").textContent=`Bienvenue ! +${REFERRAL_TOKENS_FILLEUL} ◈ offerts 🎉`;
-    } else {
-      document.getElementById("signup-success").textContent="Carte créée ! Redirection...";
-    }
-    setTimeout(()=>loadClientView(res[0].id),1400);
-  } else {
-    document.getElementById("signup-error").textContent="Erreur — réessaie";
-  }
-}
-
 // ── LOAD ALL ──
 async function loadAll(){
   document.getElementById("clients-list").innerHTML='<div class="loader">Chargement...</div>';
