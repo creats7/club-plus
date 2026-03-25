@@ -3207,6 +3207,7 @@ async function loadHistory(){
   const logs=await dbGet(T_CLIENT_CHESTS+"?opened=eq.true&order=opened_at.desc&limit=100&select=*");
   if(!logs||!logs.length){list.innerHTML='<div class="empty-state">Aucun opening enregistré</div>';return;}
   const clientMap={};allClients.forEach(c=>clientMap[c.id]=c.name);
+
   // Fetch chest names
   const chestIds=[...new Set(logs.map(l=>l.chest_id).filter(Boolean))];
   const chestMap={};
@@ -3214,15 +3215,31 @@ async function loadHistory(){
     const chests=await dbGet(T_CHESTS+"?id=in.("+chestIds.join(",")+")&select=id,name");
     (chests||[]).forEach(c=>chestMap[c.id]=c.name);
   }
-  const RCOL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(180,180,180,0.6)"};
-  list.innerHTML=logs.map(l=>`
-    <div class="spin-row">
+
+  // Fetch rarity from chest_rewards by matching reward_name + chest_id
+  const rewardRarityMap={};
+  if(chestIds.length){
+    const allRw=await dbGet(T_CHEST_REWARDS+"?chest_id=in.("+chestIds.join(",")+")&select=chest_id,name,rarity");
+    (allRw||[]).forEach(r=>{rewardRarityMap[r.chest_id+"_"+r.name]=r.rarity||"common";});
+  }
+
+  list.innerHTML=logs.map(l=>{
+    const rarity=rewardRarityMap[l.chest_id+"_"+l.reward_name]||"common";
+    const col=RARITY_COLORS[rarity];
+    const lbl=RARITY_LABELS[rarity];
+    const bgCol=rarity==="legendary"?"rgba(255,185,0,.08)":rarity==="epic"?"rgba(170,80,255,.08)":rarity==="rare"?"rgba(75,145,255,.08)":"rgba(180,180,180,.05)";
+    const borderCol=rarity==="legendary"?"rgba(255,185,0,.25)":rarity==="epic"?"rgba(170,80,255,.2)":rarity==="rare"?"rgba(75,145,255,.2)":"rgba(180,180,180,.1)";
+    return `<div class="spin-row" style="background:${bgCol};border:1px solid ${borderCol};border-radius:10px;margin-bottom:7px;padding:10px 12px">
       <div style="flex:1;min-width:0">
-        <div class="spin-reward" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🗃 ${l.reward_name||"—"}</div>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+          <span style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:${col};background:${bgCol};border:1px solid ${borderCol};border-radius:99px;padding:1px 8px;letter-spacing:.06em;flex-shrink:0">${lbl}</span>
+          <div class="spin-reward" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${rarity==="legendary"?col:"#fff"}">${l.reward_name||"—"}</div>
+        </div>
         <div class="spin-meta">${clientMap[l.client_id]||"Client inconnu"} · ${chestMap[l.chest_id]||"Caisse"}</div>
       </div>
       <div class="spin-meta" style="flex-shrink:0;text-align:right">${fmtDate(l.opened_at||l.created_at)}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 // ── XP LEVEL SYSTEM ──
