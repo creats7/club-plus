@@ -1363,25 +1363,21 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="panel-title">Parrainage</div>
     </div>
 
-    <!-- Config tokens -->
+    <!-- Config caisses parrainage -->
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:12px">Récompense par parrainage</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">Caisse offerte par parrainage</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
         <div>
           <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Parrain reçoit</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input id="ref-tokens-parrain" type="number" min="1" max="50" value="3"
-              style="width:60px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:6px;text-align:center;outline:none">
-            <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">◈ tokens</span>
-          </div>
+          <select id="ref-chest-parrain" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px;outline:none">
+            <option value="">— Aucune —</option>
+          </select>
         </div>
         <div>
           <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Filleul reçoit</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input id="ref-tokens-filleul" type="number" min="1" max="50" value="3"
-              style="width:60px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:6px;text-align:center;outline:none">
-            <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">◈ tokens</span>
-          </div>
+          <select id="ref-chest-filleul" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px;outline:none">
+            <option value="">— Aucune —</option>
+          </select>
         </div>
       </div>
       <button class="btn btn-accent btn-sm" onclick="saveReferralConfig()" style="width:100%;justify-content:center">Enregistrer</button>
@@ -1390,7 +1386,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <!-- Stats globales -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px" id="ref-stats-grid">
       <div class="stat-card blue"><div class="stat-label">Parrainages</div><div class="stat-value" id="ref-stat-total">—</div><div class="stat-sub">total</div></div>
-      
     </div>
 
     <!-- Liste parrainages -->
@@ -2138,15 +2133,18 @@ async function doSignup(){
   let referralCode=genReferralCode(name);
   const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
   if(check&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
-  const REFERRAL_TOKENS_FILLEUL=referralConfig?.filleul||3;
-  const REFERRAL_TOKENS_PARRAIN=referralConfig?.parrain||3;
-  const newTokens=referredBy?REFERRAL_TOKENS_FILLEUL:0;
-  const res=await dbPost(T_CLIENTS,{name,phone,snap:snap||null,stamps:0,tokens:newTokens,total_stamps:0,referral_code:referralCode,referred_by:referredBy||null});
+  const res=await dbPost(T_CLIENTS,{name,phone,snap:snap||null,stamps:0,tokens:0,total_stamps:0,referral_code:referralCode,referred_by:referredBy||null});
   if(!res||!res.length){err.textContent="Erreur — réessaie";return;}
   if(referredBy){
-    const pd=await dbGet(T_CLIENTS+"?id=eq."+referredBy+"&limit=1");
-    if(pd&&pd.length)await dbPatch(T_CLIENTS+"?id=eq."+referredBy,{tokens:(pd[0].tokens||0)+REFERRAL_TOKENS_PARRAIN});
-    succ.textContent="Bienvenue ! +"+REFERRAL_TOKENS_FILLEUL+" ◈ offerts 🎉";
+    // Donner caisse au filleul si configurée
+    if(referralConfig.filleul_chest_id){
+      await dbPost(T_CLIENT_CHESTS,{client_id:res[0].id,chest_id:referralConfig.filleul_chest_id,opened:false});
+    }
+    // Donner caisse au parrain si configurée
+    if(referralConfig.parrain_chest_id){
+      await dbPost(T_CLIENT_CHESTS,{client_id:referredBy,chest_id:referralConfig.parrain_chest_id,opened:false});
+    }
+    succ.textContent="Bienvenue ! Une caisse t'a été offerte 🎁";
   } else {
     succ.textContent="Carte créée ! Redirection...";
   }
@@ -2154,37 +2152,34 @@ async function doSignup(){
 }
 
 // ── PARRAINAGE ADMIN ──
-let referralConfig={parrain:3,filleul:3};
+let referralConfig={parrain_chest_id:null,filleul_chest_id:null};
 
 async function loadReferral(){
   // Load referral config from shop_config
-  const cfg=await dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain,referral_filleul)");
+  const [cfg, chests]=await Promise.all([
+    dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain_chest,referral_filleul_chest)"),
+    dbGet(T_CHESTS+"?active=eq.true&order=cost.asc&select=id,name")
+  ]);
   if(cfg&&cfg.length){
     cfg.forEach(r=>{
-      if(r.key==="referral_parrain")referralConfig.parrain=r.value||3;
-      if(r.key==="referral_filleul")referralConfig.filleul=r.value||3;
+      if(r.key==="referral_parrain_chest")referralConfig.parrain_chest_id=r.image_url||null;
+      if(r.key==="referral_filleul_chest")referralConfig.filleul_chest_id=r.image_url||null;
     });
   }
-  const p=document.getElementById("ref-tokens-parrain");
-  const f=document.getElementById("ref-tokens-filleul");
-  if(p)p.value=referralConfig.parrain;
-  if(f)f.value=referralConfig.filleul;
+  const opts='<option value="">— Aucune —</option>'+(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
+  const ps=document.getElementById("ref-chest-parrain");
+  const fs=document.getElementById("ref-chest-filleul");
+  if(ps){ps.innerHTML=opts;ps.value=referralConfig.parrain_chest_id||"";}
+  if(fs){fs.innerHTML=opts;fs.value=referralConfig.filleul_chest_id||"";}
 
   // Load all clients with referred_by
   const all=await dbGet(T_CLIENTS+"?order=created_at.desc");
   if(!all)return;
-
-  // Build lookup map
-  const map={};
-  all.forEach(c=>map[c.id]=c);
-
-  // Filter filleuls (those who have referred_by set)
+  const map={};all.forEach(c=>map[c.id]=c);
   const filleuls=all.filter(c=>c.referred_by);
 
-  // Stats
   document.getElementById("ref-stat-total").textContent=filleuls.length;
 
-  // List
   const list=document.getElementById("ref-list");
   if(!filleuls.length){
     list.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px;padding:2rem 0">Aucun parrainage pour le moment</div>';
@@ -2202,17 +2197,21 @@ async function loadReferral(){
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted)">${fmtDate(f.created_at)}</div>
-        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--token);margin-top:3px">+${referralConfig.filleul} ◈</div>
       </div>
     </div>`;
   }).join("");
 }
 
 async function saveReferralConfig(){
-  referralConfig.parrain=Math.max(1,parseInt(document.getElementById("ref-tokens-parrain").value)||3);
-  referralConfig.filleul=Math.max(1,parseInt(document.getElementById("ref-tokens-filleul").value)||3);
-  await dbPatch(T_SHOP_CONFIG+"?key=eq.referral_parrain",{value:referralConfig.parrain});
-  await dbPatch(T_SHOP_CONFIG+"?key=eq.referral_filleul",{value:referralConfig.filleul});
+  const parrainChest=document.getElementById("ref-chest-parrain")?.value||null;
+  const filleulChest=document.getElementById("ref-chest-filleul")?.value||null;
+  referralConfig.parrain_chest_id=parrainChest;
+  referralConfig.filleul_chest_id=filleulChest;
+  // Store chest ids in image_url field of shop_config (reuse existing row)
+  await Promise.all([
+    dbPatch(T_SHOP_CONFIG+"?key=eq.referral_parrain",{image_url:parrainChest}),
+    dbPatch(T_SHOP_CONFIG+"?key=eq.referral_filleul",{image_url:filleulChest})
+  ]);
   toast("Config parrainage enregistrée ✓");
 }
 
@@ -4402,29 +4401,21 @@ async function showHcResult(won,clientChestId){
   document.getElementById("hc-result").classList.add("show");
   document.getElementById("hc-opening-sub").textContent="";
 
-  // Boutons dynamiques selon tokens restants
-  const tokData=await dbGet(T_CLIENTS+"?id=eq."+currentClientId+"&select=tokens");
-  const tokLeft=tokData&&tokData.length?tokData[0].tokens||0:0;
-  const canReopen=tokLeft>=_pendingCaseCost;
+  // Boutons après ouverture — juste fermer
   const actionsEl=document.getElementById("hc-result-actions");
-  actionsEl.innerHTML=canReopen
-    ?`<button class="btn-spin" style="justify-content:center;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;padding:14px;border-radius:12px;width:100%;cursor:pointer" onclick="closeHcOpening();setTimeout(()=>openCaseShop('${_pendingCaseId}',${_pendingCaseCost}),200)">
-        Rejouer — ${_pendingCaseCost} ◈
-      </button>
-      <button style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`
-    :`<button onclick="closeHcOpening();setTimeout(()=>switchClientTab('commandes'),250);"
-        style="width:100%;justify-content:center;font-size:14px;padding:15px 20px;border-radius:18px;
-               background:rgba(255,255,255,0.08);
-               backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-               border:1px solid rgba(255,255,255,0.18);
-               box-shadow:0 4px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.25);
-               color:#fff;cursor:pointer;font-family:'Inter',sans-serif;
-               display:flex;flex-direction:column;align-items:center;gap:3px;
-               position:relative;overflow:hidden;">
-        <span style="font-size:14px;font-weight:800;letter-spacing:-.03em">Voir les puffs 👀</span>
-        <span style="font-size:10px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em">Une puff = une récompense</span>
-      </button>
-      <button style="width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`;
+  actionsEl.innerHTML=`<button onclick="closeHcOpening();setTimeout(()=>switchClientTab('commandes'),250);"
+      style="width:100%;justify-content:center;font-size:14px;padding:15px 20px;border-radius:18px;
+             background:rgba(255,255,255,0.08);
+             backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+             border:1px solid rgba(255,255,255,0.18);
+             box-shadow:0 4px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.25);
+             color:#fff;cursor:pointer;font-family:'Inter',sans-serif;
+             display:flex;flex-direction:column;align-items:center;gap:3px;
+             position:relative;overflow:hidden;">
+      <span style="font-size:14px;font-weight:800;letter-spacing:-.03em">Voir les puffs 👀</span>
+      <span style="font-size:10px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em">Une puff = une récompense</span>
+    </button>
+    <button style="width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`;
 }
 
 function spawnRarityEffect(rarity,col,container){
@@ -4697,8 +4688,8 @@ document.addEventListener("DOMContentLoaded", function(){
   // Load referral config at startup
   dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain,referral_filleul)").then(cfg=>{
     if(cfg&&cfg.length)cfg.forEach(r=>{
-      if(r.key==="referral_parrain")referralConfig.parrain=r.value||3;
-      if(r.key==="referral_filleul")referralConfig.filleul=r.value||3;
+      if(r.key==="referral_parrain")referralConfig.parrain_chest_id=r.image_url||null;
+      if(r.key==="referral_filleul")referralConfig.filleul_chest_id=r.image_url||null;
     });
   });
 
