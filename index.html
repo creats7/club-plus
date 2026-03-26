@@ -1459,7 +1459,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <!-- Header: nom + total XP -->
         <div class="cv-card-header">
           <div>
-            <div class="cv-card-name" id="cv-name-display">—</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="cv-card-name" id="cv-name-display">—</div>
+              <div id="cv-prestige-badge" style="display:none;align-items:center;gap:3px;background:linear-gradient(135deg,rgba(255,185,0,.2),rgba(255,140,0,.1));border:1px solid rgba(255,185,0,.4);border-radius:99px;padding:2px 8px 2px 5px;font-size:10px;font-weight:800;font-family:'DM Mono',monospace;color:#fbbf24;flex-shrink:0">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <span id="cv-prestige-count">0</span>
+              </div>
+            </div>
             <div class="cv-card-sub">Carte de fidélité</div>
           </div>
           <div style="text-align:right">
@@ -2288,7 +2294,7 @@ async function openClientFiche(clientId, name){
   document.getElementById("fiche-stats").innerHTML="";
 
   const [clientData, allChests, clientChests, tiers]=await Promise.all([
-    dbGet(T_CLIENTS+"?id=eq."+clientId+"&select=stamps,total_stamps&limit=1"),
+    dbGet(T_CLIENTS+"?id=eq."+clientId+"&select=stamps,total_stamps,prestige&limit=1"),
     dbGet(T_CHESTS+"?active=eq.true&select=id,name,cover_url"),
     dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&order=created_at.desc"),
     getStampRewards()
@@ -2528,6 +2534,7 @@ function renderList(cl){
             <div class="client-name-text">${c.name}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
               ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
+              ${(c.prestige||0)>0?`<div style="display:inline-flex;align-items:center;gap:2px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:99px;padding:1px 6px;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;color:#fbbf24">⭐ ${c.prestige}</div>`:""}
             </div>
             ${c.referral_code?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px">
               <span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);letter-spacing:.08em">CODE</span>
@@ -2596,20 +2603,28 @@ const MAX_STAMPS=10; // Cycle de 10 achats
 async function chg(id,curStamps,curTokens,d){
   if(d===1){
     const rewards=await getStampRewards();
-    const newTotalStamps=(curStamps||0)+1; // total global, jamais reset
-    // Cherche si ce palier total déclenche une récompense
-    const slotReward=rewards.find(r=>r.slot===newTotalStamps);
-    // Cycle stamps : reset à 0 quand atteint MAX_STAMPS
-    const cycleStamps=newTotalStamps%MAX_STAMPS; // 0 quand pile sur MAX
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:cycleStamps,tokens:curTokens,total_stamps:newTotalStamps});
-    await dbPost(T_STAMP_LOGS,{client_id:id});
+    const newTotalStamps=(curStamps||0)+1;
+    const slotReward=rewards.find(r=>r.slot===newTotalStamps%MAX_STAMPS===0?MAX_STAMPS:newTotalStamps%MAX_STAMPS);
     const cycleCompleted=newTotalStamps%MAX_STAMPS===0;
-    const msg=slotReward&&slotReward.chest_id
+    const cycleStamps=newTotalStamps%MAX_STAMPS; // 0 quand cycle complet
+
+    // Récupérer prestige actuel pour incrémenter si cycle complet
+    const patchData={stamps:cycleStamps,tokens:curTokens,total_stamps:newTotalStamps};
+    if(cycleCompleted){
+      const cur=await dbGet(T_CLIENTS+"?id=eq."+id+"&select=prestige&limit=1");
+      const curPrestige=(cur&&cur[0]?.prestige)||0;
+      patchData.prestige=curPrestige+1;
+    }
+    await dbPatch(T_CLIENTS+"?id=eq."+id,patchData);
+    await dbPost(T_STAMP_LOGS,{client_id:id});
+
+    const slotRewardActual=rewards.find(r=>r.slot===newTotalStamps);
+    const msg=slotRewardActual?.chest_id
       ?`🎁 Palier ${newTotalStamps} — Caisse débloquée !`
       :cycleCompleted
-        ?`✦ ${MAX_STAMPS} achats — Nouveau cycle !`
+        ?`⭐ Prestige ! Nouveau cycle`
         :`✦ Achat #${newTotalStamps}`;
-    toast(msg);
+    toast(msg,cycleCompleted?4000:2000);
   } else {
     const newTotalStamps=Math.max(0,(curStamps||0)-1);
     const cycleStamps=newTotalStamps%MAX_STAMPS;
@@ -3482,6 +3497,23 @@ async function loadClientView(id){
   const totalXP=c.total_stamps||0;
   const cycleXP=c.stamps||0; // 0-10, resets each cycle
   const tokens=c.tokens||0;
+  const prestige=c.prestige||0;
+
+  // Prestige badge
+  const prestigeBadge=document.getElementById("cv-prestige-badge");
+  const prestigeCount=document.getElementById("cv-prestige-count");
+  if(prestigeBadge&&prestigeCount){
+    if(prestige>0){
+      prestigeBadge.style.display="flex";
+      prestigeCount.textContent=prestige;
+      // Couleur selon niveau de prestige
+      const pColor=prestige>=5?"#e879f9":prestige>=3?"#60a5fa":"#fbbf24";
+      prestigeBadge.style.borderColor=pColor+"66";
+      prestigeBadge.style.color=pColor;
+    } else {
+      prestigeBadge.style.display="none";
+    }
+  }
 
   // Nom client
   const nameEl=document.getElementById("cv-name-display");
