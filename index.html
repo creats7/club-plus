@@ -1700,7 +1700,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="font-size:12px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em">Total</div>
         <div id="cart-total" style="font-size:26px;font-weight:800;font-family:'DM Mono',monospace;animation:greenGlow 2s ease-in-out infinite;color:#4ade80">0.00 €</div>
       </div>
-
+      <!-- Caisses débloquées preview -->
+      <div id="cart-chests-preview" style="display:none;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:10px 14px;margin-bottom:12px">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Tu vas débloquer</div>
+        <div id="cart-chests-lines"></div>
+      </div>
       <div id="cart-error" style="display:none;font-size:13px;font-weight:600;color:#f87171;font-family:'DM Mono',monospace;text-align:center;margin-bottom:10px;animation:redGlow 1.5s ease-in-out infinite"></div>
       <button style="width:100%;justify-content:center;font-size:15px;padding:15px;background:#fff;color:#0a0a0a;border:none;border-radius:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:block" onclick="submitCart()">
         Confirmer la commande
@@ -3749,6 +3753,39 @@ async function openCartSheet(){
 
   // Update total
   document.getElementById("cart-total").textContent=total.toFixed(2)+" €";
+
+  // Preview caisses débloquées
+  const previewEl=document.getElementById("cart-chests-preview");
+  const linesEl=document.getElementById("cart-chests-lines");
+  if(previewEl&&linesEl&&currentClientId){
+    const puffCount=items.reduce((s,{qty})=>s+qty,0);
+    const currentXP=window._currentClientData?.total_stamps||0;
+    const tierData=await getStampRewards();
+    const sortedTiers=tierData.filter(t=>t.chest_id).sort((a,b)=>a.slot-b.slot);
+    // Which tiers will be passed with this purchase?
+    const newlyUnlocked=sortedTiers.filter(t=>t.slot>currentXP&&t.slot<=currentXP+puffCount);
+    if(newlyUnlocked.length>0){
+      // Fetch chest names
+      const chestIds=newlyUnlocked.map(t=>t.chest_id);
+      const chestData=await dbGet(T_CHESTS+"?id=in.("+chestIds.join(",")+")"+"&select=id,name,cover_url");
+      const cMap={};(chestData||[]).forEach(c=>cMap[c.id]=c);
+      linesEl.innerHTML=newlyUnlocked.map(t=>{
+        const ch=cMap[t.chest_id]||{};
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <div style="width:32px;height:32px;border-radius:7px;overflow:hidden;flex-shrink:0;background:#111">
+            ${ch.cover_url?`<img src="${ch.cover_url}" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px">🗃</div>`}
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#fff">${ch.name||"Caisse"}</div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6)">au ${t.slot}ème achat</div>
+          </div>
+        </div>`;
+      }).join("");
+      previewEl.style.display="block";
+    } else {
+      previewEl.style.display="none";
+    }
+  }
 
   const totalQtyCheck=Object.values(cart).reduce((s,i)=>s+i.qty,0);
   const errEl=document.getElementById("cart-error");
