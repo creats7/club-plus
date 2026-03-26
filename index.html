@@ -2591,25 +2591,29 @@ async function getStampRewards(){
 }
 function invalidateStampCache(){stampRewardsCache=null;}
 
+const MAX_STAMPS=10; // Cycle de 10 achats
+
 async function chg(id,curStamps,curTokens,d){
   if(d===1){
     const rewards=await getStampRewards();
     const newTotalStamps=(curStamps||0)+1; // total global, jamais reset
     // Cherche si ce palier total déclenche une récompense
     const slotReward=rewards.find(r=>r.slot===newTotalStamps);
-    const tokensEarned=slotReward?slotReward.tokens:1;
-    const newTokens=curTokens+tokensEarned;
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newTotalStamps,tokens:newTokens,total_stamps:newTotalStamps});
+    // Cycle stamps : reset à 0 quand atteint MAX_STAMPS
+    const cycleStamps=newTotalStamps%MAX_STAMPS; // 0 quand pile sur MAX
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:cycleStamps,tokens:curTokens,total_stamps:newTotalStamps});
     await dbPost(T_STAMP_LOGS,{client_id:id});
-    await dbPost(T_TOKEN_LOGS,{client_id:id,type:"earned"});
-    const msg=slotReward&&slotReward.tokens>1
-      ?`🎉 Palier ${newTotalStamps} — Bonus +${tokensEarned} ◈`
-      :`✦ Achat #${newTotalStamps} — +${tokensEarned} ◈`;
+    const cycleCompleted=newTotalStamps%MAX_STAMPS===0;
+    const msg=slotReward&&slotReward.chest_id
+      ?`🎁 Palier ${newTotalStamps} — Caisse débloquée !`
+      :cycleCompleted
+        ?`✦ ${MAX_STAMPS} achats — Nouveau cycle !`
+        :`✦ Achat #${newTotalStamps}`;
     toast(msg);
   } else {
-    const newStamps=Math.max(0,curStamps-1);
-    const newTokens=Math.max(0,curTokens-1);
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:newStamps,tokens:newTokens,total_stamps:newStamps});
+    const newTotalStamps=Math.max(0,(curStamps||0)-1);
+    const cycleStamps=newTotalStamps%MAX_STAMPS;
+    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:cycleStamps,tokens:curTokens,total_stamps:newTotalStamps});
     toast("Achat retiré");
   }
   await loadAll();
@@ -3476,6 +3480,7 @@ async function loadClientView(id){
   const c=cData[0];
   window._currentClientData=c;
   const totalXP=c.total_stamps||0;
+  const cycleXP=c.stamps||0; // 0-10, resets each cycle
   const tokens=c.tokens||0;
 
   // Nom client
@@ -3505,25 +3510,26 @@ async function loadClientView(id){
     (chestData||[]).forEach(ch=>chestNameMap[ch.id]=ch.name);
   }
 
+  // Paliers dans le cycle courant (slot 1-10)
+  const cycleStart=Math.floor(totalXP/MAX_STAMPS)*MAX_STAMPS;
   const passedTiers=sortedTiers.filter(r=>totalXP>=r.slot);
-  const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot);
+  const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot&&r.slot<=cycleStart+MAX_STAMPS);
   const currentTierIdx=passedTiers.length;
   const nextTier=upcomingTiers[0]||null;
-  const prevTier=passedTiers[passedTiers.length-1]||null;
 
-  const fromSlot=prevTier?prevTier.slot:0;
-  const toSlot=nextTier?nextTier.slot:(prevTier?prevTier.slot+10:10);
-  const pct=Math.min(100,Math.max(0,((totalXP-fromSlot)/(toSlot-fromSlot))*100));
-  const rem=nextTier?nextTier.slot-totalXP:0;
+  // Barre XP basée sur le cycle (0 à MAX_STAMPS)
+  const pct=Math.min(100,Math.round((cycleXP/MAX_STAMPS)*100));
+  const rem=nextTier?nextTier.slot-totalXP:MAX_STAMPS-cycleXP;
 
-  // Labels paliers
-  document.getElementById("cv-current-tier").textContent=currentTierIdx+1;
-  document.getElementById("cv-next-tier").textContent=currentTierIdx+2;
+  // Labels paliers — cycle
+  const cycleLabel=`${cycleXP}/${MAX_STAMPS}`;
+  document.getElementById("cv-current-tier").textContent=cycleXP;
+  document.getElementById("cv-next-tier").textContent=MAX_STAMPS;
 
   const remEl=document.getElementById("cv-xp-remaining");
   if(remEl)remEl.innerHTML=`<span style="color:#4ade80;font-weight:700">${rem}</span>`;
 
-  // Hint — montre la caisse à débloquer
+  // Hint
   const hint=document.getElementById("cv-xp-hint");
   if(hint){
     if(nextTier&&nextTier.chest_id){
@@ -3531,8 +3537,10 @@ async function loadClientView(id){
       hint.innerHTML=`Prochain palier → <strong>${cn}</strong>`;
     } else if(nextTier){
       hint.innerHTML=`Prochain palier dans <strong>${rem} achat${rem>1?"s":""}</strong>`;
+    } else if(cycleXP===0&&totalXP>0){
+      hint.innerHTML=`<span style="color:#4ade80">✓ Cycle complété — recommence !</span>`;
     } else {
-      hint.innerHTML=`<span style="color:#4ade80">✓ Tous les paliers atteints !</span>`;
+      hint.innerHTML=`<strong>${rem}</strong> achat${rem>1?"s":""} avant le prochain cycle`;
     }
   }
 
