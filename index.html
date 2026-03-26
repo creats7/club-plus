@@ -1300,6 +1300,23 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="panel-title">Caisses</div>
       <button class="btn btn-accent btn-sm" onclick="toggleCaseForm()">+ Caisse</button>
     </div>
+
+    <!-- DROP GLOBAL -->
+    <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <div style="font-size:13px;font-weight:700;color:#a78bfa">Drop global</div>
+      </div>
+      <label class="modal-label">Caisse à dropper</label>
+      <select id="drop-chest-select" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:9px;font-family:'DM Mono',monospace;font-size:12px;outline:none;margin-bottom:10px">
+        <option value="">— Choisir une caisse —</option>
+      </select>
+      <label class="modal-label">Date et heure du drop</label>
+      <input type="datetime-local" id="drop-datetime" class="input" style="margin-bottom:10px" />
+      <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="scheduleGlobalDrop()">⚡ Programmer le drop</button>
+      <!-- Drops programmés -->
+      <div id="drop-scheduled-list" style="margin-top:12px"></div>
+    </div>
     <div class="chest-form-wrap" id="case-form">
       <div style="font-size:13px;font-weight:600;margin-bottom:12px" id="case-form-title">Nouvelle caisse</div>
       <input type="hidden" id="caf-id" />
@@ -1985,6 +2002,7 @@ const T_COMPLETIONS=SUPA_URL+"/rest/v1/challenge_completions";
 const T_STAMP_REWARDS=SUPA_URL+"/rest/v1/stamp_rewards";
 const T_SHOP_CONFIG=SUPA_URL+"/rest/v1/shop_config";
 const T_CHESTS=SUPA_URL+"/rest/v1/chests";
+const T_SCHEDULED_DROPS=SUPA_URL+"/rest/v1/scheduled_drops";
 const T_CHEST_REWARDS=SUPA_URL+"/rest/v1/chest_rewards";
 const T_CLIENT_CHESTS=SUPA_URL+"/rest/v1/client_chests";
 
@@ -2036,7 +2054,7 @@ function switchTab(tab){
   if(tab==="products")loadProducts();
   if(tab==="orders")loadOrders();
   if(tab==="challenges")loadChallenges();
-  if(tab==="cases")loadCasesAdmin();
+  if(tab==="cases"){loadCasesAdmin();loadDropSection();}
   if(tab==="stamp_rewards")loadStampRewards();
   if(tab==="history")loadHistory();
   if(tab==="referral")loadReferral();
@@ -2371,7 +2389,101 @@ async function deleteClientChest(clientChestId){
   openClientFiche(window._ficheClientId,window._ficheClientName);
 }
 
-// ── DONNER UNE CAISSE ──
+// ── DROP GLOBAL ──
+async function loadDropSection(){
+  const chests=await dbGet(T_CHESTS+"?active=eq.true&order=cost.asc&select=id,name");
+  const sel=document.getElementById("drop-chest-select");
+  if(sel){
+    sel.innerHTML='<option value="">— Choisir une caisse —</option>'+(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
+  }
+  // Set default datetime to now+1h
+  const dt=document.getElementById("drop-datetime");
+  if(dt&&!dt.value){
+    const d=new Date(Date.now()+3600000);
+    dt.value=d.toISOString().slice(0,16);
+  }
+  await loadScheduledDrops();
+}
+
+async function loadScheduledDrops(){
+  const list=document.getElementById("drop-scheduled-list");
+  if(!list)return;
+  const drops=await dbGet(T_SCHEDULED_DROPS+"?order=scheduled_at.asc");
+  const chests=await dbGet(T_CHESTS+"?active=eq.true&select=id,name");
+  const chestMap={};(chests||[]).forEach(c=>chestMap[c.id]=c.name);
+  if(!drops||!drops.length){list.innerHTML='<div style="font-size:11px;color:rgba(255,255,255,.3);font-family:\'DM Mono\',monospace;text-align:center;padding:8px 0">Aucun drop programmé</div>';return;}
+  list.innerHTML=drops.map(d=>{
+    const dt=new Date(d.scheduled_at);
+    const now=new Date();
+    const isPast=dt<now;
+    const statusCol=d.executed?"#4ade80":isPast?"#f87171":"#a78bfa";
+    const statusTxt=d.executed?"✓ Exécuté":isPast?"⚠ En attente":"⏱ Programmé";
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:9px 12px;margin-bottom:6px">
+      <div>
+        <div style="font-size:12px;font-weight:700">${chestMap[d.chest_id]||"Caisse"}</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4);margin-top:2px">${fmtDate(d.scheduled_at)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:${statusCol}">${statusTxt}</span>
+        ${!d.executed&&isPast?`<button onclick="executeDropAdmin('${d.id}')" style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);color:#4ade80;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace">▶ Lancer</button>`:""}
+        ${!d.executed?`<button onclick="cancelDrop('${d.id}')" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">✕</button>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function scheduleGlobalDrop(){
+  const chestId=document.getElementById("drop-chest-select").value;
+  const dtVal=document.getElementById("drop-datetime").value;
+  if(!chestId){toast("Choisis une caisse");return;}
+  if(!dtVal){toast("Choisis une date");return;}
+  const scheduledAt=new Date(dtVal).toISOString();
+  await dbPost(T_SCHEDULED_DROPS,{chest_id:chestId,scheduled_at:scheduledAt,executed:false});
+  toast("Drop programmé ✓");
+  document.getElementById("drop-datetime").value="";
+  document.getElementById("drop-chest-select").value="";
+  await loadScheduledDrops();
+}
+
+async function cancelDrop(id){
+  if(!confirm("Annuler ce drop ?"))return;
+  await dbDelete(T_SCHEDULED_DROPS+"?id=eq."+id);
+  toast("Drop annulé");
+  await loadScheduledDrops();
+}
+
+// Exécution des drops en attente — appelé au chargement client
+async function executePendingDrops(clientId){
+  const now=new Date().toISOString();
+  const pending=await dbGet(T_SCHEDULED_DROPS+"?executed=eq.false&scheduled_at=lte."+encodeURIComponent(now));
+  if(!pending||!pending.length)return;
+  for(const drop of pending){
+    // Vérifier si ce client a déjà reçu cette caisse pour ce drop
+    const already=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&chest_id=eq."+drop.chest_id+"&created_at=gte."+encodeURIComponent(drop.scheduled_at)+"&limit=1");
+    if(!already||!already.length){
+      await dbPost(T_CLIENT_CHESTS,{client_id:clientId,chest_id:drop.chest_id,opened:false});
+    }
+  }
+  // Marquer tous comme exécutés (on ne peut pas savoir combien de clients il y a)
+  // On le fait côté admin seulement — voir executeDropAdmin
+}
+
+async function executeDropAdmin(dropId){
+  // Exécute un drop manuellement pour tous les clients actuels
+  if(!confirm("Exécuter ce drop maintenant pour tous les clients ?"))return;
+  const [clients,drop]=await Promise.all([
+    dbGet(T_CLIENTS+"?select=id"),
+    dbGet(T_SCHEDULED_DROPS+"?id=eq."+dropId+"&limit=1")
+  ]);
+  if(!drop||!drop[0]){toast("Drop introuvable");return;}
+  const chestId=drop[0].chest_id;
+  for(const c of clients||[]){
+    await dbPost(T_CLIENT_CHESTS,{client_id:c.id,chest_id:chestId,opened:false});
+  }
+  await dbPatch(T_SCHEDULED_DROPS+"?id=eq."+dropId,{executed:true});
+  toast(`Drop envoyé à ${(clients||[]).length} clients ✓`);
+  await loadScheduledDrops();
+}
 let _giveCaseClientId=null;
 
 async function openGiveCaseModal(clientId,name){
@@ -3696,6 +3808,7 @@ async function loadClientView(id){
 
   document.getElementById("cv-nav").classList.add("visible");
   switchClientTab("carte");
+  executePendingDrops(id); // check & give pending drops
 
   // Chargements annexes
   await loadClientOrders(id);
