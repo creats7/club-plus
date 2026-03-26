@@ -1245,7 +1245,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <option value="month">Ce mois</option>
         <option value="alltime">Tous temps</option>
       </select>
-      <label class="modal-label">Récompense (tokens)</label><input class="input" id="cf-reward" type="number" min="1" placeholder="ex: 2" />
+      <label class="modal-label">Récompense — caisse</label>
+      <select class="input" id="cf-chest">
+        <option value="">— Choisir une caisse —</option>
+      </select>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveChallenge()">Enregistrer</button>
         <button class="btn" onclick="toggleChallengeForm()">Annuler</button>
@@ -1571,7 +1574,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <!-- ── SECTION DÉFIS (masquée) ── -->
-    <div class="cv-section" id="cvs-defis" style="display:none!important">
+    <div class="cv-section" id="cvs-defis">
       <div id="cv-challenges-list"></div>
       <div id="cv-defis-empty"></div>
     </div>
@@ -3042,22 +3045,31 @@ const PERIOD_LABELS={week:"Cette semaine",month:"Ce mois",alltime:"Depuis toujou
 async function loadChallenges(){
   const list=document.getElementById("challenges-list");
   list.innerHTML='<div class="loader">Chargement...</div>';
-  const challenges=await dbGet(T_CHALLENGES+"?order=created_at.desc");
+  const [challenges, chests]=await Promise.all([
+    dbGet(T_CHALLENGES+"?order=created_at.desc"),
+    dbGet(T_CHESTS+"?active=eq.true&select=id,name")
+  ]);
+  // Populate chest selector in form
+  const chestOpts='<option value="">— Choisir une caisse —</option>'+(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
+  const sel=document.getElementById("cf-chest");
+  if(sel)sel.innerHTML=chestOpts;
+
   if(!challenges||!challenges.length){list.innerHTML='<div class="empty-state">Aucun défi · Crée le premier</div>';return;}
-  // Charger les complétions pour afficher le nombre de clients ayant complété
   const completions=await dbGet(T_COMPLETIONS+"?select=challenge_id");
   const compCount={};
   (completions||[]).forEach(c=>{compCount[c.challenge_id]=(compCount[c.challenge_id]||0)+1;});
+  const chestMap={};(chests||[]).forEach(c=>chestMap[c.id]=c);
   list.innerHTML="";
   challenges.forEach(ch=>{
     const div=document.createElement("div");div.className="challenge-card"+(ch.active?"":" inactive");
+    const chestName=ch.chest_id&&chestMap[ch.chest_id]?chestMap[ch.chest_id].name:"Aucune caisse";
     div.innerHTML=`
       <div class="challenge-header">
         <div>
           <div class="challenge-title">${ch.title}</div>
           ${ch.description?`<div class="challenge-desc">${ch.description}</div>`:""}
         </div>
-        <div class="challenge-reward">◈ +${ch.reward_tokens}</div>
+        <div class="challenge-reward" style="color:#a78bfa">🗃 ${chestName}</div>
       </div>
       <div class="challenge-meta">
         Objectif : ${ch.target} commandes · ${PERIOD_LABELS[ch.period]||ch.period}
@@ -3065,7 +3077,7 @@ async function loadChallenges(){
       </div>
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <button class="btn btn-sm" onclick="toggleChallenge('${ch.id}',${ch.active})">${ch.active?"● Actif":"○ Inactif"}</button>
-        <button class="btn btn-icon" onclick="editChallenge('${ch.id}','${ch.title.replace(/'/g,"\\'")}','${(ch.description||"").replace(/'/g,"\\'")}',${ch.target},'${ch.period}',${ch.reward_tokens})">✎</button>
+        <button class="btn btn-icon" onclick="editChallenge('${ch.id}','${ch.title.replace(/'/g,"\\'")}','${(ch.description||"").replace(/'/g,"\\'")}',${ch.target},'${ch.period}','${ch.chest_id||""}')">✎</button>
         <button class="btn btn-icon btn-danger" onclick="deleteChallenge('${ch.id}','${ch.title.replace(/'/g,"\\'")}')">✕</button>
       </div>`;
     list.appendChild(div);
@@ -3074,26 +3086,44 @@ async function loadChallenges(){
 
 function toggleChallengeForm(edit=false){
   const f=document.getElementById("challenge-form");
-  if(!edit){["cf-id","cf-title","cf-desc","cf-target","cf-tokens"].forEach(id=>document.getElementById(id).value="");document.getElementById("cf-period").value="week";document.getElementById("cf-tokens").value="1";document.getElementById("challenge-form-title").textContent="Nouveau défi";}
-  f.classList.toggle("open");if(f.classList.contains("open"))document.getElementById("cf-title").focus();
+  if(!edit){
+    ["cf-id","cf-title","cf-desc","cf-target"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    document.getElementById("cf-period").value="week";
+    document.getElementById("cf-chest").value="";
+    document.getElementById("challenge-form-title").textContent="Nouveau défi";
+  }
+  f.classList.toggle("open");
+  if(f.classList.contains("open"))document.getElementById("cf-title").focus();
 }
-function editChallenge(id,title,desc,target,period,tokens){
-  document.getElementById("cf-id").value=id;document.getElementById("cf-title").value=title;
-  document.getElementById("cf-desc").value=desc;document.getElementById("cf-target").value=target;
-  document.getElementById("cf-period").value=period;document.getElementById("cf-tokens").value=tokens;
+
+function editChallenge(id,title,desc,target,period,chestId){
+  document.getElementById("cf-id").value=id;
+  document.getElementById("cf-title").value=title;
+  document.getElementById("cf-desc").value=desc;
+  document.getElementById("cf-target").value=target;
+  document.getElementById("cf-period").value=period;
+  document.getElementById("cf-chest").value=chestId||"";
   document.getElementById("challenge-form-title").textContent="Modifier le défi";
-  document.getElementById("challenge-form").classList.add("open");document.getElementById("cf-title").focus();
+  document.getElementById("challenge-form").classList.add("open");
+  document.getElementById("cf-title").focus();
 }
+
 async function saveChallenge(){
   const title=document.getElementById("cf-title").value.trim();if(!title)return;
   const target=parseInt(document.getElementById("cf-target").value)||3;
-  const tokens=parseInt(document.getElementById("cf-tokens").value)||1;
   const period=document.getElementById("cf-period").value;
   const desc=document.getElementById("cf-desc").value.trim();
+  const chest_id=document.getElementById("cf-chest").value||null;
   const id=document.getElementById("cf-id").value;
-  if(id){await dbPatch(T_CHALLENGES+"?id=eq."+id,{title,description:desc||null,target,period,reward_tokens:tokens});toast("Défi modifié ✓");}
-  else{await dbPost(T_CHALLENGES,{title,description:desc||null,target,period,reward_tokens:tokens,active:true});toast("Défi créé ✓");}
-  document.getElementById("challenge-form").classList.remove("open");loadChallenges();
+  if(id){
+    await dbPatch(T_CHALLENGES+"?id=eq."+id,{title,description:desc||null,target,period,chest_id});
+    toast("Défi modifié ✓");
+  } else {
+    await dbPost(T_CHALLENGES,{title,description:desc||null,target,period,chest_id,reward_tokens:0,active:true});
+    toast("Défi créé ✓");
+  }
+  document.getElementById("challenge-form").classList.remove("open");
+  loadChallenges();
 }
 async function toggleChallenge(id,active){await dbPatch(T_CHALLENGES+"?id=eq."+id,{active:!active});toast(active?"Défi désactivé":"Défi activé");loadChallenges();}
 async function deleteChallenge(id,title){if(!confirm("Supprimer \""+title+"\" ?"))return;await dbDelete(T_CHALLENGES+"?id=eq."+id);toast("Défi supprimé");loadChallenges();}
@@ -3114,45 +3144,45 @@ async function loadClientChallenges(clientId){
     dbGet(T_COMPLETIONS+"?client_id=eq."+clientId),
     dbGet(T_ORDERS+"?client_id=eq."+clientId+"&status=neq.cancelled&select=created_at")
   ]);
-  if(!challenges||!challenges.length){if(empty)empty.style.display="block";return;}
+  if(!challenges||!challenges.length){if(cl)cl.innerHTML="";if(empty)empty.style.display="block";return;}
   if(empty)empty.style.display="none";
   const completedIds=new Set((completions||[]).map(c=>c.challenge_id));
+
+  // Fetch chest names for all challenges
+  const chestIds=[...new Set(challenges.filter(c=>c.chest_id).map(c=>c.chest_id))];
+  const chestMap={};
+  if(chestIds.length){
+    const chestData=await dbGet(T_CHESTS+"?id=in.("+chestIds.join(",")+")"+"&select=id,name");
+    (chestData||[]).forEach(c=>chestMap[c.id]=c.name);
+  }
+
   const items=await Promise.all(challenges.map(async ch=>{
     const done=completedIds.has(ch.id);
     const start=getPeriodStart(ch.period);
     const count=(orders||[]).filter(o=>new Date(o.created_at)>=start).length;
     const progress=Math.min(count,ch.target);
     const pct=Math.round((progress/ch.target)*100);
+    const chestName=ch.chest_id&&chestMap[ch.chest_id]?chestMap[ch.chest_id]:"une caisse";
 
     // Auto-complete si objectif atteint et pas encore récompensé
     if(!done&&count>=ch.target){
       await dbPost(T_COMPLETIONS,{challenge_id:ch.id,client_id:clientId});
-      // Donner les tokens
-      const cData=await dbGet(T_CLIENTS+"?id=eq."+clientId+"&select=tokens");
-      if(cData&&cData.length){
-        const newTokens=(cData[0].tokens||0)+ch.reward_tokens;
-        await dbPatch(T_CLIENTS+"?id=eq."+clientId,{tokens:newTokens});
-        await dbPost(T_TOKEN_LOGS,{client_id:clientId,type:"earned"});
+      // Donner la caisse
+      if(ch.chest_id){
+        await dbPost(T_CLIENT_CHESTS,{client_id:clientId,chest_id:ch.chest_id,opened:false});
       }
-      toast("🎯 Défi complété ! +"+ch.reward_tokens+" token"+(ch.reward_tokens>1?"s":"")+" 🎉",4000);
-      // Refresh token section only
-      const freshData=await dbGet(T_CLIENTS+"?id=eq."+clientId+"&select=tokens");
-      if(freshData&&freshData.length){
-        const tk=freshData[0].tokens||0;
-        const tokenSection=document.getElementById("cv-token-section");
-        if(tk>0&&tokenSection){tokenSection.style.display="flex";document.getElementById("cv-token-count").textContent=tk;document.getElementById("btn-spin").disabled=false;}
-      }
+      toast("🎯 Défi complété ! Une caisse t'a été offerte 🎁",4000);
       return `<div class="cv-challenge-card done">
         <div class="cv-challenge-title">${ch.title}</div>
         ${ch.description?`<div class="cv-challenge-desc">${ch.description}</div>`:""}
-        <div class="cv-challenge-done">✓ Défi complété · +${ch.reward_tokens} token${ch.reward_tokens>1?"s":""} reçu${ch.reward_tokens>1?"s":""}</div>
+        <div class="cv-challenge-done">✓ Défi complété · 🗃 ${chestName} reçue</div>
       </div>`;
     }
     if(done){
       return `<div class="cv-challenge-card done">
         <div class="cv-challenge-title">${ch.title}</div>
         ${ch.description?`<div class="cv-challenge-desc">${ch.description}</div>`:""}
-        <div class="cv-challenge-done">✓ Défi complété · +${ch.reward_tokens} token${ch.reward_tokens>1?"s":""} reçu${ch.reward_tokens>1?"s":""}</div>
+        <div class="cv-challenge-done">✓ Défi complété · 🗃 ${chestName} reçue</div>
       </div>`;
     }
     return `<div class="cv-challenge-card">
@@ -3160,12 +3190,12 @@ async function loadClientChallenges(clientId){
       ${ch.description?`<div class="cv-challenge-desc">${ch.description}</div>`:""}
       <div class="cv-challenge-progress">
         <span class="cv-challenge-count">${progress}/${ch.target} commandes · ${PERIOD_LABELS[ch.period]||ch.period}</span>
-        <span class="cv-challenge-reward">◈ +${ch.reward_tokens} à gagner</span>
+        <span class="cv-challenge-reward" style="color:#a78bfa">🗃 ${chestName}</span>
       </div>
       <div class="cv-challenge-bar"><div class="cv-challenge-fill" style="width:${pct}%"></div></div>
     </div>`;
   }));
-  cl.innerHTML=items.join("");
+  if(cl)cl.innerHTML=items.join("");
 }
 
 // ── CHESTS ADMIN ──
