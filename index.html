@@ -1710,6 +1710,26 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<!-- CLIENT FICHE MODAL -->
+<div class="order-overlay" id="client-fiche-overlay" onclick="closeClientFiche()">
+  <div class="order-sheet" onclick="event.stopPropagation()" style="max-height:90vh;display:flex;flex-direction:column">
+    <div class="order-sheet-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem 1rem">
+      <div class="order-sheet-title" style="margin:0" id="fiche-title">Fiche client</div>
+      <button onclick="closeClientFiche()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">✕</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 1.5rem 1.5rem">
+      <!-- Stats rapides -->
+      <div id="fiche-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px"></div>
+      <!-- Inventaire caisses -->
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Inventaire caisses</div>
+      <div id="fiche-chests-list"></div>
+      <!-- Bouton donner caisse -->
+      <button onclick="closeClientFiche();openGiveCaseModal(window._ficheClientId,window._ficheClientName)" style="width:100%;margin-top:12px;padding:11px;border-radius:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">+ Donner une caisse</button>
+    </div>
+  </div>
+</div>
+
 <!-- MES CAISSES SHEET -->
 <div class="order-overlay" id="my-chests-overlay" onclick="closeMyChestsSheet()">
   <div class="order-sheet" onclick="event.stopPropagation()" style="max-height:85vh;display:flex;flex-direction:column">
@@ -2252,6 +2272,77 @@ async function submitAdminOrder(){
   loadOrders();
 }
 
+// ── FICHE CLIENT ADMIN ──
+async function openClientFiche(clientId, name){
+  window._ficheClientId=clientId;
+  window._ficheClientName=name;
+  document.getElementById("fiche-title").textContent=name;
+  document.getElementById("client-fiche-overlay").classList.add("open");
+  document.getElementById("fiche-chests-list").innerHTML='<div class="loader">Chargement...</div>';
+  document.getElementById("fiche-stats").innerHTML="";
+
+  const [clientData, allChests, clientChests, tiers]=await Promise.all([
+    dbGet(T_CLIENTS+"?id=eq."+clientId+"&select=stamps,total_stamps&limit=1"),
+    dbGet(T_CHESTS+"?active=eq.true&select=id,name,cover_url"),
+    dbGet(T_CLIENT_CHESTS+"?client_id=eq."+clientId+"&order=created_at.desc"),
+    getStampRewards()
+  ]);
+
+  const client=clientData&&clientData[0]||{};
+  const totalXP=client.total_stamps||0;
+  const chestMap={};(allChests||[]).forEach(c=>chestMap[c.id]=c);
+
+  // Stats
+  const openedCount=(clientChests||[]).filter(r=>r.opened).length;
+  const pendingCount=(clientChests||[]).filter(r=>!r.opened).length;
+  const unlockedByTier=tiers.filter(t=>t.chest_id&&totalXP>=t.slot).length;
+  document.getElementById("fiche-stats").innerHTML=`
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;text-align:center">
+      <div style="font-size:22px;font-weight:800;font-family:'DM Mono',monospace">${totalXP}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">achats total</div>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;text-align:center">
+      <div style="font-size:22px;font-weight:800;font-family:'DM Mono',monospace">${openedCount}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">caisses ouvertes</div>
+    </div>`;
+
+  // Inventaire — grouper par caisse
+  if(!clientChests||!clientChests.length){
+    document.getElementById("fiche-chests-list").innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px;padding:1.5rem 0;opacity:.5">Aucune caisse</div>';
+    return;
+  }
+
+  const html=clientChests.map(cc=>{
+    const ch=chestMap[cc.chest_id]||{};
+    const statusCol=cc.opened?"rgba(255,255,255,.25)":"#4ade80";
+    const statusTxt=cc.opened?`Ouverte — ${cc.reward_name||"—"}`:"À ouvrir";
+    const statusIcon=cc.opened?"✓":"🔓";
+    return `<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;margin-bottom:7px">
+      <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111">
+        ${ch.cover_url?`<img src="${ch.cover_url}" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px">🗃</div>`}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ch.name||"Caisse inconnue"}</div>
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:${statusCol};margin-top:2px">${statusIcon} ${statusTxt}</div>
+      </div>
+      ${!cc.opened?`<button onclick="deleteClientChest('${cc.id}')" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
+    </div>`;
+  }).join("");
+
+  document.getElementById("fiche-chests-list").innerHTML=html;
+}
+
+function closeClientFiche(){
+  document.getElementById("client-fiche-overlay").classList.remove("open");
+}
+
+async function deleteClientChest(clientChestId){
+  if(!confirm("Supprimer cette caisse de l'inventaire ?"))return;
+  await dbDelete(T_CLIENT_CHESTS+"?id=eq."+clientChestId);
+  toast("Caisse supprimée");
+  openClientFiche(window._ficheClientId,window._ficheClientName);
+}
+
 // ── DONNER UNE CAISSE ──
 let _giveCaseClientId=null;
 
@@ -2422,7 +2513,6 @@ function renderList(cl){
   list.innerHTML="";
   cl.forEach(c=>{
     const stamps=c.stamps||0;
-    const full=false;
     const div=document.createElement("div");div.className="client-card";
     div.innerHTML=`
       <div class="client-top">
@@ -2447,12 +2537,13 @@ function renderList(cl){
         </div>
       </div>
       <div class="stamp-controls">
-        <div class="stamp-count"><span class="n">${stamps}</span> achats · <span style="color:rgba(255,255,255,.5)">${c.tokens||0} ◈</span></div>
+        <div class="stamp-count"><span class="n">${stamps}</span> achats</div>
         <div class="stamp-btns">
           <button class="btn btn-sm" onclick="chg('${c.id}',${stamps},${c.tokens||0},-1)" ${stamps===0?"disabled":""}>−</button>
           <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)">+ Achat</button>
           <button class="btn btn-sm" style="color:#a78bfa;border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08)" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
           <button class="btn btn-sm" style="color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
+          <button class="btn btn-sm" style="color:#38bdf8;border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.08)" onclick="openClientFiche('${c.id}','${c.name.replace(/'/g,"\\'")}')">📋 Fiche</button>
         </div>
       </div>`;
     list.appendChild(div);
