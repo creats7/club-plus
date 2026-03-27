@@ -3716,7 +3716,14 @@ async function loadClientView(id){
   const msContainer=document.getElementById("cv-xp-milestones");
   if(msContainer){
     const cycleTiers=sortedTiers.filter(t=>t.slot>cycleStart&&t.slot<=cycleStart+MAX_STAMPS);
-    const allMs=[...cycleTiers.map(t=>({slot:t.slot,chestId:t.chest_id})),{slot:cycleStart+MAX_STAMPS,chestId:null,isPrestige:true}];
+    // Créer un dot pour chaque slot 1-10, qu'il y ait une caisse ou non
+    const tierBySlot={};cycleTiers.forEach(t=>tierBySlot[t.slot]=t);
+    const allMs=[];
+    for(let i=1;i<=MAX_STAMPS;i++){
+      const slot=cycleStart+i;
+      const tier=tierBySlot[slot];
+      allMs.push({slot,chestId:tier?.chest_id||null,isPrestige:i===MAX_STAMPS});
+    }
     msContainer.innerHTML=allMs.map(ms=>{
       const slotInCycle=ms.slot-cycleStart;
       const leftPct=(slotInCycle/MAX_STAMPS)*100;
