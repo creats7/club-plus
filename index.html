@@ -1762,11 +1762,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </div>
 
 <!-- QUIZ SHEET -->
-<div class="order-overlay" id="quiz-overlay" onclick="closeQuiz()">
-  <div class="order-sheet" onclick="event.stopPropagation()" style="max-height:90vh;display:flex;flex-direction:column">
-    <div class="order-sheet-handle"></div>
-    <div id="quiz-inner" style="flex:1;overflow-y:auto;padding-bottom:1rem"></div>
-  </div>
+<div id="quiz-overlay" style="display:none;position:fixed;inset:0;background:#0a0a0a;z-index:600;overflow-y:auto">
+  <div id="quiz-inner" style="min-height:100vh;display:flex;flex-direction:column;max-width:460px;margin:0 auto;padding:1.5rem 1.25rem 2rem"></div>
 </div>
 
 <!-- ALL TIERS SHEET -->
@@ -2682,110 +2679,203 @@ async function deletePuff(id){
 }
 
 // ── QUIZ PUFF ──
-const QUIZ_QUESTIONS=[
-  {id:"sucre",question:"Tu aimes les goûts sucrés ?",options:[
-    {label:"Oui, j'adore 🍬",value:"sucre_oui"},
-    {label:"Moyen, pas trop",value:"sucre_moyen"},
-    {label:"Non, le moins possible",value:"sucre_non"}
+const QUIZ_Q=[
+  {id:"q1",question:"Tu préfères quoi ?",emoji:"🍭",options:[
+    {label:"Fruité",emoji:"🍓",cats:{FRUITE:2}},
+    {label:"Sucré",emoji:"🍬",cats:{SUCRE:2}},
+    {label:"Frais",emoji:"❄️",cats:{FRAIS:2}},
+    {label:"Exotique",emoji:"🌴",cats:{EXOTIQUE:2}}
   ]},
-  {id:"famille",question:"Quelle famille de goût tu préfères ?",options:[
-    {label:"Fruité 🍓",value:"fruite"},
-    {label:"Mentholé / frais ❄️",value:"menthol"},
-    {label:"Tabac / classique 🚬",value:"tabac"},
-    {label:"Mix fruité-mentholé",value:"mix"}
+  {id:"q2",question:"Tu veux un goût…",emoji:"💨",options:[
+    {label:"Léger",emoji:"🌸",cats:{FRUITE:1}},
+    {label:"Équilibré",emoji:"⚖️",cats:{SUCRE:1}},
+    {label:"Intense",emoji:"💥",cats:{FRAIS:2}}
   ]},
-  {id:"force",question:"Force de la saveur ?",options:[
-    {label:"Légère et subtile",value:"legere"},
-    {label:"Bien présente",value:"medium"},
-    {label:"Intense et prononcée 💥",value:"forte"}
+  {id:"q3",question:"Ton style ?",emoji:"🎭",options:[
+    {label:"Chill",emoji:"😌",cats:{FRUITE:1}},
+    {label:"Qui frappe",emoji:"🔥",cats:{FRAIS:2}},
+    {label:"Original",emoji:"✨",cats:{EXOTIQUE:2}}
   ]},
-  {id:"sensation",question:"Sensation en bouche ?",options:[
-    {label:"Doux et rond 🌸",value:"doux"},
-    {label:"Frais et piquant",value:"frais"},
-    {label:"Fort en gorge",value:"fort"}
+  {id:"q4",question:"Tu choisis :",emoji:"🎯",options:[
+    {label:"Bonbon",emoji:"🍭",cats:{SUCRE:2}},
+    {label:"Frais",emoji:"🧊",cats:{FRAIS:2}},
+    {label:"Fruit",emoji:"🍑",cats:{FRUITE:2}},
+    {label:"Tropical",emoji:"🥭",cats:{EXOTIQUE:2}}
+  ]},
+  {id:"q5",question:"Tu veux :",emoji:"🚀",options:[
+    {label:"Tester un truc nouveau",emoji:"🆕",cats:{EXOTIQUE:2}},
+    {label:"Rester sur du sûr",emoji:"✅",cats:{SUCRE:1}}
   ]}
 ];
-let quizAnswers={},quizStep=0,quizPuffs=[];
 
-async function openQuiz(){
-  document.getElementById("quiz-overlay").classList.add("open");
-  quizAnswers={};quizStep=0;
-  quizPuffs=await dbGet(T_PUFFS+"?active=eq.true")||[];
+const QUIZ_PROFILES={
+  FRUITE:{label:"Fruité Chill",desc:"Tu aimes les saveurs fruitées douces et naturelles.",products:["Mixed Berry","Peach Berry","Cherry Berry"]},
+  SUCRE:{label:"Sweet Lover",desc:"Tu es team sucré — des goûts gourmands et réconfortants.",products:["Strawberry Red Bull","Red Punch","Fabublue"]},
+  FRAIS:{label:"Fresh Intense",desc:"Tu veux quelque chose qui frappe fort et rafraîchit.",products:["Cola Ice","Black Ice","Blue Razz Cherry"]},
+  EXOTIQUE:{label:"Explorer",desc:"Tu adores les saveurs originales qu'on ne voit pas partout.",products:["Mango Passion Fruit","Love 66","Sakura Grape"]}
+};
+
+let quizScores={FRUITE:0,SUCRE:0,FRAIS:0,EXOTIQUE:0};
+let quizStep=0;
+let quizHistory=[];
+
+function openQuiz(){
+  quizScores={FRUITE:0,SUCRE:0,FRAIS:0,EXOTIQUE:0};
+  quizStep=0;quizHistory=[];
+  const overlay=document.getElementById("quiz-overlay");
+  overlay.style.display="block";
+  document.body.style.overflow="hidden";
   renderQuizStep();
 }
-function closeQuiz(){document.getElementById("quiz-overlay").classList.remove("open");}
+function closeQuiz(){
+  document.getElementById("quiz-overlay").style.display="none";
+  document.body.style.overflow="";
+}
 
 function renderQuizStep(){
   const inner=document.getElementById("quiz-inner");
-  if(quizStep<QUIZ_QUESTIONS.length){
-    const q=QUIZ_QUESTIONS[quizStep];
-    const progress=Math.round((quizStep/QUIZ_QUESTIONS.length)*100);
-    inner.innerHTML=`
-      <div style="padding:0 0 8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <span style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3)">${quizStep+1} / ${QUIZ_QUESTIONS.length}</span>
-          ${quizStep>0?`<button onclick="quizBack()" style="background:transparent;border:none;color:rgba(255,255,255,.4);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer">← Retour</button>`:""}
-        </div>
-        <div style="height:3px;background:rgba(255,255,255,.08);border-radius:99px;margin-bottom:22px">
-          <div style="height:100%;width:${progress}%;background:rgba(167,139,250,.7);border-radius:99px;transition:width .3s"></div>
-        </div>
-        <div style="font-size:18px;font-weight:700;color:#fff;line-height:1.35;margin-bottom:20px">${q.question}</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          ${q.options.map(o=>`<button onclick="quizAnswer('${q.id}','${o.value}')" style="width:100%;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 16px;color:#fff;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer">${o.label}</button>`).join("")}
-        </div>
-      </div>`;
-  } else {
-    renderQuizResult();
-  }
-}
-function quizAnswer(id,value){quizAnswers[id]=value;quizStep++;renderQuizStep();}
-function quizBack(){if(quizStep>0){quizStep--;delete quizAnswers[QUIZ_QUESTIONS[quizStep].id];renderQuizStep();}}
+  if(quizStep>=QUIZ_Q.length){renderQuizResult();return;}
+  const q=QUIZ_Q[quizStep];
+  const pct=Math.round((quizStep/QUIZ_Q.length)*100);
+  inner.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-top:4px">
+      ${quizStep>0
+        ?`<button onclick="quizBack()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif">← Retour</button>`
+        :`<div></div>`}
+      <button onclick="closeQuiz()" style="background:transparent;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer;line-height:1">✕</button>
+    </div>
 
-function scoreQuizPuff(puff){
-  let score=0;
-  const tags=(puff.tags||"").toLowerCase();
-  const a=quizAnswers;
-  if(a.sucre==="sucre_oui"&&tags.includes("sucre"))score+=3;
-  if(a.sucre==="sucre_non"&&!tags.includes("sucre"))score+=2;
-  if(a.sucre==="sucre_moyen")score+=1;
-  if(a.famille==="fruite"&&tags.includes("fruit"))score+=4;
-  if(a.famille==="menthol"&&(tags.includes("menthol")||tags.includes("frais")||tags.includes("ice")))score+=4;
-  if(a.famille==="tabac"&&tags.includes("tabac"))score+=4;
-  if(a.famille==="mix"&&tags.includes("fruit")&&(tags.includes("menthol")||tags.includes("ice")))score+=4;
-  if(a.force==="legere"&&tags.includes("leger"))score+=2;
-  if(a.force==="medium"&&tags.includes("medium"))score+=2;
-  if(a.force==="forte"&&tags.includes("fort"))score+=2;
-  if(a.sensation==="doux"&&tags.includes("doux"))score+=2;
-  if(a.sensation==="frais"&&(tags.includes("frais")||tags.includes("ice")||tags.includes("menthol")))score+=2;
-  if(a.sensation==="fort"&&(tags.includes("fort")||tags.includes("gorge")))score+=2;
-  return score;
+    <div style="margin-bottom:20px">
+      <div style="height:4px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#a78bfa,#60a5fa);border-radius:99px;transition:width .4s cubic-bezier(.34,1.4,.64,1)"></div>
+      </div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-top:6px">${quizStep+1} / ${QUIZ_Q.length}</div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+      <div style="font-size:36px;margin-bottom:12px;text-align:center">${q.emoji}</div>
+      <div style="font-size:22px;font-weight:800;color:#fff;text-align:center;line-height:1.25;margin-bottom:28px">${q.question}</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${q.options.map((o,i)=>`
+          <button onclick="quizAnswer(${i})" style="
+            width:100%;display:flex;align-items:center;gap:14px;
+            background:rgba(255,255,255,.04);
+            border:1.5px solid rgba(255,255,255,.1);
+            border-radius:14px;padding:16px 18px;
+            color:#fff;font-size:15px;font-weight:600;
+            font-family:'Inter',sans-serif;cursor:pointer;
+            text-align:left;transition:all .15s;
+            -webkit-tap-highlight-color:transparent"
+            onmousedown="this.style.background='rgba(167,139,250,.15)';this.style.borderColor='rgba(167,139,250,.5)';this.style.transform='scale(.98)'"
+            ontouchstart="this.style.background='rgba(167,139,250,.15)';this.style.borderColor='rgba(167,139,250,.5)';this.style.transform='scale(.98)'"
+          >
+            <span style="font-size:24px;flex-shrink:0">${o.emoji}</span>
+            <span>${o.label}</span>
+          </button>`).join("")}
+      </div>
+    </div>`;
+  // scroll top
+  document.getElementById("quiz-overlay").scrollTop=0;
+}
+
+function quizAnswer(optionIdx){
+  const q=QUIZ_Q[quizStep];
+  const o=q.options[optionIdx];
+  // Ajouter les points
+  Object.entries(o.cats).forEach(([cat,pts])=>{quizScores[cat]=(quizScores[cat]||0)+pts;});
+  quizHistory.push({step:quizStep,scores:{...quizScores},option:optionIdx});
+  quizStep++;
+  // Animation flash
+  setTimeout(()=>renderQuizStep(),120);
+}
+
+function quizBack(){
+  if(quizStep===0){closeQuiz();return;}
+  const prev=quizHistory.pop();
+  quizScores={...prev.scores};
+  // Retirer les points de l'étape précédente
+  const q=QUIZ_Q[prev.step];
+  const o=q.options[prev.option];
+  Object.entries(o.cats).forEach(([cat,pts])=>{quizScores[cat]=(quizScores[cat]||0)-pts;});
+  quizStep=prev.step;
+  renderQuizStep();
+}
+
+function getQuizWinner(){
+  const priority=["FRAIS","EXOTIQUE","FRUITE","SUCRE"];
+  let max=Math.max(...Object.values(quizScores));
+  const tied=priority.filter(c=>quizScores[c]===max);
+  return tied[0];
 }
 
 function renderQuizResult(){
   const inner=document.getElementById("quiz-inner");
-  if(!quizPuffs.length){
-    inner.innerHTML=`<div style="text-align:center;padding:3rem 0;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;font-size:13px">Aucune puff configurée</div>`;
-    return;
-  }
-  const scored=quizPuffs.map(p=>({...p,score:scoreQuizPuff(p)})).sort((a,b)=>b.score-a.score).slice(0,3);
+  document.getElementById("quiz-overlay").scrollTop=0;
+  const winner=getQuizWinner();
+  const profile=QUIZ_PROFILES[winner];
+  const profiles83={"FRUITE":"78","SUCRE":"81","FRAIS":"87","EXOTIQUE":"83"};
+  const pct83=profiles83[winner];
+  const gradients={
+    FRUITE:"linear-gradient(135deg,rgba(74,222,128,.15),rgba(16,185,129,.08))",
+    SUCRE:"linear-gradient(135deg,rgba(251,191,36,.15),rgba(245,158,11,.08))",
+    FRAIS:"linear-gradient(135deg,rgba(96,165,250,.15),rgba(59,130,246,.08))",
+    EXOTIQUE:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(139,92,246,.08))"
+  };
+  const borders={FRUITE:"rgba(74,222,128,.3)",SUCRE:"rgba(251,191,36,.3)",FRAIS:"rgba(96,165,250,.3)",EXOTIQUE:"rgba(167,139,250,.3)"};
+  const cols={FRUITE:"#4ade80",SUCRE:"#fbbf24",FRAIS:"#60a5fa",EXOTIQUE:"#a78bfa"};
+  const col=cols[winner];
   inner.innerHTML=`
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:22px;font-weight:800;color:#fff">Tes puffs idéales ✦</div>
-      <div style="font-size:12px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.35);margin-top:4px">Basé sur tes préférences</div>
+    <div style="display:flex;justify-content:flex-end;padding-top:4px;margin-bottom:16px">
+      <button onclick="closeQuiz()" style="background:transparent;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer">✕</button>
     </div>
-    ${scored.map((p,i)=>`
-      <div style="display:flex;align-items:center;gap:12px;background:${i===0?"rgba(167,139,250,.1)":"rgba(255,255,255,.03)"};border:1px solid ${i===0?"rgba(167,139,250,.3)":"rgba(255,255,255,.07)"};border-radius:13px;padding:12px 14px;margin-bottom:8px">
-        <div style="width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#111">
-          ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px">💨</div>`}
-        </div>
-        <div style="flex:1;min-width:0">
-          ${i===0?`<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;background:rgba(167,139,250,.2);color:#a78bfa;border-radius:5px;padding:2px 6px;display:inline-block;margin-bottom:3px">TOP CHOIX</span>`:`<span style="font-size:9px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25)">#${i+1}</span>`}
-          <div style="font-size:14px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
-          ${p.description?`<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">${p.description}</div>`:""}
-        </div>
-      </div>`).join("")}
-    <button onclick="quizAnswers={};quizStep=0;renderQuizStep()" style="width:100%;margin-top:8px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;color:rgba(255,255,255,.4);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer">↺ Refaire le quiz</button>`;
+
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:40px;margin-bottom:12px">💨</div>
+      <div style="font-size:24px;font-weight:800;color:#fff;line-height:1.2">Ta puff idéale est prête</div>
+      <div style="display:inline-block;margin-top:10px;background:${col}22;border:1px solid ${col}55;border-radius:99px;padding:4px 14px;font-size:13px;font-weight:700;color:${col};font-family:'DM Mono',monospace">${profile.label}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:10px;line-height:1.5">${profile.desc}</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+      ${profile.products.map((name,i)=>`
+        <div style="display:flex;align-items:center;gap:12px;background:${i===0?gradients[winner]:"rgba(255,255,255,.03)"};border:1.5px solid ${i===0?borders[winner]:"rgba(255,255,255,.07)"};border-radius:14px;padding:14px 16px">
+          <div style="width:42px;height:42px;border-radius:10px;background:${i===0?col+"22":"rgba(255,255,255,.06)"};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💨</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:${i===0?"#fff":"rgba(255,255,255,.7)"}">${name}</div>
+            ${i===0?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:${col};margin-top:2px">★ Recommandé pour toi</div>`:""}
+          </div>
+          ${i===0?`<div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>`:""}
+        </div>`).join("")}
+    </div>
+
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">👀</span>
+      <span style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.4">${pct83}% des clients avec ce profil ont choisi cette puff</span>
+    </div>
+
+    <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">🎁</span>
+      <span style="font-size:12px;color:rgba(167,139,250,.9);line-height:1.4">Cette puff débloque une caisse spéciale</span>
+    </div>
+
+    <button onclick="quizOrderTop('${profile.products[0]}')" style="width:100%;background:#fff;color:#0a0a0a;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.01em;margin-bottom:10px">
+      💨 Obtenir ma puff idéale
+    </button>
+    <button onclick="quizScores={FRUITE:0,SUCRE:0,FRAIS:0,EXOTIQUE:0};quizStep=0;quizHistory=[];renderQuizStep()" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;color:rgba(255,255,255,.35);font-size:13px;font-family:'DM Mono',monospace;cursor:pointer">
+      ↺ Refaire le quiz
+    </button>`;
 }
+
+function quizOrderTop(productName){
+  closeQuiz();
+  // Passer à l'onglet commandes et pré-remplir la recherche
+  switchClientTab("commandes");
+  setTimeout(()=>{
+    const search=document.getElementById("cv-product-search");
+    if(search){search.value=productName;search.dispatchEvent(new Event("input"));}
+  },300);
+}
+
 
 async function openGiveCaseModal(clientId,name){
   _giveCaseClientId=clientId;
