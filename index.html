@@ -3688,35 +3688,29 @@ async function loadClientView(id){
   if(fillEl)setTimeout(()=>{fillEl.style.width=pct+"%";},80);
   if(ballEl)setTimeout(()=>{ballEl.style.left=pct+"%";},80);
 
-  // Milestones — dots seulement, sans icônes ni labels
+  // Milestones — 10 dots fixes, slots 1-10
   const msContainer=document.getElementById("cv-xp-milestones");
   if(msContainer){
-    const cycleTiers=sortedTiers.filter(t=>t.slot>cycleStart&&t.slot<=cycleStart+MAX_STAMPS);
-    // Créer un dot pour chaque slot 1-10, qu'il y ait une caisse ou non
-    const tierBySlot={};cycleTiers.forEach(t=>tierBySlot[t.slot]=t);
-    const allMs=[];
-    for(let i=1;i<=MAX_STAMPS;i++){
-      const slot=cycleStart+i;
+    const tierBySlot={};sortedTiers.forEach(t=>tierBySlot[t.slot]=t);
+    msContainer.innerHTML=Array.from({length:MAX_STAMPS},(_,i)=>{
+      const slot=i+1;
       const tier=tierBySlot[slot];
-      allMs.push({slot,chestId:tier?.chest_id||null,isPrestige:i===MAX_STAMPS});
-    }
-    msContainer.innerHTML=allMs.map(ms=>{
-      const slotInCycle=ms.slot-cycleStart;
-      const leftPct=(slotInCycle/MAX_STAMPS)*100;
-      const reached=slotInCycle>=ms.slot||(cycleXP===0&&totalXP>0);
-      const isNext=nextTier&&ms.slot===nextTier.slot;
-      const chDetail=ms.chestId?chestDetailMap[ms.chestId]:null;
+      const leftPct=(slot/MAX_STAMPS)*100;
+      const reached=cycleXP>=slot;
+      const isNext=nextTier&&slot===nextTier.slot;
+      const chestId=tier?.chest_id||null;
+      const chDetail=chestId?chestDetailMap[chestId]:null;
       const rarity=chDetail?.rarity||"common";
-      const col=ms.chestId?RARITY_COL[rarity]:"rgba(255,255,255,.6)";
-      const dotClass=reached?"reached":isNext?(ms.chestId?RARITY_DOT_CLASS[rarity]:"next-plain"):"";
+      const col=chestId?RARITY_COL[rarity]:"rgba(255,255,255,.6)";
+      const dotClass=reached?"reached":isNext?(chestId?RARITY_DOT_CLASS[rarity]:"next-plain"):"";
       const iconOpacity=reached?"0.5":isNext?"1":"0.25";
+      const isLast=slot===MAX_STAMPS;
 
-      // SVG selon état
-      const svgIcon=ms.isPrestige
+      const svgIcon=isLast
         ?reached
           ?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
           :`<svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(255,255,255,.2)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`
-        :!ms.chestId?""
+        :!chestId?""
         :reached
           ?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
           :`<span style="font-size:9px;font-weight:800;font-family:'DM Mono',monospace;color:${col};opacity:${iconOpacity}">+1</span>`;
