@@ -3686,11 +3686,10 @@ async function loadClientView(id){
   const chestDetailMap={};
   if(tierChestIds.length){
     const [chestData,rarityData]=await Promise.all([
-      dbGet(T_CHESTS+"?id=in.("+tierChestIds.join(",")+")"+"&select=id,name"),
+      dbGet(T_CHESTS+"?id=in.("+tierChestIds.join(",")+")"+"&select=id,name,cover_url"),
       dbGet(T_CHEST_REWARDS+"?chest_id=in.("+tierChestIds.join(",")+")"+"&select=chest_id,rarity&order=probability.desc")
     ]);
-    (chestData||[]).forEach(ch=>{chestDetailMap[ch.id]={name:ch.name,rarity:"common"};});
-    // Dominant rarity per chest (first = highest prob)
+    (chestData||[]).forEach(ch=>{chestDetailMap[ch.id]={name:ch.name,cover_url:ch.cover_url||null,rarity:"common"};});
     const seen=new Set();
     (rarityData||[]).forEach(r=>{
       if(!seen.has(r.chest_id)){seen.add(r.chest_id);if(chestDetailMap[r.chest_id])chestDetailMap[r.chest_id].rarity=r.rarity||"common";}
@@ -3700,7 +3699,7 @@ async function loadClientView(id){
   const RARITY_COL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(200,200,210,.5)"};
   const RARITY_DOT_CLASS={legendary:"next-legendary",epic:"next-epic",rare:"next-rare",common:"next-plain"};
 
-  // Cycle-aware: paliers du cycle courant
+  // Cycle-aware
   const cycleStart=Math.floor(totalXP/MAX_STAMPS)*MAX_STAMPS;
   const passedTiers=sortedTiers.filter(r=>totalXP>=r.slot);
   const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot&&r.slot<=cycleStart+MAX_STAMPS);
@@ -3713,11 +3712,10 @@ async function loadClientView(id){
   if(fillEl)setTimeout(()=>{fillEl.style.width=pct+"%";},80);
   if(ballEl)setTimeout(()=>{ballEl.style.left=pct+"%";},80);
 
-  // Milestones
+  // Milestones — dots seulement, sans icônes ni labels
   const msContainer=document.getElementById("cv-xp-milestones");
   if(msContainer){
     const cycleTiers=sortedTiers.filter(t=>t.slot>cycleStart&&t.slot<=cycleStart+MAX_STAMPS);
-    // Always show end milestone (prestige at 10)
     const allMs=[...cycleTiers.map(t=>({slot:t.slot,chestId:t.chest_id})),{slot:cycleStart+MAX_STAMPS,chestId:null,isPrestige:true}];
     msContainer.innerHTML=allMs.map(ms=>{
       const slotInCycle=ms.slot-cycleStart;
@@ -3728,37 +3726,42 @@ async function loadClientView(id){
       const rarity=chDetail?.rarity||"common";
       const col=ms.chestId?RARITY_COL[rarity]:"rgba(255,255,255,.6)";
       const dotClass=reached?"reached":isNext?(ms.chestId?RARITY_DOT_CLASS[rarity]:"next-plain"):"";
-      const topLabel=ms.isPrestige?"⭐":(ms.chestId?"🗃":"");
-      const botLabel=`#${slotInCycle}`;
-      return `<div class="ms-dot ${dotClass}" style="left:${leftPct}%">
-      </div>
-      <span class="ms-label" style="left:${leftPct}%;bottom:calc(50% + 14px);color:${reached?"rgba(255,255,255,.6)":isNext?col:"rgba(255,255,255,.2)"}">${topLabel}</span>
-      <span class="ms-label" style="left:${leftPct}%;top:calc(50% + 14px);color:${reached?"rgba(255,255,255,.35)":isNext?col:"rgba(255,255,255,.15)"}">${botLabel}</span>`;
+      const topLabel=ms.isPrestige?"⭐":"";
+      return `<div class="ms-dot ${dotClass}" style="left:${leftPct}%"></div>
+      ${topLabel?`<span class="ms-label" style="left:${leftPct}%;bottom:calc(50% + 14px);color:${reached?"rgba(255,255,255,.5)":isNext?col:"rgba(255,255,255,.2)"}">${topLabel}</span>`:""}`;
     }).join("");
   }
 
-  // Hint — next chest preview
+  // Hint + prochaines caisses
   const hint=document.getElementById("cv-xp-hint");
   if(hint){
-    if(nextTier&&nextTier.chest_id){
-      const d=chestDetailMap[nextTier.chest_id]||{};
-      const col=RARITY_COL[d.rarity||"common"];
-      const rem=nextTier.slot-totalXP;
-      hint.innerHTML=`<div style="display:flex;align-items:center;gap:8px;background:${col.replace("1)","0.08)")};border:1px solid ${col.replace("1)","0.2)")};border-radius:10px;padding:8px 12px">
-        <div style="font-size:16px">🗃</div>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:#fff">${d.name||"Caisse"}</div>
-          <div style="font-size:10px;font-family:'DM Mono',monospace;color:${col}">achat #${nextTier.slot-cycleStart} — encore ${rem} achat${rem>1?"s":""}</div>
-        </div>
-      </div>`;
+    const show=upcomingTiers.filter(t=>t.chest_id).slice(0,3);
+    let html="";
+    if(show.length){
+      html+=`<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">`;
+      show.forEach((t,i)=>{
+        const d=chestDetailMap[t.chest_id]||{};
+        const col=RARITY_COL[d.rarity||"common"];
+        const rem=t.slot-totalXP;
+        const isNext=i===0;
+        html+=`<div style="display:flex;align-items:center;gap:10px;background:${isNext?col.replace("1)","0.08)"):"rgba(255,255,255,.03)"};border:1px solid ${isNext?col.replace("1)","0.18)"):"rgba(255,255,255,.07)"};border-radius:10px;padding:8px 11px">
+          <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111">
+            ${d.cover_url?`<img src="${d.cover_url}" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,.3)">?</div>`}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:700;color:${isNext?"#fff":"rgba(255,255,255,.5)"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name||"Caisse"}</div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:${isNext?col:"rgba(255,255,255,.25)"};margin-top:1px">achat #${t.slot-cycleStart} — encore ${rem} achat${rem>1?"s":""}</div>
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
     } else if(cycleXP===0&&totalXP>0){
-      hint.innerHTML=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:#4ade80">⭐ Cycle complété — nouveau cycle !</div>`;
+      html=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:#4ade80;margin-top:8px">⭐ Cycle complété — nouveau cycle !</div>`;
     } else if(!nextTier){
       const rem=MAX_STAMPS-cycleXP;
-      hint.innerHTML=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3)">encore <strong style="color:rgba(255,255,255,.6)">${rem}</strong> achat${rem>1?"s":""} pour le prestige ⭐</div>`;
-    } else {
-      hint.innerHTML="";
+      html=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-top:6px">encore <strong style="color:rgba(255,255,255,.6)">${rem}</strong> achat${rem>1?"s":""} pour le prestige ⭐</div>`;
     }
+    hint.innerHTML=html;
   }
 
   // CTA — caisses à ouvrir
