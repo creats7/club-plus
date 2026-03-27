@@ -2813,12 +2813,10 @@ async function chg(id,curTotalStamps,curTokens,d){
     await dbPost(T_STAMP_LOGS,{client_id:id});
 
     const slotReward=rewards.find(r=>r.slot===slotPos);
-    console.log("chg: slotPos="+slotPos+" rewards="+JSON.stringify(rewards)+" slotReward="+JSON.stringify(slotReward));
 
     // Débloquer la caisse si palier configuré
     if(slotReward?.chest_id){
       const res=await dbPost(T_CLIENT_CHESTS,{client_id:id,chest_id:slotReward.chest_id,opened:false});
-      console.log("client_chests created:",JSON.stringify(res));
       toast(`🎁 Palier ${slotPos} — Caisse débloquée !`,4000);
     } else {
       toast(cycleCompleted?`✦ Cycle terminé — nouveau cycle !`:`✦ Achat #${slotPos}`,2000);
