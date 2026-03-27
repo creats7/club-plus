@@ -4310,7 +4310,9 @@ function openCaseInfo(name,rwJson){
   const RBRD={legendary:"rgba(255,185,0,.2)",epic:"rgba(170,80,255,.18)",rare:"rgba(75,145,255,.18)",common:"rgba(255,255,255,.08)"};
   const RLBL={legendary:"Légendaire ✦",epic:"Épique",rare:"Rare",common:"Commun"};
   const RDESC={legendary:"Lot exceptionnel",epic:"Lot de grande valeur",rare:"Beau lot",common:"Lot classique"};
-  const rewards=JSON.parse(rwJson.replace(/&quot;/g,'"').replace(/&#39;/g,"'"));
+  const rarityOrder={legendary:0,epic:1,rare:2,common:3};
+  const rewards=JSON.parse(rwJson.replace(/&quot;/g,'"').replace(/&#39;/g,"'"))
+    .sort((a,b)=>(rarityOrder[a.rarity||"common"]||3)-(rarityOrder[b.rarity||"common"]||3));
 
   document.getElementById("case-info-title").textContent=name;
   document.getElementById("case-info-list").innerHTML=`
@@ -4321,17 +4323,14 @@ function openCaseInfo(name,rwJson){
       const brd=RBRD[r.rarity||"common"];
       return `<div style="display:flex;align-items:center;gap:10px;background:${bg};border:1px solid ${brd};border-radius:11px;padding:10px 12px;margin-bottom:7px">
         ${r.image_url
-          ?`<img src="${r.image_url}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`
-          :`<div style="width:42px;height:42px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🎁</div>`}
+          ?`<img src="${r.image_url}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.parentElement.querySelector('.img-ph').style.display='flex';this.style.display='none'"><div class="img-ph" style="display:none;width:42px;height:42px;border-radius:8px;background:rgba(255,255,255,.06);align-items:center;justify-content:center;font-size:20px;flex-shrink:0">?</div>`
+          :`<div style="width:42px;height:42px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.2);flex-shrink:0">IMG</div>`}
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</div>
           <div style="font-size:10px;font-family:'DM Mono',monospace;color:${col};margin-top:2px">${RLBL[r.rarity||"common"]}</div>
         </div>
       </div>`;
-    }).join("")}
-    <div style="margin-top:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;text-align:center">
-      <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;line-height:1.5">Chaque ouverture est unique.<br>Bonne chance ! 🍀</div>
-    </div>`;
+    }).join("")}`;
   document.getElementById("case-info-overlay").classList.add("open");
 }
 function closeCaseInfo(){document.getElementById("case-info-overlay").classList.remove("open");}
