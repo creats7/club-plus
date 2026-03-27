@@ -3818,19 +3818,12 @@ async function loadClientView(id){
     hint.innerHTML=html;
   }
 
-  // CTA — caisses à ouvrir
+  // CTA — compter les caisses pending directement
   const chestsEl=document.getElementById("cv-chests-available");
   const chestsLabel=document.getElementById("cv-chests-count-label");
   if(chestsEl){
-    const unlockedChestIds=passedTiers.filter(t=>t.chest_id).map(t=>t.chest_id);
-    const [openedRecs, giftedRecs]=await Promise.all([
-      dbGet(T_CLIENT_CHESTS+"?client_id=eq."+id+"&opened=eq.true&select=chest_id"),
-      dbGet(T_CLIENT_CHESTS+"?client_id=eq."+id+"&opened=eq.false&select=id")
-    ]);
-    const openedSet=new Set((openedRecs||[]).map(r=>r.chest_id));
-    const notYetOpened=unlockedChestIds.filter(cid=>!openedSet.has(cid));
-    const giftedCount=(giftedRecs||[]).length;
-    const total=notYetOpened.length+giftedCount;
+    const pendingRecs=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+id+"&opened=eq.false&select=id");
+    const total=(pendingRecs||[]).length;
     chestsEl.style.display=total>0?"block":"none";
     if(chestsLabel)chestsLabel.textContent=total+" caisse"+(total>1?"s":"")+" à ouvrir";
   }
@@ -4340,56 +4333,27 @@ async function openMyChestsSheet(){
   const listEl=document.getElementById("my-chests-list");
   listEl.innerHTML='<div class="loader">Chargement...</div>';
 
-  const totalXP=window._currentClientData?.total_stamps||0;
-  const cycleXPLocal=window._currentClientData?.stamps||0;
-  const rewards=await getStampRewards();
+  // Source de vérité : toutes les caisses pending (opened=false) dans client_chests
+  const pending=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+currentClientId+"&opened=eq.false&select=id,chest_id&order=created_at.asc");
 
-  // Caisses débloquées = paliers <= position actuelle dans le cycle
-  const tierChestIds=rewards.filter(r=>r.chest_id&&cycleXPLocal>=r.slot).map(r=>r.chest_id);
-
-  // 2. Caisses offertes par admin (opened=false)
-  const gifted=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+currentClientId+"&opened=eq.false&select=id,chest_id");
-  const giftedClientChestIds=(gifted||[]);
-
-  // 3. Caisses déjà ouvertes
-  const opened=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+currentClientId+"&opened=eq.true&select=chest_id");
-  const openedSet=new Set((opened||[]).map(r=>r.chest_id));
-
-  // 4. Build list — tier caisses not yet opened + gifted
-  const toOpenTier=tierChestIds.filter(cid=>!openedSet.has(cid));
-  const allChestIds=[...new Set([...toOpenTier,...giftedClientChestIds.map(g=>g.chest_id)])];
-
-  if(!allChestIds.length){
+  if(!pending||!pending.length){
     listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px;padding:3rem 0;opacity:.6">Aucune caisse à ouvrir pour le moment</div>';
     return;
   }
 
-  const chestData=await dbGet(T_CHESTS+"?id=in.("+allChestIds.join(",")+")"+"&select=id,name,cover_url");
+  const chestIds=[...new Set(pending.map(p=>p.chest_id))];
+  const chestData=await dbGet(T_CHESTS+"?id=in.("+chestIds.join(",")+")"+"&select=id,name,cover_url");
   const chestMap={};(chestData||[]).forEach(c=>chestMap[c.id]=c);
 
-  let html="";
-
-  // Tier chests
-  toOpenTier.forEach(cid=>{
-    const ch=chestMap[cid]||{};
-    html+=chestRow(cid,null,ch,"tier");
-  });
-
-  // Gifted chests (have a client_chest id)
-  giftedClientChestIds.forEach(g=>{
-    const ch=chestMap[g.chest_id]||{};
-    html+=chestRow(g.chest_id,g.id,ch,"gift");
-  });
-
-  listEl.innerHTML=html;
+  listEl.innerHTML=pending.map(p=>{
+    const ch=chestMap[p.chest_id]||{};
+    return chestRow(p.chest_id,p.id,ch,"tier");
+  }).join("");
 }
 
 function chestRow(chestId,clientChestId,ch,source){
-  const label=source==="gift"?"🎁 Offerte par le shop":"✦ Débloquée";
+  const label=source==="gift"?"🎁 Offerte":"✦ Débloquée";
   const col=source==="gift"?"#a78bfa":"#4ade80";
-  const onclickFn=clientChestId
-    ?`openCaseGifted('${chestId}','${clientChestId}')`
-    :`openCaseFree('${chestId}')`;
   return `<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin-bottom:8px">
     <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#111">
       ${ch.cover_url
@@ -4400,7 +4364,7 @@ function chestRow(chestId,clientChestId,ch,source){
       <div style="font-size:14px;font-weight:700">${ch.name||"Caisse"}</div>
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:${col};margin-top:2px">${label}</div>
     </div>
-    <button onclick="closeMyChestsSheet();${onclickFn}" style="background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">Ouvrir →</button>
+    <button onclick="closeMyChestsSheet();openCaseGifted('${chestId}','${clientChestId}')" style="background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">Ouvrir →</button>
   </div>`;
 }
 
