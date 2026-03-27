@@ -4921,7 +4921,6 @@ document.addEventListener("DOMContentLoaded", function(){
   buildOfferColors();
   loadShopConfig();
 
-  // Load referral config at startup
   dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain,referral_filleul)").then(cfg=>{
     if(cfg&&cfg.length)cfg.forEach(r=>{
       if(r.key==="referral_parrain")referralConfig.parrain_chest_id=r.image_url||null;
@@ -4929,11 +4928,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   });
 
-  // Handle magic link redirect first
-  handleAuthRedirect().then(redirected=>{
-    if(redirected)return;
-    init();
-  });
+  init();
 });
 
 async function init(){
