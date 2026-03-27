@@ -2802,9 +2802,10 @@ const MAX_STAMPS=10; // Cycle de 10 achats
 
 async function chg(id,curTotalStamps,curTokens,d){
   if(d===1){
+    invalidateStampCache(); // forcer le rechargement des paliers
     const rewards=await getStampRewards();
     const newTotalStamps=(curTotalStamps||0)+1;
-    const newCycleStamps=newTotalStamps%MAX_STAMPS; // 0-9, 0 = vient de finir le cycle
+    const newCycleStamps=newTotalStamps%MAX_STAMPS;
     const cycleCompleted=newTotalStamps%MAX_STAMPS===0;
     const slotPos=cycleCompleted?MAX_STAMPS:newCycleStamps; // 1-10
 
@@ -2812,16 +2813,15 @@ async function chg(id,curTotalStamps,curTokens,d){
     await dbPost(T_STAMP_LOGS,{client_id:id});
 
     const slotReward=rewards.find(r=>r.slot===slotPos);
-    const msg=slotReward?.chest_id
-      ?`🎁 Palier ${slotPos} — Caisse débloquée !`
-      :cycleCompleted
-        ?`✦ Cycle terminé — nouveau cycle !`
-        :`✦ Achat #${slotPos}`;
-    toast(msg,slotReward?.chest_id||cycleCompleted?4000:2000);
+    console.log("chg: slotPos="+slotPos+" rewards="+JSON.stringify(rewards)+" slotReward="+JSON.stringify(slotReward));
 
     // Débloquer la caisse si palier configuré
     if(slotReward?.chest_id){
-      await dbPost(T_CLIENT_CHESTS,{client_id:id,chest_id:slotReward.chest_id,opened:false});
+      const res=await dbPost(T_CLIENT_CHESTS,{client_id:id,chest_id:slotReward.chest_id,opened:false});
+      console.log("client_chests created:",JSON.stringify(res));
+      toast(`🎁 Palier ${slotPos} — Caisse débloquée !`,4000);
+    } else {
+      toast(cycleCompleted?`✦ Cycle terminé — nouveau cycle !`:`✦ Achat #${slotPos}`,2000);
     }
   } else {
     const newTotalStamps=Math.max(0,(curTotalStamps||0)-1);
