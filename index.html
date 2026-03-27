@@ -659,6 +659,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-xp-marker.bonus{background:#fff;box-shadow:0 0 6px rgba(255,255,255,.5)}
 .cv-xp-hint{font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3)}
 .cv-xp-hint strong{color:rgba(255,255,255,.8)}
+.ms-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.15);background:#0a0a0a;z-index:2;transition:all .3s}
+.ms-dot.reached{background:#fff;border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.5)}
+.ms-dot.next-plain{border-color:rgba(255,255,255,.5);animation:ms-pw 2s ease-in-out infinite}
+.ms-dot.next-rare{border-color:rgba(75,145,255,.9);background:rgba(75,145,255,.15);animation:ms-pb 2s ease-in-out infinite}
+.ms-dot.next-epic{border-color:rgba(170,80,255,.9);background:rgba(170,80,255,.15);animation:ms-pp 2s ease-in-out infinite}
+.ms-dot.next-legendary{border-color:rgba(255,185,0,.9);background:rgba(255,185,0,.15);animation:ms-pg 2s ease-in-out infinite}
+.ms-label{position:absolute;font-size:9px;font-family:'DM Mono',monospace;white-space:nowrap;transform:translateX(-50%)}
+@keyframes ms-pw{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.3)}50%{box-shadow:0 0 0 5px rgba(255,255,255,0)}}
+@keyframes ms-pb{0%,100%{box-shadow:0 0 0 0 rgba(75,145,255,.4)}50%{box-shadow:0 0 10px rgba(75,145,255,.4),0 0 0 5px rgba(75,145,255,0)}}
+@keyframes ms-pp{0%,100%{box-shadow:0 0 0 0 rgba(170,80,255,.4)}50%{box-shadow:0 0 10px rgba(170,80,255,.4),0 0 0 5px rgba(170,80,255,0)}}
+@keyframes ms-pg{0%,100%{box-shadow:0 0 0 0 rgba(255,185,0,.4)}50%{box-shadow:0 0 12px rgba(255,185,0,.5),0 0 0 6px rgba(255,185,0,0)}}
 .cv-tier-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:5px;border:1px solid rgba(255,255,255,.06)}
 .cv-tier-row.next{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.07)}
 .cv-tier-name{font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.5)}
@@ -1486,24 +1497,29 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </div>
         </div>
 
-        <!-- XP Bar -->
-        <div class="cv-xp-section">
-          <div class="cv-xp-labels">
-            <span class="cv-xp-current-label" style="display:none"><span id="cv-current-tier">0</span></span>
-            <span class="cv-xp-next-label" id="cv-xp-next-label-wrap" style="display:none"><strong id="cv-xp-remaining">10</strong><span id="cv-xp-remaining-plural">s</span></span>
-          </div>
-          <div class="cv-xp-track">
-            <div class="cv-xp-fill" id="cv-xp-fill" style="width:0%"></div>
-            <div id="cv-xp-markers"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
-            <div class="cv-xp-hint" id="cv-xp-hint"></div>
-            <div id="cv-xp-end-reward" style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:rgba(255,255,255,.5)"></div>
-          </div>
+        <!-- XP Bar Milestones -->
+        <div style="position:relative;height:64px;margin:18px 0 4px">
+          <!-- Track bg -->
+          <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:5px;background:rgba(255,255,255,.07);border-radius:99px"></div>
+          <!-- Track fill -->
+          <div id="cv-xp-fill" style="position:absolute;left:0;top:50%;transform:translateY(-50%);height:5px;border-radius:99px;background:#fff;width:0%;transition:width 1s cubic-bezier(.34,1.4,.64,1)"></div>
+          <!-- Cursor ball -->
+          <div id="cv-xp-ball" style="position:absolute;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.15),0 0 14px rgba(255,255,255,.5);z-index:3;left:0%;transition:left 1s cubic-bezier(.34,1.4,.64,1)"></div>
+          <!-- Milestones injected by JS -->
+          <div id="cv-xp-milestones"></div>
         </div>
 
-        <!-- Prochains paliers -->
-        <div id="cv-next-tiers" style="margin-bottom:6px"></div>
+        <!-- Next chest preview -->
+        <div id="cv-xp-hint" style="margin-bottom:8px"></div>
+
+        <!-- Hidden elements kept for JS compat -->
+        <span style="display:none" id="cv-current-tier"></span>
+        <span style="display:none" id="cv-xp-remaining"></span>
+        <span style="display:none" id="cv-xp-remaining-plural"></span>
+        <span style="display:none" id="cv-xp-end-reward"></span>
+
+        <!-- Prochains paliers supprimés — remplacés par milestones -->
+        <div id="cv-next-tiers" style="display:none"></div>
 
         <!-- Caisses disponibles -->
         <div id="cv-chests-available" style="display:none">
@@ -3662,113 +3678,90 @@ async function loadClientView(id){
   const totalEl=document.getElementById("cv-total-xp");
   if(totalEl)totalEl.textContent=totalXP;
 
-  // Paliers triés — fetch chest names for tiers that have chest_id
+  // Paliers triés — fetch chest names + rarity for tiers
   const sortedTiers=rewards.slice().sort((a,b)=>a.slot-b.slot);
   const tierChestIds=[...new Set(sortedTiers.filter(t=>t.chest_id).map(t=>t.chest_id))];
-  const chestNameMap={};
+
+  // Fetch chest details (name + dominant rarity)
+  const chestDetailMap={};
   if(tierChestIds.length){
-    const chestData=await dbGet(T_CHESTS+"?id=in.("+tierChestIds.join(",")+")"+"&select=id,name");
-    (chestData||[]).forEach(ch=>chestNameMap[ch.id]=ch.name);
+    const [chestData,rarityData]=await Promise.all([
+      dbGet(T_CHESTS+"?id=in.("+tierChestIds.join(",")+")"+"&select=id,name"),
+      dbGet(T_CHEST_REWARDS+"?chest_id=in.("+tierChestIds.join(",")+")"+"&select=chest_id,rarity&order=probability.desc")
+    ]);
+    (chestData||[]).forEach(ch=>{chestDetailMap[ch.id]={name:ch.name,rarity:"common"};});
+    // Dominant rarity per chest (first = highest prob)
+    const seen=new Set();
+    (rarityData||[]).forEach(r=>{
+      if(!seen.has(r.chest_id)){seen.add(r.chest_id);if(chestDetailMap[r.chest_id])chestDetailMap[r.chest_id].rarity=r.rarity||"common";}
+    });
   }
 
-  // Paliers dans le cycle courant (slot 1-10)
+  const RARITY_COL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(200,200,210,.5)"};
+  const RARITY_DOT_CLASS={legendary:"next-legendary",epic:"next-epic",rare:"next-rare",common:"next-plain"};
+
+  // Cycle-aware: paliers du cycle courant
   const cycleStart=Math.floor(totalXP/MAX_STAMPS)*MAX_STAMPS;
   const passedTiers=sortedTiers.filter(r=>totalXP>=r.slot);
   const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot&&r.slot<=cycleStart+MAX_STAMPS);
-  const currentTierIdx=passedTiers.length;
   const nextTier=upcomingTiers[0]||null;
 
-  // Barre XP basée sur le cycle (0 à MAX_STAMPS)
+  // Barre fill + balle
   const pct=Math.min(100,Math.round((cycleXP/MAX_STAMPS)*100));
-  const rem=nextTier?nextTier.slot-totalXP:MAX_STAMPS-cycleXP;
+  const fillEl=document.getElementById("cv-xp-fill");
+  const ballEl=document.getElementById("cv-xp-ball");
+  if(fillEl)setTimeout(()=>{fillEl.style.width=pct+"%";},80);
+  if(ballEl)setTimeout(()=>{ballEl.style.left=pct+"%";},80);
 
-  // Labels barre — cycle courant
-  const cvCurrent=document.getElementById("cv-current-tier");
-  if(cvCurrent)cvCurrent.textContent=cycleXP;
+  // Milestones
+  const msContainer=document.getElementById("cv-xp-milestones");
+  if(msContainer){
+    const cycleTiers=sortedTiers.filter(t=>t.slot>cycleStart&&t.slot<=cycleStart+MAX_STAMPS);
+    // Always show end milestone (prestige at 10)
+    const allMs=[...cycleTiers.map(t=>({slot:t.slot,chestId:t.chest_id})),{slot:cycleStart+MAX_STAMPS,chestId:null,isPrestige:true}];
+    msContainer.innerHTML=allMs.map(ms=>{
+      const slotInCycle=ms.slot-cycleStart;
+      const leftPct=(slotInCycle/MAX_STAMPS)*100;
+      const reached=totalXP>=ms.slot;
+      const isNext=nextTier&&ms.slot===nextTier.slot;
+      const chDetail=ms.chestId?chestDetailMap[ms.chestId]:null;
+      const rarity=chDetail?.rarity||"common";
+      const col=ms.chestId?RARITY_COL[rarity]:"rgba(255,255,255,.6)";
+      const dotClass=reached?"reached":isNext?(ms.chestId?RARITY_DOT_CLASS[rarity]:"next-plain"):"";
+      const topLabel=ms.isPrestige?"⭐":(ms.chestId?"🗃":"");
+      const botLabel=`#${slotInCycle}`;
+      return `<div class="ms-dot ${dotClass}" style="left:${leftPct}%">
+      </div>
+      <span class="ms-label" style="left:${leftPct}%;bottom:calc(50% + 14px);color:${reached?"rgba(255,255,255,.6)":isNext?col:"rgba(255,255,255,.2)"}">${topLabel}</span>
+      <span class="ms-label" style="left:${leftPct}%;top:calc(50% + 14px);color:${reached?"rgba(255,255,255,.35)":isNext?col:"rgba(255,255,255,.15)"}">${botLabel}</span>`;
+    }).join("");
+  }
 
-  const remEl=document.getElementById("cv-xp-remaining");
-  const remPlural=document.getElementById("cv-xp-remaining-plural");
-  const remVal=nextTier?nextTier.slot-totalXP:MAX_STAMPS-cycleXP;
-  if(remEl)remEl.textContent=remVal;
-  if(remPlural)remPlural.textContent=remVal>1?"s":"";
-
-  // Hint
+  // Hint — next chest preview
   const hint=document.getElementById("cv-xp-hint");
   if(hint){
     if(nextTier&&nextTier.chest_id){
-      const cn=chestNameMap[nextTier.chest_id]||"une caisse";
-      hint.innerHTML=`Prochain palier → <strong>${cn}</strong>`;
-    } else if(nextTier){
-      hint.innerHTML=`Prochain palier dans <strong>${rem} achat${rem>1?"s":""}</strong>`;
+      const d=chestDetailMap[nextTier.chest_id]||{};
+      const col=RARITY_COL[d.rarity||"common"];
+      const rem=nextTier.slot-totalXP;
+      hint.innerHTML=`<div style="display:flex;align-items:center;gap:8px;background:${col.replace("1)","0.08)")};border:1px solid ${col.replace("1)","0.2)")};border-radius:10px;padding:8px 12px">
+        <div style="font-size:16px">🗃</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#fff">${d.name||"Caisse"}</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:${col}">achat #${nextTier.slot-cycleStart} — encore ${rem} achat${rem>1?"s":""}</div>
+        </div>
+      </div>`;
     } else if(cycleXP===0&&totalXP>0){
-      hint.innerHTML=`<span style="color:#4ade80">✓ Cycle complété — recommence !</span>`;
+      hint.innerHTML=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:#4ade80">⭐ Cycle complété — nouveau cycle !</div>`;
+    } else if(!nextTier){
+      const rem=MAX_STAMPS-cycleXP;
+      hint.innerHTML=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3)">encore <strong style="color:rgba(255,255,255,.6)">${rem}</strong> achat${rem>1?"s":""} pour le prestige ⭐</div>`;
     } else {
-      hint.innerHTML=`<strong>${rem}</strong> achat${rem>1?"s":""} avant le prochain cycle`;
+      hint.innerHTML="";
     }
   }
 
-  // Barre fill
-  const fillEl=document.getElementById("cv-xp-fill");
-  if(fillEl)setTimeout(()=>{
-    fillEl.style.width=pct+"%";
-    fillEl.style.background="linear-gradient(90deg,rgba(255,255,255,.3),rgba(255,255,255,.7))";
-  },100);
-
-  // Récompense au bout de la barre
-  const markerEl=document.getElementById("cv-xp-end-reward");
-  if(markerEl){
-    const nextChestName=nextTier?.chest_id?chestNameMap[nextTier.chest_id]:null;
-    markerEl.textContent="✓";
-    markerEl.style.color=nextTier?"rgba(255,255,255,.6)":"#4ade80";
-    markerEl.title=nextChestName||"";
-  }
-
-  // Prochains paliers avec image caisse + rareté dominante
-  const nextTiersEl=document.getElementById("cv-next-tiers");
-  if(nextTiersEl){
-    const show=upcomingTiers.filter(t=>t.chest_id).slice(0,3);
-    if(show.length){
-      // Fetch chest cover + dominant rarity for each
-      const chestDetails={};
-      await Promise.all(show.map(async t=>{
-        const [chData,rwData]=await Promise.all([
-          dbGet(T_CHESTS+"?id=eq."+t.chest_id+"&select=id,name,cover_url"),
-          dbGet(T_CHEST_REWARDS+"?chest_id=eq."+t.chest_id+"&select=rarity&order=probability.desc&limit=1")
-        ]);
-        const ch=chData&&chData[0]||{};
-        const topRarity=rwData&&rwData[0]?.rarity||"common";
-        const RCOL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(200,200,210,.6)"};
-        const RBRD={legendary:"rgba(255,185,0,.3)",epic:"rgba(170,80,255,.25)",rare:"rgba(75,145,255,.25)",common:"rgba(255,255,255,.1)"};
-        const RBGL={legendary:"rgba(255,185,0,.08)",epic:"rgba(170,80,255,.08)",rare:"rgba(75,145,255,.08)",common:"rgba(255,255,255,.04)"};
-        const RLBL={legendary:"Légendaire",epic:"Épique",rare:"Rare",common:"Commun"};
-        chestDetails[t.chest_id]={...ch,rarity:topRarity,col:RCOL[topRarity],brd:RBRD[topRarity],bgl:RBGL[topRarity],lbl:RLBL[topRarity]};
-      }));
-
-      nextTiersEl.innerHTML=show.map((t,i)=>{
-        const d=chestDetails[t.chest_id]||{};
-        const isNext=i===0;
-        return `<div class="cv-tier-row${isNext?" next":""}" style="border-color:${isNext?d.brd:"rgba(255,255,255,.06)"};background:${isNext?d.bgl:"rgba(255,255,255,.03)"}">
-          <div style="display:flex;align-items:center;gap:8px;min-width:0">
-            <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111">
-              ${d.cover_url
-                ?`<img src="${d.cover_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
-                :`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🗃</div>`}
-            </div>
-            <div style="min-width:0">
-              <div style="font-size:12px;font-weight:700;color:${isNext?"#fff":"rgba(255,255,255,.6)"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name||"Caisse"}</div>
-              <div style="font-size:9px;font-family:'DM Mono',monospace;color:${d.col||"rgba(255,255,255,.4)"};margin-top:1px">${d.lbl||""}</div>
-            </div>
-          </div>
-          <div style="flex-shrink:0;text-align:right">
-            <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.35)">Achat #${t.slot}</div>
-            ${isNext?`<div style="font-size:9px;color:#4ade80;font-family:'DM Mono',monospace;margin-top:1px">dans ${rem} achat${rem>1?"s":""}</div>`:""}
-          </div>
-        </div>`;
-      }).join("");
-    }else nextTiersEl.innerHTML="";
-  }
-
-  // CTA — caisses à ouvrir = paliers atteints non ouverts + caisses offertes par admin
+  // CTA — caisses à ouvrir
   const chestsEl=document.getElementById("cv-chests-available");
   const chestsLabel=document.getElementById("cv-chests-count-label");
   if(chestsEl){
