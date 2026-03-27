@@ -4949,15 +4949,17 @@ async function init(){
     showView("admin");loadAll();switchTab("home");
   } else {
     const saved=localStorage.getItem("clubplus_client_id");
-    if(saved) loadClientView(saved);
+    if(saved){
+      const check=await dbGet(T_CLIENTS+"?id=eq."+saved+"&select=id&limit=1");
+      if(check&&check.length) loadClientView(saved);
+      else{localStorage.removeItem("clubplus_client_id");showView("register");}
+    }
     else showView("register");
   }
 
-  // Service worker désactivé — cause des problèmes de cache
+  // Service worker — cache la page pour éviter les déconnexions au refresh
   if("serviceWorker" in navigator){
-    navigator.serviceWorker.getRegistrations().then(regs=>{
-      regs.forEach(r=>r.unregister());
-    });
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
   }
 }
 </script>
