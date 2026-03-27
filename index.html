@@ -4310,9 +4310,9 @@ function openCaseInfo(name,rwJson){
   const RBRD={legendary:"rgba(255,185,0,.2)",epic:"rgba(170,80,255,.18)",rare:"rgba(75,145,255,.18)",common:"rgba(255,255,255,.08)"};
   const RLBL={legendary:"Légendaire ✦",epic:"Épique",rare:"Rare",common:"Commun"};
   const RDESC={legendary:"Lot exceptionnel",epic:"Lot de grande valeur",rare:"Beau lot",common:"Lot classique"};
-  const rarityOrder={legendary:0,epic:1,rare:2,common:3};
+  const rarityOrder={common:0,rare:1,epic:2,legendary:3};
   const rewards=JSON.parse(rwJson.replace(/&quot;/g,'"').replace(/&#39;/g,"'"))
-    .sort((a,b)=>(rarityOrder[a.rarity||"common"]||3)-(rarityOrder[b.rarity||"common"]||3));
+    .sort((a,b)=>(rarityOrder[a.rarity||"common"]||0)-(rarityOrder[b.rarity||"common"]||0));
 
   document.getElementById("case-info-title").textContent=name;
   document.getElementById("case-info-list").innerHTML=`
