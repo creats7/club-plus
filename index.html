@@ -4828,35 +4828,33 @@ async function openWheelShop(cost){
 async function loadStampRewards(){
   const [rewards, chests]=await Promise.all([
     dbGet(T_STAMP_REWARDS+"?order=slot.asc"),
-    dbGet(T_CHESTS+"?active=eq.true&order=cost.asc&select=id,name,cover_url")
+    dbGet(T_CHESTS+"?active=eq.true&order=cost.asc&select=id,name")
   ]);
   invalidateStampCache();
   const list=document.getElementById("stamp-rewards-list");
   if(!list)return;
 
-  const chestOptions=(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
+  // Map slot → chest_id
+  const slotMap={};(rewards||[]).forEach(r=>slotMap[r.slot]=r.chest_id||"");
 
-  list.innerHTML=(rewards||[]).map(r=>`
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
-      <div style="width:40px;height:40px;border-radius:9px;background:rgba(255,255,255,.07);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;flex-shrink:0;color:var(--text)">#${r.slot}</div>
+  const chestOptions='<option value="">— Aucune —</option>'+(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
+
+  // Grille fixe slots 1 à 10
+  list.innerHTML=Array.from({length:10},(_,i)=>{
+    const slot=i+1;
+    const selectedChest=slotMap[slot]||"";
+    const isPrestige=slot===10;
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.07);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;flex-shrink:0;color:var(--text)">${slot}${isPrestige?" ⭐":""}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;margin-bottom:4px">Achat n°${r.slot}</div>
-        <select data-slot="${r.slot}" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px;outline:none">
-          <option value="">— Aucune caisse —</option>
-          ${(chests||[]).map(ch=>`<option value="${ch.id}" ${r.chest_id===ch.id?"selected":""}>${ch.name}</option>`).join("")}
+        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px">Achat #${slot}${isPrestige?" — Prestige":""}</div>
+        <select data-slot="${slot}" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px;outline:none">
+          ${chestOptions.replace(`value="${selectedChest}"`,`value="${selectedChest}" selected`)}
         </select>
       </div>
-      <button onclick="deleteTier(${r.slot})" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(248,113,113,.25);background:rgba(248,113,113,.06);color:var(--danger);font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
-    </div>`).join("")+`
-  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
-    <input id="sr-new-slot" type="number" min="1" placeholder="Palier n°" style="width:90px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px;font-family:'DM Mono',monospace;font-size:13px;outline:none;flex-shrink:0">
-    <select id="sr-new-chest" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px;font-family:'DM Mono',monospace;font-size:12px;outline:none">
-      <option value="">— Choisir une caisse —</option>
-      ${chestOptions}
-    </select>
-    <button onclick="addTier()" class="btn btn-accent btn-sm" style="flex-shrink:0">+ Ajouter</button>
-  </div>
-  <div style="margin-top:8px">
+    </div>`;
+  }).join("")+`
+  <div style="margin-top:10px">
     <button onclick="saveStampRewards()" class="btn btn-accent" style="width:100%;justify-content:center">💾 Enregistrer</button>
   </div>`;
 }
@@ -4866,7 +4864,13 @@ async function saveStampRewards(){
   for(const sel of selects){
     const slot=parseInt(sel.dataset.slot);
     const chest_id=sel.value||null;
-    await dbPatch(T_STAMP_REWARDS+"?slot=eq."+slot,{chest_id});
+    // Upsert — patch si existe, sinon insert
+    const existing=await dbGet(T_STAMP_REWARDS+"?slot=eq."+slot+"&limit=1");
+    if(existing&&existing.length){
+      await dbPatch(T_STAMP_REWARDS+"?slot=eq."+slot,{chest_id});
+    } else if(chest_id){
+      await dbPost(T_STAMP_REWARDS,{slot,tokens:1,chest_id});
+    }
   }
   invalidateStampCache();
   toast("Paliers enregistrés ✓");
