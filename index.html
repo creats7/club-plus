@@ -1302,6 +1302,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="quick-label">Stats</div>
         <div class="quick-sub">Graphiques</div>
       </div>
+      <div class="quick-card purple" onclick="switchTab('puffs')">
+        <div class="quick-icon">💨</div>
+        <div class="quick-label">Puffs</div>
+        <div class="quick-sub">Quiz catalogue</div>
+      </div>
     </div>
   </div>
 
@@ -1387,6 +1392,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div id="history-list-spins"><div class="loader">Chargement...</div></div>
   </div>
 
+
+  <!-- PUFFS QUIZ -->
+  <div id="panel-puffs" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Catalogue Puffs</div>
+      <button class="btn btn-sm btn-accent" onclick="openAddPuff()">+ Ajouter</button>
+    </div>
+    <div id="puffs-list"></div>
+  </div>
 
   <!-- PARRAINAGE -->
   <div id="panel-referral" style="display:none">
@@ -1564,6 +1578,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <!-- Offre du moment -->
       <div id="cv-offer-banner" style="margin-bottom:12px"></div>
 
+      <!-- QUIZ BOUTON -->
+      <button onclick="openQuiz()" style="width:100%;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(96,165,250,.08));border:1px solid rgba(167,139,250,.25);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:14px;text-align:left">
+        <div style="width:40px;height:40px;border-radius:10px;background:rgba(167,139,250,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#fff">Trouve ta puff idéale</div>
+          <div style="font-size:11px;color:rgba(167,139,250,.8);font-family:'DM Mono',monospace;margin-top:2px">Quiz · 4 questions · Top 3 résultats</div>
+        </div>
+        <svg style="margin-left:auto;flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
       <!-- Commande en cours -->
       <div id="cv-orders" style="display:none;margin-bottom:12px">
         <div class="cv-section-header">Commande en cours</div>
@@ -1728,6 +1754,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <button class="btn-spin" style="flex:1;justify-content:center;font-size:13px;padding:11px" onclick="saveEditOrder()">Enregistrer</button>
       <button class="btn" onclick="closeEditOrder()">Annuler</button>
     </div>
+  </div>
+</div>
+
+<!-- QUIZ SHEET -->
+<div class="order-overlay" id="quiz-overlay" onclick="closeQuiz()">
+  <div class="order-sheet" onclick="event.stopPropagation()" style="max-height:90vh;display:flex;flex-direction:column">
+    <div class="order-sheet-handle"></div>
+    <div id="quiz-inner" style="flex:1;overflow-y:auto;padding-bottom:1rem"></div>
   </div>
 </div>
 
@@ -2027,6 +2061,7 @@ const T_CHESTS=SUPA_URL+"/rest/v1/chests";
 const T_SCHEDULED_DROPS=SUPA_URL+"/rest/v1/scheduled_drops";
 const T_CHEST_REWARDS=SUPA_URL+"/rest/v1/chest_rewards";
 const T_CLIENT_CHESTS=SUPA_URL+"/rest/v1/client_chests";
+const T_PUFFS=SUPA_URL+"/rest/v1/puffs";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -2051,7 +2086,7 @@ function fmtDate(iso){
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards","referral"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards","referral","puffs"];
 const NAV_ITEMS=["home","clients","orders","cases","more","history","stamp_rewards","products","offers","challenges","stats","referral"];
 
 function switchTab(tab){
@@ -2080,6 +2115,7 @@ function switchTab(tab){
   if(tab==="stamp_rewards")loadStampRewards();
   if(tab==="history")loadHistory();
   if(tab==="referral")loadReferral();
+  if(tab==="puffs")loadPuffs();
 }
 
 async function loadHome(){
@@ -2558,6 +2594,194 @@ async function openAllTiersSheet(){
 }
 
 function closeAllTiersSheet(){document.getElementById("all-tiers-overlay").classList.remove("open");}
+
+// ── PUFFS ADMIN ──
+async function loadPuffs(){
+  const puffs=await dbGet(T_PUFFS+"?order=name.asc")||[];
+  const list=document.getElementById("puffs-list");
+  if(!list)return;
+  if(!puffs.length){list.innerHTML=`<div style="text-align:center;color:var(--muted);padding:3rem 0;font-size:13px">Aucune puff — clique + Ajouter</div>`;return;}
+  list.innerHTML=puffs.map(p=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="width:44px;height:44px;border-radius:9px;overflow:hidden;flex-shrink:0;background:#111">
+        ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px">💨</div>`}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${p.name}</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:2px">${p.tags||"—"}</div>
+        ${p.description?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${p.description}</div>`:""}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <button onclick="togglePuffActive('${p.id}',${p.active})" class="btn btn-sm" style="font-size:10px;color:${p.active?"#4ade80":"var(--muted)"}">${p.active?"✓ Actif":"Inactif"}</button>
+        <button onclick="deletePuff('${p.id}')" class="btn btn-sm btn-danger" style="font-size:10px">✕</button>
+      </div>
+    </div>`).join("");
+}
+
+let _puffEditId=null;
+function openAddPuff(puff=null){
+  _puffEditId=puff?.id||null;
+  const name=puff?.name||"";
+  const desc=puff?.description||"";
+  const tags=puff?.tags||"";
+  const img=puff?.image_url||"";
+  const modal=document.createElement("div");
+  modal.id="puff-modal";
+  modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:flex;align-items:flex-end;justify-content:center";
+  modal.innerHTML=`
+    <div onclick="event.stopPropagation()" style="background:#141414;border-radius:20px 20px 0 0;padding:1.5rem;width:100%;max-width:460px">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 1.25rem"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px">${_puffEditId?"Modifier":"Ajouter une puff"}</div>
+      <input id="pf-name" class="input" placeholder="Nom de la puff" value="${name}" style="margin-bottom:8px">
+      <input id="pf-desc" class="input" placeholder="Description courte (optionnel)" value="${desc}" style="margin-bottom:8px">
+      <input id="pf-img" class="input" placeholder="URL image (optionnel)" value="${img}" style="margin-bottom:8px">
+      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px">Tags (séparés par virgule) :</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;margin-bottom:6px">ex: sucre, fruit, fraise, menthol, ice, tabac, leger, medium, fort, doux, frais</div>
+      <input id="pf-tags" class="input" placeholder="sucre, fruit, fraise, doux" value="${tags}" style="margin-bottom:14px">
+      <div style="display:flex;gap:8px">
+        <button onclick="savePuff()" class="btn btn-accent" style="flex:1;justify-content:center">💾 Enregistrer</button>
+        <button onclick="document.getElementById('puff-modal').remove()" class="btn" style="flex-shrink:0">Annuler</button>
+      </div>
+    </div>`;
+  modal.onclick=()=>modal.remove();
+  document.body.appendChild(modal);
+  document.getElementById("pf-name").focus();
+}
+
+async function savePuff(){
+  const name=document.getElementById("pf-name").value.trim();
+  const desc=document.getElementById("pf-desc").value.trim();
+  const img=document.getElementById("pf-img").value.trim();
+  const tags=document.getElementById("pf-tags").value.trim().toLowerCase();
+  if(!name){toast("Nom requis");return;}
+  if(_puffEditId){
+    await dbPatch(T_PUFFS+"?id=eq."+_puffEditId,{name,description:desc||null,image_url:img||null,tags});
+    toast("Puff modifiée ✓");
+  } else {
+    await dbPost(T_PUFFS,{name,description:desc||null,image_url:img||null,tags,active:true});
+    toast("Puff ajoutée ✓");
+  }
+  document.getElementById("puff-modal")?.remove();
+  loadPuffs();
+}
+
+async function togglePuffActive(id,current){
+  await dbPatch(T_PUFFS+"?id=eq."+id,{active:!current});
+  loadPuffs();
+}
+
+async function deletePuff(id){
+  if(!confirm("Supprimer cette puff ?"))return;
+  await dbDelete(T_PUFFS+"?id=eq."+id);
+  toast("Puff supprimée");
+  loadPuffs();
+}
+
+// ── QUIZ PUFF ──
+const QUIZ_QUESTIONS=[
+  {id:"sucre",question:"Tu aimes les goûts sucrés ?",options:[
+    {label:"Oui, j'adore 🍬",value:"sucre_oui"},
+    {label:"Moyen, pas trop",value:"sucre_moyen"},
+    {label:"Non, le moins possible",value:"sucre_non"}
+  ]},
+  {id:"famille",question:"Quelle famille de goût tu préfères ?",options:[
+    {label:"Fruité 🍓",value:"fruite"},
+    {label:"Mentholé / frais ❄️",value:"menthol"},
+    {label:"Tabac / classique 🚬",value:"tabac"},
+    {label:"Mix fruité-mentholé",value:"mix"}
+  ]},
+  {id:"force",question:"Force de la saveur ?",options:[
+    {label:"Légère et subtile",value:"legere"},
+    {label:"Bien présente",value:"medium"},
+    {label:"Intense et prononcée 💥",value:"forte"}
+  ]},
+  {id:"sensation",question:"Sensation en bouche ?",options:[
+    {label:"Doux et rond 🌸",value:"doux"},
+    {label:"Frais et piquant",value:"frais"},
+    {label:"Fort en gorge",value:"fort"}
+  ]}
+];
+let quizAnswers={},quizStep=0,quizPuffs=[];
+
+async function openQuiz(){
+  document.getElementById("quiz-overlay").classList.add("open");
+  quizAnswers={};quizStep=0;
+  quizPuffs=await dbGet(T_PUFFS+"?active=eq.true")||[];
+  renderQuizStep();
+}
+function closeQuiz(){document.getElementById("quiz-overlay").classList.remove("open");}
+
+function renderQuizStep(){
+  const inner=document.getElementById("quiz-inner");
+  if(quizStep<QUIZ_QUESTIONS.length){
+    const q=QUIZ_QUESTIONS[quizStep];
+    const progress=Math.round((quizStep/QUIZ_QUESTIONS.length)*100);
+    inner.innerHTML=`
+      <div style="padding:0 0 8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3)">${quizStep+1} / ${QUIZ_QUESTIONS.length}</span>
+          ${quizStep>0?`<button onclick="quizBack()" style="background:transparent;border:none;color:rgba(255,255,255,.4);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer">← Retour</button>`:""}
+        </div>
+        <div style="height:3px;background:rgba(255,255,255,.08);border-radius:99px;margin-bottom:22px">
+          <div style="height:100%;width:${progress}%;background:rgba(167,139,250,.7);border-radius:99px;transition:width .3s"></div>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:#fff;line-height:1.35;margin-bottom:20px">${q.question}</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${q.options.map(o=>`<button onclick="quizAnswer('${q.id}','${o.value}')" style="width:100%;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 16px;color:#fff;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer">${o.label}</button>`).join("")}
+        </div>
+      </div>`;
+  } else {
+    renderQuizResult();
+  }
+}
+function quizAnswer(id,value){quizAnswers[id]=value;quizStep++;renderQuizStep();}
+function quizBack(){if(quizStep>0){quizStep--;delete quizAnswers[QUIZ_QUESTIONS[quizStep].id];renderQuizStep();}}
+
+function scoreQuizPuff(puff){
+  let score=0;
+  const tags=(puff.tags||"").toLowerCase();
+  const a=quizAnswers;
+  if(a.sucre==="sucre_oui"&&tags.includes("sucre"))score+=3;
+  if(a.sucre==="sucre_non"&&!tags.includes("sucre"))score+=2;
+  if(a.sucre==="sucre_moyen")score+=1;
+  if(a.famille==="fruite"&&tags.includes("fruit"))score+=4;
+  if(a.famille==="menthol"&&(tags.includes("menthol")||tags.includes("frais")||tags.includes("ice")))score+=4;
+  if(a.famille==="tabac"&&tags.includes("tabac"))score+=4;
+  if(a.famille==="mix"&&tags.includes("fruit")&&(tags.includes("menthol")||tags.includes("ice")))score+=4;
+  if(a.force==="legere"&&tags.includes("leger"))score+=2;
+  if(a.force==="medium"&&tags.includes("medium"))score+=2;
+  if(a.force==="forte"&&tags.includes("fort"))score+=2;
+  if(a.sensation==="doux"&&tags.includes("doux"))score+=2;
+  if(a.sensation==="frais"&&(tags.includes("frais")||tags.includes("ice")||tags.includes("menthol")))score+=2;
+  if(a.sensation==="fort"&&(tags.includes("fort")||tags.includes("gorge")))score+=2;
+  return score;
+}
+
+function renderQuizResult(){
+  const inner=document.getElementById("quiz-inner");
+  if(!quizPuffs.length){
+    inner.innerHTML=`<div style="text-align:center;padding:3rem 0;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;font-size:13px">Aucune puff configurée</div>`;
+    return;
+  }
+  const scored=quizPuffs.map(p=>({...p,score:scoreQuizPuff(p)})).sort((a,b)=>b.score-a.score).slice(0,3);
+  inner.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:22px;font-weight:800;color:#fff">Tes puffs idéales ✦</div>
+      <div style="font-size:12px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.35);margin-top:4px">Basé sur tes préférences</div>
+    </div>
+    ${scored.map((p,i)=>`
+      <div style="display:flex;align-items:center;gap:12px;background:${i===0?"rgba(167,139,250,.1)":"rgba(255,255,255,.03)"};border:1px solid ${i===0?"rgba(167,139,250,.3)":"rgba(255,255,255,.07)"};border-radius:13px;padding:12px 14px;margin-bottom:8px">
+        <div style="width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#111">
+          ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px">💨</div>`}
+        </div>
+        <div style="flex:1;min-width:0">
+          ${i===0?`<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;background:rgba(167,139,250,.2);color:#a78bfa;border-radius:5px;padding:2px 6px;display:inline-block;margin-bottom:3px">TOP CHOIX</span>`:`<span style="font-size:9px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25)">#${i+1}</span>`}
+          <div style="font-size:14px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+          ${p.description?`<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">${p.description}</div>`:""}
+        </div>
+      </div>`).join("")}
+    <button onclick="quizAnswers={};quizStep=0;renderQuizStep()" style="width:100%;margin-top:8px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;color:rgba(255,255,255,.4);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer">↺ Refaire le quiz</button>`;
+}
 
 async function openGiveCaseModal(clientId,name){
   _giveCaseClientId=clientId;
