@@ -2357,7 +2357,7 @@ async function openClientFiche(clientId, name){
   // Stats
   const openedCount=(clientChests||[]).filter(r=>r.opened).length;
   const pendingCount=(clientChests||[]).filter(r=>!r.opened).length;
-  const unlockedByTier=tiers.filter(t=>t.chest_id&&totalXP>=t.slot).length;
+  const unlockedByTier=tiers.filter(t=>t.chest_id&&(client.stamps||0)>=t.slot).length;
   document.getElementById("fiche-stats").innerHTML=`
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;text-align:center">
       <div style="font-size:22px;font-weight:800;font-family:'DM Mono',monospace">${totalXP}</div>
@@ -3708,10 +3708,11 @@ async function loadClientView(id){
   const RARITY_COL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(200,200,210,.5)"};
   const RARITY_DOT_CLASS={legendary:"next-legendary",epic:"next-epic",rare:"next-rare",common:"next-plain"};
 
-  // Cycle-aware
+  // Cycle-aware — les slots sont 1-10 dans le cycle courant
   const cycleStart=Math.floor(totalXP/MAX_STAMPS)*MAX_STAMPS;
-  const passedTiers=sortedTiers.filter(r=>totalXP>=r.slot);
-  const upcomingTiers=sortedTiers.filter(r=>totalXP<r.slot&&r.slot<=cycleStart+MAX_STAMPS);
+  const slotInCycle=cycleXP===0&&totalXP>0?MAX_STAMPS:cycleXP; // position dans le cycle (1-10)
+  const passedTiers=sortedTiers.filter(r=>r.slot<=slotInCycle);
+  const upcomingTiers=sortedTiers.filter(r=>r.slot>slotInCycle&&r.slot<=MAX_STAMPS);
   const nextTier=upcomingTiers[0]||null;
 
   // Barre fill + balle
@@ -3736,7 +3737,7 @@ async function loadClientView(id){
     msContainer.innerHTML=allMs.map(ms=>{
       const slotInCycle=ms.slot-cycleStart;
       const leftPct=(slotInCycle/MAX_STAMPS)*100;
-      const reached=totalXP>=ms.slot;
+      const reached=slotInCycle>=ms.slot||(cycleXP===0&&totalXP>0);
       const isNext=nextTier&&ms.slot===nextTier.slot;
       const chDetail=ms.chestId?chestDetailMap[ms.chestId]:null;
       const rarity=chDetail?.rarity||"common";
@@ -3769,7 +3770,7 @@ async function loadClientView(id){
       show.forEach((t,i)=>{
         const d=chestDetailMap[t.chest_id]||{};
         const col=RARITY_COL[d.rarity||"common"];
-        const rem=t.slot-totalXP;
+        const rem=t.slot-slotInCycle;
         const isNext=i===0;
         html+=`<div style="display:flex;align-items:center;gap:10px;background:${isNext?col.replace("1)","0.08)"):"rgba(255,255,255,.03)"};border:1px solid ${isNext?col.replace("1)","0.18)"):"rgba(255,255,255,.07)"};border-radius:10px;padding:8px 11px">
           <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111">
@@ -4314,10 +4315,12 @@ async function openMyChestsSheet(){
   listEl.innerHTML='<div class="loader">Chargement...</div>';
 
   const totalXP=window._currentClientData?.total_stamps||0;
+  const cycleXPLocal=window._currentClientData?.stamps||0;
+  const slotInCycleLocal=cycleXPLocal===0&&totalXP>0?MAX_STAMPS:cycleXPLocal;
   const rewards=await getStampRewards();
 
-  // 1. Caisses débloquées par palier
-  const tierChestIds=rewards.filter(r=>r.chest_id&&totalXP>=r.slot).map(r=>r.chest_id);
+  // 1. Caisses débloquées par palier dans le cycle courant
+  const tierChestIds=rewards.filter(r=>r.chest_id&&slotInCycleLocal>=r.slot).map(r=>r.chest_id);
 
   // 2. Caisses offertes par admin (opened=false)
   const gifted=await dbGet(T_CLIENT_CHESTS+"?client_id=eq."+currentClientId+"&opened=eq.false&select=id,chest_id");
