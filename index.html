@@ -2569,14 +2569,11 @@ async function loadAll(){
 
 // ── DASHBOARD ──
 function renderDash(cl){
-  const tot=cl.length,st=cl.reduce((s,c)=>s+c.stamps,0),tk=cl.reduce((s,c)=>s+(c.tokens||0),0);
+  const tot=cl.length,st=cl.reduce((s,c)=>s+(c.total_stamps||0),0),tk=cl.reduce((s,c)=>s+(c.tokens||0),0);
   document.getElementById("s-total").textContent=tot;
   document.getElementById("s-stamps").textContent=st;
-  // s-spins chargé séparément
   dbGet(T_CLIENT_CHESTS+"?opened=eq.true&select=id").then(d=>{document.getElementById("s-spins").textContent=d?d.length:0;});
-
-  // Top clients actifs (par tampons totaux accumulés = stamps actuels + historique)
-  const sorted=[...cl].sort((a,b)=>(b.stamps||0)-(a.stamps||0));
+  const sorted=[...cl].sort((a,b)=>(b.total_stamps||0)-(a.total_stamps||0));
   const medals=["🥇","🥈","🥉"];
   document.getElementById("top-clients").innerHTML=sorted.length?sorted.slice(0,5).map((c,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
@@ -2668,7 +2665,8 @@ function renderList(cl){
   if(!cl||!cl.length){list.innerHTML='<div class="empty-state">Aucun client</div>';return;}
   list.innerHTML="";
   cl.forEach(c=>{
-    const stamps=c.stamps||0;
+    const totalStamps=c.total_stamps||0;
+    const cycleStamps=c.stamps||0;
     const div=document.createElement("div");div.className="client-card";
     div.innerHTML=`
       <div class="client-top">
@@ -2688,16 +2686,16 @@ function renderList(cl){
           </div>
         </div>
         <div class="client-actions">
-          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${stamps},${c.tokens||0})">✎</button>
+          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${totalStamps},${c.tokens||0})">✎</button>
           <button class="btn btn-sm" onclick="showQR('${c.id}','${c.name.replace(/'/g,"\\'")}')">QR</button>
           <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
       </div>
       <div class="stamp-controls">
-        <div class="stamp-count"><span class="n">${stamps}</span> achats</div>
+        <div class="stamp-count"><span class="n">${totalStamps}</span> achats · cycle ${cycleStamps}/10${(c.prestige||0)>0?" · ⭐"+c.prestige:""}</div>
         <div class="stamp-btns">
-          <button class="btn btn-sm" onclick="chg('${c.id}',${stamps},${c.tokens||0},-1)" ${stamps===0?"disabled":""}>−</button>
-          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${stamps},${c.tokens||0},1)">+ Achat</button>
+          <button class="btn btn-sm" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},-1)" ${totalStamps===0?"disabled":""}>−</button>
+          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},1)">+ Achat</button>
           <button class="btn btn-sm" style="color:#a78bfa;border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08)" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
           <button class="btn btn-sm" style="color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
           <button class="btn btn-sm" style="color:#38bdf8;border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.08)" onclick="openClientFiche('${c.id}','${c.name.replace(/'/g,"\\'")}')">📋 Fiche</button>
@@ -2715,9 +2713,9 @@ async function addClient(){
   await dbPost(T_CLIENTS,{name,phone:phone?normalizePhone(phone):null,stamps:0,tokens:0});
   toast("Client ajouté ✓");await loadAll();
 }
-function openEdit(id,name,phone,stamps,tokens){
+function openEdit(id,name,phone,totalStamps,tokens){
   document.getElementById("edit-id").value=id;document.getElementById("edit-name").value=name;
-  document.getElementById("edit-phone").value=phone;document.getElementById("edit-stamps").value=stamps;
+  document.getElementById("edit-phone").value=phone;document.getElementById("edit-stamps").value=totalStamps;
   document.getElementById("edit-tokens").value=tokens;
   document.getElementById("edit-modal").classList.add("open");
 }
@@ -2725,10 +2723,12 @@ function closeEdit(){document.getElementById("edit-modal").classList.remove("ope
 async function saveEdit(){
   const id=document.getElementById("edit-id").value,name=document.getElementById("edit-name").value.trim();
   const phone=document.getElementById("edit-phone").value.trim();
-  const stamps=Math.max(0,parseInt(document.getElementById("edit-stamps").value)||0);
+  const totalStamps=Math.max(0,parseInt(document.getElementById("edit-stamps").value)||0);
   const tokens=Math.max(0,parseInt(document.getElementById("edit-tokens").value)||0);
   if(!name)return;
-  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps,tokens});
+  const cycleStamps=totalStamps%MAX_STAMPS;
+  const prestige=Math.floor(totalStamps/MAX_STAMPS);
+  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps:cycleStamps,total_stamps:totalStamps,prestige,tokens});
   closeEdit();toast("Client modifié ✓");await loadAll();
 }
 // Cache des récompenses par case (chargé au démarrage)
@@ -2744,15 +2744,13 @@ function invalidateStampCache(){stampRewardsCache=null;}
 
 const MAX_STAMPS=10; // Cycle de 10 achats
 
-async function chg(id,curStamps,curTokens,d){
+async function chg(id,curTotalStamps,curTokens,d){
   if(d===1){
     const rewards=await getStampRewards();
-    const newTotalStamps=(curStamps||0)+1;
-    const slotReward=rewards.find(r=>r.slot===newTotalStamps%MAX_STAMPS===0?MAX_STAMPS:newTotalStamps%MAX_STAMPS);
+    const newTotalStamps=(curTotalStamps||0)+1;
     const cycleCompleted=newTotalStamps%MAX_STAMPS===0;
     const cycleStamps=newTotalStamps%MAX_STAMPS; // 0 quand cycle complet
 
-    // Récupérer prestige actuel pour incrémenter si cycle complet
     const patchData={stamps:cycleStamps,tokens:curTokens,total_stamps:newTotalStamps};
     if(cycleCompleted){
       const cur=await dbGet(T_CLIENTS+"?id=eq."+id+"&select=prestige&limit=1");
@@ -2762,17 +2760,27 @@ async function chg(id,curStamps,curTokens,d){
     await dbPatch(T_CLIENTS+"?id=eq."+id,patchData);
     await dbPost(T_STAMP_LOGS,{client_id:id});
 
-    const slotRewardActual=rewards.find(r=>r.slot===newTotalStamps);
-    const msg=slotRewardActual?.chest_id
-      ?`🎁 Palier ${newTotalStamps} — Caisse débloquée !`
+    // Vérifier si ce palier débloque une caisse
+    const slotInCycle=newTotalStamps%MAX_STAMPS===0?MAX_STAMPS:newTotalStamps%MAX_STAMPS;
+    const slotReward=rewards.find(r=>r.slot===slotInCycle);
+    const msg=slotReward?.chest_id
+      ?`🎁 Palier ${slotInCycle} — Caisse débloquée !`
       :cycleCompleted
         ?`⭐ Prestige ! Nouveau cycle`
         :`✦ Achat #${newTotalStamps}`;
     toast(msg,cycleCompleted?4000:2000);
   } else {
-    const newTotalStamps=Math.max(0,(curStamps||0)-1);
+    const newTotalStamps=Math.max(0,(curTotalStamps||0)-1);
     const cycleStamps=newTotalStamps%MAX_STAMPS;
-    await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:cycleStamps,tokens:curTokens,total_stamps:newTotalStamps});
+    // Recalculer le prestige si on recule sur un cycle
+    const curData=await dbGet(T_CLIENTS+"?id=eq."+id+"&select=prestige,total_stamps&limit=1");
+    const curTotal=curData&&curData[0]?.total_stamps||0;
+    const curPrestige=curData&&curData[0]?.prestige||0;
+    // Si on recule d'un palier de prestige, décrémente
+    const wasPrestige=curTotal%MAX_STAMPS===0&&curTotal>0;
+    const patchData={stamps:cycleStamps,total_stamps:newTotalStamps};
+    if(wasPrestige&&curPrestige>0)patchData.prestige=curPrestige-1;
+    await dbPatch(T_CLIENTS+"?id=eq."+id,patchData);
     toast("Achat retiré");
   }
   await loadAll();
@@ -2784,7 +2792,8 @@ async function giveToken(id,curTokens){
 }
 async function rst(id,name){
   if(!confirm("Réinitialiser la carte de "+name+" ?"))return;
-  await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:0});toast("Carte réinitialisée");await loadAll();
+  await dbPatch(T_CLIENTS+"?id=eq."+id,{stamps:0,total_stamps:0,prestige:0});
+  toast("Carte réinitialisée");await loadAll();
 }
 async function delClient(id,name){
   if(!confirm("Supprimer "+name+" ?"))return;
