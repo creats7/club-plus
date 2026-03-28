@@ -33,12 +33,14 @@
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:0;position:relative;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.028) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 100% 50% at 50% 0%,black,transparent 70%);pointer-events:none;z-index:0}
 .view{display:none;width:100%;max-width:460px;position:relative;z-index:1;padding:1.25rem 1.25rem 80px}.view.active{display:block}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--rs);border:1px solid var(--border2);background:rgba(255,255,255,0.06);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .22s ease-in-out;white-space:nowrap;flex-shrink:0;font-weight:500}
-.btn:hover{background:rgba(255,255,255,0.11);border-color:var(--border3);transform:scale(1.02)}.btn:active{transform:scale(.98)!important}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
-.btn-accent{background:var(--text);border-color:transparent;color:#0a0a0a;font-weight:700;box-shadow:0 4px 14px rgba(255,255,255,0.12);transition:all .22s ease-in-out}
-.btn-accent:hover{background:rgba(255,255,255,0.92);transform:scale(1.02);box-shadow:0 6px 20px rgba(255,255,255,0.18)}
-.btn-danger{color:var(--danger);border-color:rgba(248,113,113,.2)}.btn-danger:hover{background:var(--danger-dim);transform:scale(1.02)}
-.btn-sm{padding:5px 10px;font-size:12px}.btn-icon{padding:5px 8px;font-size:13px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 16px;border-radius:14px;border:none;background:#111;color:#fff;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .25s ease;white-space:nowrap;flex-shrink:0;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.btn:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}.btn:active{transform:scale(.98)!important;box-shadow:0 2px 8px rgba(0,0,0,0.15)}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;box-shadow:none}
+.btn-accent{background:#111;border:none;color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:all .25s ease}
+.btn-accent:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;box-shadow:none}
+.btn-secondary:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.35);transform:scale(1.03);box-shadow:none}
+.btn-danger{background:transparent;border:1px solid rgba(248,113,113,.2);color:var(--danger);box-shadow:none}.btn-danger:hover{background:var(--danger-dim);transform:scale(1.02);box-shadow:none}
+.btn-sm{padding:7px 12px;font-size:12px}.btn-icon{padding:7px 10px;font-size:13px}
 
 /* ── PIN ── */
 .pin-wrap{text-align:center;padding-top:4rem}
@@ -295,10 +297,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* Info + bouton */
 .cv-chest-name{font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px;text-align:center}
 .cv-chest-desc-text{font-size:13px;color:var(--muted);text-align:center;margin-bottom:1.5rem;line-height:1.5}
-.cv-open-btn{width:100%;padding:14px;border-radius:var(--rs);background:#fff;border:none;color:#0a0a0a;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;box-shadow:0 4px 16px rgba(255,255,255,0.12);display:none;position:relative;overflow:hidden}
-.cv-open-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);background-size:200% 100%;animation:shimmer 2s linear infinite}
-.cv-open-btn:hover{transform:translateY(-2px);opacity:.9}
-.cv-open-btn:active{transform:scale(.97)}
+.cv-open-btn{width:100%;padding:14px;border-radius:14px;background:#111;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .25s ease;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none;position:relative;overflow:hidden}
+.cv-open-btn:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.cv-open-btn:active{transform:scale(.98)!important}
 
 /* OVERLAY RÉSULTAT */
 .chest-result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(16px)}
@@ -599,8 +600,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hc-title{font-size:15px;font-weight:700;letter-spacing:-.02em}
 .hc-cost{font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);display:flex;align-items:center;gap:4px}
 .hc-cost-val{color:var(--text);font-weight:700;font-size:14px}
-.hc-open-btn{background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0;transition:transform .22s ease-in-out,box-shadow .22s ease-in-out;box-shadow:0 2px 8px rgba(255,255,255,0.08)}
-.hc-open-btn:hover{transform:scale(1.03);box-shadow:0 4px 14px rgba(255,255,255,0.16)}.hc-open-btn:active{transform:scale(.97)!important}
+.hc-open-btn{background:#111;color:#fff;border:none;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0;transition:all .25s ease;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.hc-open-btn:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}.hc-open-btn:active{transform:scale(.98)!important}
 /* ── CASE OPENING OVERLAY ── */
 .hc-opening-overlay{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:350;backdrop-filter:blur(20px);padding:1.5rem}
 .hc-opening-overlay.open{display:flex}
@@ -678,21 +679,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-wallet-icon{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .cv-wallet-count{font-family:'DM Mono',monospace;font-size:24px;font-weight:700;line-height:1;color:var(--text)}
 .cv-wallet-lbl{font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:2px;font-family:'DM Mono',monospace}
-.cv-wallet-btn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:var(--text);border-radius:10px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.01em;transition:all .2s;display:flex;align-items:center;gap:5px;flex-shrink:0}
-.cv-wallet-btn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25)}
+.cv-wallet-btn{background:#111;border:none;color:#fff;border-radius:12px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.01em;transition:all .25s ease;display:flex;align-items:center;gap:5px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.cv-wallet-btn:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}.cv-wallet-btn:active{transform:scale(.98)!important}
 /* CTA v2 */
-@keyframes ctaGlowV2{0%,100%{box-shadow:0 4px 24px rgba(255,255,255,.1),0 0 0 0 rgba(255,255,255,.08)}50%{box-shadow:0 8px 40px rgba(255,255,255,.22),0 0 0 5px rgba(255,255,255,.04)}}
+@keyframes ctaGlowV2{0%,100%{box-shadow:0 4px 16px rgba(0,0,0,.3),0 0 0 0 rgba(255,255,255,.04)}50%{box-shadow:0 8px 28px rgba(0,0,0,.45),0 0 0 4px rgba(255,255,255,.03)}}
 .cv-cta-v2{
-  width:100%;padding:18px 20px;border-radius:22px;
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid rgba(255,255,255,0.18);
-  box-shadow:0 4px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.25),inset 0 -1px 0 rgba(255,255,255,.05);
+  width:100%;padding:18px 20px;border-radius:16px;
+  background:#111;
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
   color:#fff;font-family:'Inter',sans-serif;cursor:pointer;
   display:flex;align-items:center;justify-content:space-between;
   margin-top:12px;
-  transition:transform .22s cubic-bezier(.34,1.2,.64,1),box-shadow .22s ease-in-out;
+  transition:all .25s ease;
   position:relative;overflow:hidden;
 }
 .cv-cta-v2::before{
@@ -702,11 +701,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   animation:glassSheen 3.5s ease-in-out infinite;
 }
 @keyframes glassSheen{0%{left:-60%}60%,100%{left:160%}}
-.cv-cta-v2:hover{transform:scale(1.02);box-shadow:0 8px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.3)}
-.cv-cta-v2:active{transform:scale(.97)!important}
+.cv-cta-v2:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.cv-cta-v2:active{transform:scale(.98)!important}
 .cv-cta-v2-title{font-size:16px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:3px;color:#fff}
 .cv-cta-v2-sub{font-size:11px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em}
-.cv-cta-v2-arrow{width:36px;height:36px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
+.cv-cta-v2-arrow{width:36px;height:36px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
 @keyframes particleBurst{
   0%{transform:translate(var(--tx,0px),0) rotate(0deg) scale(1);opacity:1}
   100%{transform:translate(var(--tx,0px),var(--ty,-140px)) rotate(720deg) scale(0);opacity:0}
@@ -788,13 +787,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-token-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px}
 .cv-token-count{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--text)}
 .cv-token-label{font-size:12px;color:var(--muted)}
-.btn-spin{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);border:1px solid var(--border2);color:var(--text);font-weight:700;font-size:13px;padding:11px 18px;border-radius:var(--rs);cursor:pointer;transition:all .22s ease-in-out;font-family:'Inter',sans-serif;letter-spacing:-.01em}
-.btn-spin:hover{background:rgba(255,255,255,.14);border-color:var(--border3);transform:scale(1.02);box-shadow:0 4px 16px rgba(0,0,0,.3)}
-.btn-spin:active{transform:scale(.98)!important}.btn-spin:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+.btn-spin{display:inline-flex;align-items:center;gap:8px;background:#111;border:none;color:#fff;font-weight:700;font-size:13px;padding:11px 18px;border-radius:14px;cursor:pointer;transition:all .25s ease;font-family:'Inter',sans-serif;letter-spacing:-.01em;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.btn-spin:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.btn-spin:active{transform:scale(.98)!important}.btn-spin:disabled{opacity:.3;cursor:not-allowed;transform:none!important;box-shadow:none}
 /* ── CTA Commander ── */
 @keyframes ctaGlow{
-  0%,100%{box-shadow:0 4px 20px rgba(255,255,255,.08),0 0 0 0 rgba(255,255,255,.1)}
-  50%{box-shadow:0 8px 36px rgba(255,255,255,.2),0 0 0 6px rgba(255,255,255,.04)}
+  0%,100%{box-shadow:0 4px 12px rgba(0,0,0,.15),0 0 0 0 rgba(255,255,255,.03)}
+  50%{box-shadow:0 8px 24px rgba(0,0,0,.3),0 0 0 4px rgba(255,255,255,.02)}
 }
 @keyframes ctaArrow{
   0%,100%{transform:translateX(0)}
@@ -803,26 +802,26 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-cta-order{
   width:100%;
   padding:18px 20px;
-  border-radius:18px;
-  background:#fff;
-  color:#0a0a0a;
+  border-radius:16px;
+  background:#111;
+  color:#fff;
   border:none;
   font-size:16px;
   font-weight:800;
   cursor:pointer;
   font-family:'Inter',sans-serif;
   letter-spacing:-.03em;
-  transition:transform .22s cubic-bezier(.34,1.2,.64,1),box-shadow .22s ease-in-out;
+  transition:all .25s ease;
   animation:ctaGlow 2.5s ease-in-out infinite;
   display:flex;align-items:center;justify-content:space-between;
   margin-top:16px;
 }
-.cv-cta-order:hover{transform:scale(1.02);box-shadow:0 12px 40px rgba(255,255,255,.22)}
-.cv-cta-order:active{transform:scale(.97)!important;box-shadow:0 2px 12px rgba(255,255,255,.1)}
+.cv-cta-order:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.cv-cta-order:active{transform:scale(.98)!important}
 .cv-cta-order .cta-left{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
 .cv-cta-order .cta-title{font-size:16px;font-weight:800;letter-spacing:-.03em;line-height:1}
-.cv-cta-order .cta-sub{font-size:11px;font-weight:500;color:rgba(0,0,0,.4);font-family:'DM Mono',monospace;letter-spacing:.04em}
-.cv-cta-order .cta-arrow{width:34px;height:34px;background:#0a0a0a;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:ctaArrow 2.5s ease-in-out infinite}
+.cv-cta-order .cta-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace;letter-spacing:.04em}
+.cv-cta-order .cta-arrow{width:34px;height:34px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:ctaArrow 2.5s ease-in-out infinite}
 .cv-footer{font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;animation:fadeUp .5s ease .2s both;text-align:center}
 /* ── SHOP PRODUCTS ── */
 .shop-header{text-align:center;margin-bottom:20px}
@@ -840,9 +839,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .shop-product-dispo.ok{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
 .shop-product-dispo.out{background:rgba(248,113,113,.08);color:var(--danger);border:1px solid rgba(248,113,113,.18)}
 .shop-product-actions{flex-shrink:0;display:flex;align-items:center}
-.shop-add-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .22s ease-in-out;letter-spacing:-.01em}
-.shop-add-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.32);transform:scale(1.03)}
-.shop-add-btn:active{transform:scale(.97)!important}
+.shop-add-btn{background:#111;border:none;color:#fff;border-radius:12px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .25s ease;letter-spacing:-.01em;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.shop-add-btn:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.shop-add-btn:active{transform:scale(.98)!important}
 .shop-qty-ctrl{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:4px 8px}
 .shop-qty-btn{background:none;border:none;color:#fff;font-size:18px;font-weight:700;cursor:pointer;padding:0 2px;line-height:1;font-family:'Inter',sans-serif}
 .shop-qty-val{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:20px;text-align:center}
@@ -856,19 +855,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cart-fab{
   position:sticky;bottom:76px;left:50%;transform:translateX(-50%);
   width:fit-content;
-  background:rgba(255,255,255,0.1);
-  backdrop-filter:blur(24px) saturate(200%);
-  -webkit-backdrop-filter:blur(24px) saturate(200%);
-  border:1px solid rgba(255,255,255,0.22);
-  box-shadow:0 8px 32px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 0 rgba(255,255,255,.06);
+  background:#111;
+  border:1px solid rgba(255,255,255,0.12);
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
   color:#fff;border-radius:99px;padding:12px 22px;
   font-size:14px;font-weight:700;font-family:'Inter',sans-serif;
   cursor:pointer;display:none;align-items:center;gap:8px;
   z-index:60;white-space:nowrap;margin:16px auto 0;
-  transition:transform .22s ease-in-out,box-shadow .22s ease-in-out;
-  position:sticky;
+  transition:all .25s ease;
 }
-.cart-fab:hover{transform:translateX(-50%) scale(1.03);box-shadow:0 12px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.35)}
+.cart-fab:hover{transform:translateX(-50%) scale(1.03);background:#1a1a1a;box-shadow:0 8px 24px rgba(0,0,0,0.3)}
 .cart-fab-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700;min-width:20px;text-align:center}
 /* ── ORDER TRACKER CLIENT ── */
 .cv-order-tracker{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;margin-bottom:12px;margin-top:12px}
@@ -910,12 +906,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .product-sheet-stock-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .product-sheet-desc{font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px}
 .product-sheet-marketing{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
-.product-sheet-cta{width:100%;padding:17px;border-radius:16px;background:#fff;color:#0a0a0a;border:none;font-size:16px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .22s ease-in-out,box-shadow .22s ease-in-out,opacity .15s;box-shadow:0 4px 20px rgba(255,255,255,.1)}
-.product-sheet-cta:hover{box-shadow:0 8px 32px rgba(255,255,255,.22);transform:scale(1.02)}
-.product-sheet-cta:active{transform:scale(.97)!important}
-.product-sheet-cta.out{background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);cursor:not-allowed}
-.cta-white{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;background:#fff;color:#0a0a0a;border:none;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;transition:transform .22s ease-in-out,box-shadow .22s ease-in-out;box-shadow:0 4px 14px rgba(255,255,255,0.1)}
-.cta-white:hover{transform:scale(1.02);box-shadow:0 8px 24px rgba(255,255,255,0.18)}.cta-white:active{transform:scale(.97)!important}
+.product-sheet-cta{width:100%;padding:17px;border-radius:16px;background:#111;color:#fff;border:none;font-size:16px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .25s ease;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.product-sheet-cta:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.product-sheet-cta:active{transform:scale(.98)!important}
+.product-sheet-cta.out{background:rgba(255,255,255,.06);color:rgba(255,255,255,.25);cursor:not-allowed;box-shadow:none}
+.cta-white{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;background:#111;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;transition:all .25s ease;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.cta-white:hover{background:#1a1a1a;transform:scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,0.22)}.cta-white:active{transform:scale(.98)!important}
 .product-sheet-qty{width:100%;display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:16px;padding:10px 16px}
 .product-sheet-qty-btn{background:rgba(0,0,0,.08);border:none;width:40px;height:40px;border-radius:10px;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0a0a0a;font-family:'Inter',sans-serif}
 .product-sheet-qty-val{font-size:20px;font-weight:800;font-family:'DM Mono',monospace;color:#0a0a0a}
@@ -1567,7 +1563,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <!-- Caisses disponibles -->
         <div id="cv-chests-available" style="display:none">
           <div style="height:1px;background:rgba(255,255,255,.06);margin:10px 0"></div>
-          <button onclick="openMyChestsSheet()" style="width:100%;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:12px 16px;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:space-between;animation:plusGlow 2s ease-in-out infinite">
+          <button onclick="openMyChestsSheet()" class="btn" style="width:100%;justify-content:space-between;animation:plusGlow 2s ease-in-out infinite">
             <div style="display:flex;align-items:center;gap:10px">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 12v4"/><path d="M10 14h4"/></svg>
               <div style="text-align:left">
@@ -1611,7 +1607,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div id="cv-offer-banner" style="margin-bottom:12px"></div>
 
       <!-- QUIZ BOUTON -->
-      <button onclick="openQuiz()" style="width:100%;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(96,165,250,.08));border:1px solid rgba(167,139,250,.25);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:14px;text-align:left">
+      <button onclick="openQuiz()" class="btn" style="width:100%;gap:12px;text-align:left;margin-bottom:14px">
         <div style="width:40px;height:40px;border-radius:10px;background:rgba(167,139,250,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </div>
@@ -1633,7 +1629,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">Ton code parrain</div>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:18px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.12em;color:#fff" id="cv-referral-code">—</div>
-          <button onclick="copyReferralCode()" style="background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif" id="cv-referral-copy-btn">Copier 📋</button>
+          <button onclick="copyReferralCode()" class="btn btn-sm" id="cv-referral-copy-btn">Copier 📋</button>
         </div>
         <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin-top:6px">Partage ce code — tes amis reçoivent une caisse</div>
       </div>
@@ -1842,7 +1838,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="order-sheet-handle"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem 1rem">
       <div class="order-sheet-title" style="margin:0" id="fiche-title">Fiche client</div>
-      <button onclick="closeClientFiche()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">✕</button>
+      <button onclick="closeClientFiche()" class="btn btn-sm btn-secondary">✕</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:0 1.5rem 1.5rem">
       <!-- Stats rapides -->
@@ -1851,7 +1847,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Inventaire caisses</div>
       <div id="fiche-chests-list"></div>
       <!-- Bouton donner caisse -->
-      <button onclick="closeClientFiche();openGiveCaseModal(window._ficheClientId,window._ficheClientName)" style="width:100%;margin-top:12px;padding:11px;border-radius:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">+ Donner une caisse</button>
+      <button onclick="closeClientFiche();openGiveCaseModal(window._ficheClientId,window._ficheClientName)" class="btn" style="width:100%;justify-content:center;margin-top:12px">+ Donner une caisse</button>
     </div>
   </div>
 </div>
@@ -1876,7 +1872,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <option value="">— Choisir —</option>
     </select>
     <div class="reg-error" id="give-case-error"></div>
-    <button style="width:100%;padding:13px;border-radius:12px;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px" onclick="submitGiveCase()">Donner la caisse</button>
+    <button class="cta-white" style="margin-bottom:8px" onclick="submitGiveCase()">Donner la caisse</button>
     <button class="btn" style="width:100%;justify-content:center" onclick="closeGiveCaseModal()">Annuler</button>
   </div>
 </div>
@@ -1914,7 +1910,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <label class="modal-label">Note (optionnel)</label>
     <input class="input" id="aom-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
     <div class="reg-error" id="aom-error"></div>
-    <button style="width:100%;padding:14px;border-radius:16px;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px" onclick="submitAdminOrder()">
+    <button class="cta-white" style="margin-bottom:8px" onclick="submitAdminOrder()">
       Valider la réservation ✓
     </button>
     <button class="btn" style="width:100%;justify-content:center" onclick="closeAdminOrderModal()">Annuler</button>
@@ -1937,12 +1933,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <!-- Toggle livraison / retrait -->
     <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button id="os-btn-livraison" onclick="setDeliveryMode('livraison')"
-        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,.08);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+      <button id="os-btn-livraison" onclick="setDeliveryMode('livraison')" class="btn btn-sm" style="flex:1;justify-content:center">
         🚚 Livraison
       </button>
-      <button id="os-btn-retrait" onclick="setDeliveryMode('retrait')"
-        style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+      <button id="os-btn-retrait" onclick="setDeliveryMode('retrait')" class="btn btn-sm btn-secondary" style="flex:1;justify-content:center">
         📍 Retrait
       </button>
     </div>
@@ -1957,8 +1951,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         </div>
         <div id="os-fee-detail" style="font-size:11px;color:var(--muted2);margin-top:3px;font-family:'DM Mono',monospace"></div>
       </div>
-      <button onclick="calcDeliveryFee()" id="os-calc-btn"
-        style="width:100%;padding:9px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px">
+      <button onclick="calcDeliveryFee()" id="os-calc-btn" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-bottom:10px">
         📍 Utiliser ma position pour calculer les frais
       </button>
     </div>
@@ -2483,7 +2476,7 @@ async function openClientFiche(clientId, name){
         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ch.name||"Caisse inconnue"}</div>
         <div style="font-size:11px;font-family:'DM Mono',monospace;color:${statusCol};margin-top:2px">${statusIcon} ${statusTxt}</div>
       </div>
-      ${!cc.opened?`<button onclick="deleteClientChest('${cc.id}')" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:""}
+      ${!cc.opened?`<button onclick="deleteClientChest('${cc.id}')" class="btn btn-sm btn-danger" style="flex-shrink:0">✕</button>`:""}
     </div>`;
   }).join("");
 
@@ -2537,8 +2530,8 @@ async function loadScheduledDrops(){
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:10px;font-family:'DM Mono',monospace;color:${statusCol}">${statusTxt}</span>
-        ${!d.executed&&isPast?`<button onclick="executeDropAdmin('${d.id}')" style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);color:#4ade80;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace">▶ Lancer</button>`:""}
-        ${!d.executed?`<button onclick="cancelDrop('${d.id}')" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">✕</button>`:""}
+        ${!d.executed&&isPast?`<button onclick="executeDropAdmin('${d.id}')" class="btn btn-sm">▶ Lancer</button>`:""}
+        ${!d.executed?`<button onclick="cancelDrop('${d.id}')" class="btn btn-sm btn-danger">✕</button>`:""}
       </div>
     </div>`;
   }).join("");
@@ -2793,9 +2786,9 @@ function renderQuizStep(){
   inner.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-top:4px">
       ${quizStep>0
-        ?`<button onclick="quizBack()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif">← Retour</button>`
+        ?`<button onclick="quizBack()" class="btn btn-sm btn-secondary">← Retour</button>`
         :`<div></div>`}
-      <button onclick="closeQuiz()" style="background:transparent;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer;line-height:1">✕</button>
+      <button onclick="closeQuiz()" class="btn btn-sm btn-secondary">✕</button>
     </div>
 
     <div style="margin-bottom:20px">
@@ -2879,7 +2872,7 @@ function renderQuizResult(){
   const col=cols[winner];
   inner.innerHTML=`
     <div style="display:flex;justify-content:flex-end;padding-top:4px;margin-bottom:16px">
-      <button onclick="closeQuiz()" style="background:transparent;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer">✕</button>
+      <button onclick="closeQuiz()" class="btn btn-sm btn-secondary">✕</button>
     </div>
 
     <div style="text-align:center;margin-bottom:28px">
@@ -2914,7 +2907,7 @@ function renderQuizResult(){
     <button onclick="quizOrderTop('${profile.products[0]}')" class="cta-white" style="margin-bottom:10px">
       💨 Obtenir ma puff idéale
     </button>
-    <button onclick="quizScores={FRUITE:0,SUCRE:0,FRAIS:0,EXOTIQUE:0};quizStep=0;quizHistory=[];renderQuizStep()" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;color:rgba(255,255,255,.35);font-size:13px;font-family:'DM Mono',monospace;cursor:pointer">
+    <button onclick="quizScores={FRUITE:0,SUCRE:0,FRAIS:0,EXOTIQUE:0};quizStep=0;quizHistory=[];renderQuizStep()" class="btn btn-secondary" style="width:100%;justify-content:center">
       ↺ Refaire le quiz
     </button>`;
 }
@@ -3124,9 +3117,9 @@ function renderList(cl){
         <div class="stamp-btns">
           <button class="btn btn-sm" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},-1)" ${totalStamps===0?"disabled":""}>−</button>
           <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},1)">+ Achat</button>
-          <button class="btn btn-sm" style="color:#a78bfa;border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08)" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
-          <button class="btn btn-sm" style="color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
-          <button class="btn btn-sm" style="color:#38bdf8;border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.08)" onclick="openClientFiche('${c.id}','${c.name.replace(/'/g,"\\'")}')">📋 Fiche</button>
+          <button class="btn btn-sm" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
+          <button class="btn btn-sm" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
+          <button class="btn btn-sm" onclick="openClientFiche('${c.id}','${c.name.replace(/'/g,"\\'")}')">📋 Fiche</button>
         </div>
       </div>`;
     list.appendChild(div);
@@ -3441,12 +3434,12 @@ function setDeliveryMode(mode){
   const retBlock=document.getElementById("os-retrait-block");
   if(!livBtn)return;
   if(mode==='livraison'){
-    livBtn.style.background="rgba(255,255,255,.12)";livBtn.style.color="var(--text)";livBtn.style.borderColor="var(--border2)";
-    retBtn.style.background="transparent";retBtn.style.color="var(--muted)";retBtn.style.borderColor="var(--border)";
+    livBtn.className='btn btn-sm';livBtn.style.flex='1';livBtn.style.justifyContent='center';
+    retBtn.className='btn btn-sm btn-secondary';retBtn.style.flex='1';retBtn.style.justifyContent='center';
     livBlock.style.display="block";retBlock.style.display="none";
   } else {
-    retBtn.style.background="rgba(255,255,255,.12)";retBtn.style.color="var(--text)";retBtn.style.borderColor="var(--border2)";
-    livBtn.style.background="transparent";livBtn.style.color="var(--muted)";livBtn.style.borderColor="var(--border)";
+    retBtn.className='btn btn-sm';retBtn.style.flex='1';retBtn.style.justifyContent='center';
+    livBtn.className='btn btn-sm btn-secondary';livBtn.style.flex='1';livBtn.style.justifyContent='center';
     retBlock.style.display="block";livBlock.style.display="none";
     calculatedFee=0;
   }
@@ -3979,7 +3972,7 @@ async function loadHistory(){
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         <div class="spin-meta" style="text-align:right">${fmtDate(l.opened_at||l.created_at)}</div>
-        <button onclick="deleteHistoryEntry('${l.id}')" style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--danger);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">🗑</button>
+        <button onclick="deleteHistoryEntry('${l.id}')" class="btn btn-sm btn-danger">🗑</button>
       </div>
     </div>`;
   }).join("");
@@ -4173,7 +4166,7 @@ async function loadClientView(id){
         </div>`;
       });
       html+=`</div>
-      <button onclick="openAllTiersSheet()" style="width:100%;margin-top:6px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;color:rgba(255,255,255,.4);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.04em">Voir mes paliers 🎯</button>`;
+      <button onclick="openAllTiersSheet()" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-top:6px">Voir mes paliers 🎯</button>`;
     } else if(cycleXP===0&&totalXP>0){
       html=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:#4ade80;margin-top:8px">✓ Cycle complété — nouveau cycle !</div>`;
     } else if(!nextTier){
@@ -5172,7 +5165,7 @@ async function showHcResult(won,clientChestId){
       <span style="font-size:14px;font-weight:800;letter-spacing:-.03em">Voir les puffs 💨</span>
       <span style="font-size:10px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em">Une puff = une récompense</span>
     </button>
-    <button style="width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`;
+    <button class="btn btn-secondary" style="width:100%;justify-content:center" onclick="closeHcOpening()">Fermer</button>`;
 }
 
 function spawnRarityEffect(rarity,col,container){
