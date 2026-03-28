@@ -890,6 +890,33 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--border2);border-radius:var(--rs);padding:10px 18px;font-size:13px;color:var(--text);opacity:0;transition:opacity .3s;pointer-events:none;z-index:400;white-space:nowrap;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .toast.show{opacity:1}
 
+
+/* ── PRODUCT DETAIL SHEET ── */
+@keyframes slideUpSheet{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.product-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:flex-end;justify-content:center;z-index:250;backdrop-filter:blur(10px)}
+.product-sheet-overlay.open{display:flex}
+.product-sheet{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:22px 22px 0 0;width:100%;max-width:460px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:slideUpSheet .35s cubic-bezier(.34,1.2,.64,1)}
+.product-sheet-img{width:100%;height:220px;object-fit:cover;display:block;flex-shrink:0}
+.product-sheet-img-ph{width:100%;height:200px;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.02));display:flex;align-items:center;justify-content:center;font-size:72px;flex-shrink:0}
+.product-sheet-body{flex:1;overflow-y:auto;padding:1.25rem 1.5rem 2rem}
+.product-sheet-handle{width:36px;height:4px;background:rgba(255,255,255,.14);border-radius:2px;margin:14px auto 0;flex-shrink:0}
+.product-badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.product-highlight-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:99px;padding:3px 10px;font-family:'Inter',sans-serif;letter-spacing:.01em}
+.product-tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-family:'DM Mono',monospace;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:99px;padding:3px 9px;color:rgba(255,255,255,.55)}
+.product-sheet-name{font-size:22px;font-weight:800;letter-spacing:-.04em;color:#fff;margin-bottom:4px;line-height:1.2}
+.product-sheet-price{font-size:26px;font-weight:800;font-family:'DM Mono',monospace;color:#fff;margin-bottom:6px}
+.product-sheet-stock-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.product-sheet-desc{font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px}
+.product-sheet-marketing{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.product-sheet-cta{width:100%;padding:17px;border-radius:16px;background:#fff;color:#0a0a0a;border:none;font-size:16px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,opacity .15s}
+.product-sheet-cta:active{transform:scale(.97)}
+.product-sheet-cta.out{background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);cursor:not-allowed}
+.product-sheet-qty{width:100%;display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:16px;padding:10px 16px}
+.product-sheet-qty-btn{background:rgba(0,0,0,.08);border:none;width:40px;height:40px;border-radius:10px;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0a0a0a;font-family:'Inter',sans-serif}
+.product-sheet-qty-val{font-size:20px;font-weight:800;font-family:'DM Mono',monospace;color:#0a0a0a}
+/* Clickable shop card */
+.shop-product-card{cursor:pointer;transition:border-color .2s,transform .12s}
+.shop-product-card:active{transform:scale(.98)}
 </style>
 </head>
 <body>
@@ -1997,6 +2024,31 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="case-info-title" id="case-info-title"></div>
     <div class="case-info-sub">Contenu de la caisse</div>
     <div id="case-info-list"></div>
+  </div>
+</div>
+
+<!-- ══ PRODUCT DETAIL SHEET ══ -->
+<div class="product-sheet-overlay" id="product-sheet-overlay" onclick="closeProductSheet()">
+  <div class="product-sheet" onclick="event.stopPropagation()" id="product-sheet-inner">
+    <div class="product-sheet-handle"></div>
+    <!-- Image -->
+    <div id="ps-img-wrap"></div>
+    <div class="product-sheet-body">
+      <!-- Badges : highlight + tags -->
+      <div class="product-badge-row" id="ps-badge-row"></div>
+      <!-- Nom -->
+      <div class="product-sheet-name" id="ps-name"></div>
+      <!-- Prix -->
+      <div class="product-sheet-price" id="ps-price"></div>
+      <!-- Stock -->
+      <div class="product-sheet-stock-row" id="ps-stock-row"></div>
+      <!-- Description -->
+      <div class="product-sheet-desc" id="ps-desc"></div>
+      <!-- Texte marketing -->
+      <div class="product-sheet-marketing" id="ps-marketing"></div>
+      <!-- CTA -->
+      <div id="ps-cta-wrap"></div>
+    </div>
   </div>
 </div>
 
@@ -4248,7 +4300,7 @@ function renderProductList(){
   pl.innerHTML=window._productsCache.map(p=>{
     const dispo=p.stock>0;
     const inCart=cart[p.id]?.qty||0;
-    return `<div class="shop-product-card${dispo?"":" out"}">
+    return `<div class="shop-product-card${dispo?"":" out"}" onclick="openProductSheet('${p.id}')">
       <div class="shop-product-img-wrap">
         ${p.image_url
           ?`<img src="${p.image_url}" alt="${p.name}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`
@@ -4259,7 +4311,7 @@ function renderProductList(){
         <div class="shop-product-price">${p.price!=null?p.price.toFixed(2)+" €":"—"}</div>
         <div class="shop-product-dispo ${dispo?"ok":"out"}">${dispo?"Dispo":"Rupture"}</div>
       </div>
-      <div class="shop-product-actions">
+      <div class="shop-product-actions" onclick="event.stopPropagation()">
         ${dispo?`
           ${inCart>0?`
             <div class="shop-qty-ctrl">
@@ -4272,6 +4324,150 @@ function renderProductList(){
       </div>
     </div>`;
   }).join("");
+}
+
+// ── PRODUCT DETAIL SHEET ──
+function _puffTags(name){
+  const n=name.toLowerCase();
+  const tags=[];
+  if(/ice|frais|fresh|cool|frost|menthol|mint|menthe/.test(n))tags.push({icon:"❄️",label:"Frais"});
+  if(/strawberry|fraise|cherry|cerise|berry|peach|pêche|mango|mangue|passion|fruit|litchi|lychee|kiwi|melon|watermelon|pastèque|tropical|exotic|ananas|pineapple|guava|grape|raisin/.test(n))tags.push({icon:"🍓",label:"Fruité"});
+  if(/candy|bonbon|sucre|sweet|sugar|gummy|cotton/.test(n))tags.push({icon:"🍬",label:"Sucré"});
+  if(/cola|energy|bull|punch|boost/.test(n))tags.push({icon:"⚡",label:"Intense"});
+  if(/tobacco|tabac|classic|original/.test(n))tags.push({icon:"🍂",label:"Classique"});
+  if(/blue|razz|blueberry|myrtille/.test(n))tags.push({icon:"🫐",label:"Myrtille"});
+  if(/16k|12k|20k|10k|18k/.test(n))tags.push({icon:"💨",label:"Grande autonomie"});
+  if(!tags.length)tags.push({icon:"💨",label:"Puff"});
+  return tags;
+}
+
+function _puffDesc(name){
+  const n=name.toLowerCase();
+  if(/watermelon|pastèque/.test(n))return"Une saveur pastèque juteuse et rafraîchissante, parfaite pour les journées chaudes. Goût naturel et authentique.";
+  if(/strawberry|fraise/.test(n))return"La fraise dans toute sa splendeur : douce, sucrée et légèrement acidulée. Un classique indémodable.";
+  if(/mango|mangue/.test(n))return"Une explosion de mangue tropicale, sucrée et juteuse. Le goût de l'été en toutes saisons.";
+  if(/cherry|cerise/.test(n))return"Des notes de cerise mûre et gourmande. Un équilibre parfait entre sucré et légèrement acidulé.";
+  if(/blue razz|blueberry|myrtille/.test(n))return"La myrtille bleue à son meilleur — une note de petits fruits noirs fraîche et intense.";
+  if(/cola/.test(n))return"Le goût iconique du cola, pétillant et rafraîchissant, avec une touche de fraîcheur incomparable.";
+  if(/energy|bull/.test(n))return"Une saveur boisson énergisante explosive. Acidulé, sucré, boost garanti.";
+  if(/ice|menthol|mint|menthe/.test(n))return"Une vague de fraîcheur intense à chaque bouffée. Idéale pour les fans de sensations glacées.";
+  if(/peach|pêche/.test(n))return"La pêche juteuse à la perfection — douce, sucrée, avec un arrière-goût délicat et fruité.";
+  if(/passion/.test(n))return"Le fruit de la passion en toute intensité : acidulé, exotique, irrésistiblement tropical.";
+  if(/lemon|citron/.test(n))return"Une note de citron vif et pétillante. Acidulée et rafraîchissante, parfaite pour les amateurs de fraîcheur.";
+  if(/grape|raisin/.test(n))return"La saveur raisin sucrée et légèrement vineuse. Douce et fruitée, un choix safe et apprécié.";
+  return`Découvre ${name} — une saveur soigneusement sélectionnée parmi les préférées de nos clients. Goût authentique, satisfaction garantie.`;
+}
+
+function _puffHighlight(name,stock){
+  const n=name.toLowerCase();
+  const badges=[];
+  // Highlight basé sur mots-clés populaires
+  if(/jnr|crystal|lost mary|elf bar|r&m/.test(n))badges.push({text:"💎 Top marque",bg:"rgba(167,139,250,.15)",border:"rgba(167,139,250,.35)",col:"#a78bfa"});
+  if(/watermelon|strawberry|mango|peach/.test(n))badges.push({text:"🔥 Populaire",bg:"rgba(251,146,60,.12)",border:"rgba(251,146,60,.3)",col:"#fb923c"});
+  if(/ice/.test(n))badges.push({text:"❄️ Best-seller frais",bg:"rgba(96,165,250,.12)",border:"rgba(96,165,250,.3)",col:"#60a5fa"});
+  if(/16k|20k/.test(n))badges.push({text:"💨 Grande autonomie",bg:"rgba(74,222,128,.1)",border:"rgba(74,222,128,.28)",col:"#4ade80"});
+  if(stock>0&&stock<=5)badges.push({text:"⚠️ Stock limité",bg:"rgba(248,113,113,.1)",border:"rgba(248,113,113,.25)",col:"#f87171"});
+  // Fallback aléatoire si aucun badge
+  if(!badges.length){
+    const fallbacks=[
+      {text:"💎 Recommandé",bg:"rgba(167,139,250,.15)",border:"rgba(167,139,250,.35)",col:"#a78bfa"},
+      {text:"🔥 Populaire",bg:"rgba(251,146,60,.12)",border:"rgba(251,146,60,.3)",col:"#fb923c"},
+      {text:"⭐ Coup de cœur",bg:"rgba(255,215,0,.1)",border:"rgba(255,215,0,.28)",col:"#ffd700"}
+    ];
+    badges.push(fallbacks[Math.abs(name.charCodeAt(0)+name.charCodeAt(1||0))%3]);
+  }
+  return badges[0];
+}
+
+const MARKETING_MSGS=[
+  {icon:"👥",text:"Un des goûts les plus commandés cette semaine"},
+  {icon:"⭐",text:"Noté parmi les favoris de nos clients fidèles"},
+  {icon:"🔥",text:"Souvent choisi en deuxième commande"},
+  {icon:"💬",text:"Plusieurs clients reviennent exprès pour ce goût"},
+  {icon:"🎯",text:"Recommandé par notre quiz pour les amateurs de ce profil"},
+];
+
+function openProductSheet(productId){
+  const p=window._productsCache?.find(x=>x.id===productId);
+  if(!p)return;
+  const dispo=p.stock>0;
+  const inCart=cart[p.id]?.qty||0;
+  const tags=_puffTags(p.name);
+  const desc=_puffDesc(p.name);
+  const highlight=_puffHighlight(p.name,p.stock);
+  const mktg=MARKETING_MSGS[Math.abs(productId.charCodeAt?productId.charCodeAt(0):0)%MARKETING_MSGS.length];
+
+  // Image
+  const imgWrap=document.getElementById("ps-img-wrap");
+  imgWrap.innerHTML=p.image_url
+    ?`<img class="product-sheet-img" src="${p.image_url}" alt="${p.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`+
+      `<div class="product-sheet-img-ph" style="display:none">📦</div>`
+    :`<div class="product-sheet-img-ph">📦</div>`;
+
+  // Badges
+  document.getElementById("ps-badge-row").innerHTML=
+    `<span class="product-highlight-badge" style="background:${highlight.bg};border:1px solid ${highlight.border};color:${highlight.col}">${highlight.text}</span>`+
+    tags.map(t=>`<span class="product-tag">${t.icon} ${t.label}</span>`).join("");
+
+  // Nom + prix
+  document.getElementById("ps-name").textContent=p.name;
+  document.getElementById("ps-price").textContent=p.price!=null?p.price.toFixed(2)+" €":"—";
+
+  // Stock
+  const stockCol=dispo?(p.stock<=5?"#fbbf24":"#4ade80"):"#f87171";
+  const stockTxt=p.stock===0?"Rupture de stock":p.stock<=5?`⚠ Seulement ${p.stock} unité${p.stock>1?"s":""}`:`✓ En stock (${p.stock})`;
+  document.getElementById("ps-stock-row").innerHTML=
+    `<span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:${stockCol}">${stockTxt}</span>`;
+
+  // Description
+  document.getElementById("ps-desc").textContent=desc;
+
+  // Marketing
+  document.getElementById("ps-marketing").innerHTML=
+    `<span style="font-size:20px;flex-shrink:0">${mktg.icon}</span>`+
+    `<span style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.45">${mktg.text}</span>`;
+
+  // CTA
+  const ctaWrap=document.getElementById("ps-cta-wrap");
+  if(!dispo){
+    ctaWrap.innerHTML=`<button class="product-sheet-cta out" disabled>Indisponible</button>`;
+  } else if(inCart>0){
+    ctaWrap.innerHTML=`<div class="product-sheet-qty">
+      <button class="product-sheet-qty-btn" onclick="removeFromCart('${p.id}');refreshProductSheetCta('${p.id}')">−</button>
+      <span class="product-sheet-qty-val">${inCart} dans le panier</span>
+      <button class="product-sheet-qty-btn" onclick="addToCart('${p.id}');refreshProductSheetCta('${p.id}')">+</button>
+    </div>`;
+  } else {
+    ctaWrap.innerHTML=`<button class="product-sheet-cta" onclick="addToCart('${p.id}');refreshProductSheetCta('${p.id}')">
+      <span>Ajouter à ma commande</span><span>💨</span>
+    </button>`;
+  }
+
+  document.getElementById("product-sheet-overlay").classList.add("open");
+}
+
+function refreshProductSheetCta(productId){
+  // Re-render just the CTA after cart change
+  const p=window._productsCache?.find(x=>x.id===productId);
+  if(!p)return;
+  const inCart=cart[p.id]?.qty||0;
+  const ctaWrap=document.getElementById("ps-cta-wrap");
+  if(!ctaWrap)return;
+  if(inCart>0){
+    ctaWrap.innerHTML=`<div class="product-sheet-qty">
+      <button class="product-sheet-qty-btn" onclick="removeFromCart('${p.id}');refreshProductSheetCta('${p.id}')">−</button>
+      <span class="product-sheet-qty-val">${inCart} dans le panier</span>
+      <button class="product-sheet-qty-btn" onclick="addToCart('${p.id}');refreshProductSheetCta('${p.id}')">+</button>
+    </div>`;
+  } else {
+    ctaWrap.innerHTML=`<button class="product-sheet-cta" onclick="addToCart('${p.id}');refreshProductSheetCta('${p.id}')">
+      <span>Ajouter à ma commande</span><span>💨</span>
+    </button>`;
+  }
+}
+
+function closeProductSheet(){
+  document.getElementById("product-sheet-overlay").classList.remove("open");
 }
 
 async function loadClientProducts(){
