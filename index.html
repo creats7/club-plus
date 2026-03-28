@@ -4330,15 +4330,14 @@ function renderProductList(){
 function _puffTags(name){
   const n=name.toLowerCase();
   const tags=[];
+  if(/tropical|exotic|passion|litchi|lychee|ananas|pineapple|guava/.test(n))tags.push({icon:"🌴",label:"Exotique"});
   if(/ice|frais|fresh|cool|frost|menthol|mint|menthe/.test(n))tags.push({icon:"❄️",label:"Frais"});
-  if(/strawberry|fraise|cherry|cerise|berry|peach|pêche|mango|mangue|passion|fruit|litchi|lychee|kiwi|melon|watermelon|pastèque|tropical|exotic|ananas|pineapple|guava|grape|raisin/.test(n))tags.push({icon:"🍓",label:"Fruité"});
+  if(/lemon|citron|lime|razz|acid|sour/.test(n))tags.push({icon:"🍋",label:"Acidulé"});
+  if(/strawberry|fraise|cherry|cerise|berry|peach|pêche|mango|mangue|fruit|kiwi|melon|watermelon|pastèque|grape|raisin/.test(n))tags.push({icon:"🍓",label:"Fruité"});
   if(/candy|bonbon|sucre|sweet|sugar|gummy|cotton/.test(n))tags.push({icon:"🍬",label:"Sucré"});
   if(/cola|energy|bull|punch|boost/.test(n))tags.push({icon:"⚡",label:"Intense"});
   if(/tobacco|tabac|classic|original/.test(n))tags.push({icon:"🍂",label:"Classique"});
-  if(/blue|razz|blueberry|myrtille/.test(n))tags.push({icon:"🫐",label:"Myrtille"});
-  if(/16k|12k|20k|10k|18k/.test(n))tags.push({icon:"💨",label:"Grande autonomie"});
-  if(!tags.length)tags.push({icon:"💨",label:"Puff"});
-  return tags;
+  return tags.slice(0,3);
 }
 
 function _puffDesc(name){
@@ -4365,7 +4364,7 @@ function _puffHighlight(name,stock){
   if(/jnr|crystal|lost mary|elf bar|r&m/.test(n))badges.push({text:"💎 Top marque",bg:"rgba(167,139,250,.15)",border:"rgba(167,139,250,.35)",col:"#a78bfa"});
   if(/watermelon|strawberry|mango|peach/.test(n))badges.push({text:"🔥 Populaire",bg:"rgba(251,146,60,.12)",border:"rgba(251,146,60,.3)",col:"#fb923c"});
   if(/ice/.test(n))badges.push({text:"❄️ Best-seller frais",bg:"rgba(96,165,250,.12)",border:"rgba(96,165,250,.3)",col:"#60a5fa"});
-  if(/16k|20k/.test(n))badges.push({text:"💨 Grande autonomie",bg:"rgba(74,222,128,.1)",border:"rgba(74,222,128,.28)",col:"#4ade80"});
+  if(/passion|litchi|exotic|tropical/.test(n))badges.push({text:"🌴 Goût exotique",bg:"rgba(74,222,128,.1)",border:"rgba(74,222,128,.28)",col:"#4ade80"});
   if(stock>0&&stock<=5)badges.push({text:"⚠️ Stock limité",bg:"rgba(248,113,113,.1)",border:"rgba(248,113,113,.25)",col:"#f87171"});
   // Fallback aléatoire si aucun badge
   if(!badges.length){
@@ -4379,13 +4378,28 @@ function _puffHighlight(name,stock){
   return badges[0];
 }
 
-const MARKETING_MSGS=[
-  {icon:"👥",text:"Un des goûts les plus commandés cette semaine"},
-  {icon:"⭐",text:"Noté parmi les favoris de nos clients fidèles"},
-  {icon:"🔥",text:"Souvent choisi en deuxième commande"},
-  {icon:"💬",text:"Plusieurs clients reviennent exprès pour ce goût"},
-  {icon:"🎯",text:"Recommandé par notre quiz pour les amateurs de ce profil"},
-];
+function _puffMarketing(tags){
+  const labels=tags.map(t=>t.label.toLowerCase());
+  let profile;
+  if(!labels.length){
+    profile="Parfait pour découvrir de nouvelles saveurs";
+  } else if(labels.length===1){
+    profile=`Parfait si tu aimes les goûts ${labels[0]}s`;
+  } else {
+    profile=`Parfait si tu aimes les goûts ${labels.slice(0,-1).join(", ")} et ${labels[labels.length-1]}`;
+  }
+  const bonuses={
+    "exotique":"🌴 Très demandé par les fans de saveurs tropicales",
+    "frais":"🔥 Best-seller parmi les goûts frais — très apprécié",
+    "acidulé":"⚡ Adoré des amateurs de peps — goût punchy garanti",
+    "fruité":"🍓 Un des goûts fruités les plus commandés chez nous",
+    "sucré":"🍬 Incontournable pour les fans de saveurs gourmandes",
+    "intense":"🔋 Le choix des amateurs de sensations fortes",
+    "classique":"🏆 La valeur sûre — idéal si tu ne veux pas te tromper",
+  };
+  const bonus=bonuses[labels[0]]||"💎 Très apprécié par nos clients fidèles";
+  return{profile,bonus};
+}
 
 function openProductSheet(productId){
   const p=window._productsCache?.find(x=>x.id===productId);
@@ -4395,7 +4409,7 @@ function openProductSheet(productId){
   const tags=_puffTags(p.name);
   const desc=_puffDesc(p.name);
   const highlight=_puffHighlight(p.name,p.stock);
-  const mktg=MARKETING_MSGS[Math.abs(productId.charCodeAt?productId.charCodeAt(0):0)%MARKETING_MSGS.length];
+  const mktg=_puffMarketing(tags);
 
   // Image
   const imgWrap=document.getElementById("ps-img-wrap");
@@ -4424,8 +4438,8 @@ function openProductSheet(productId){
 
   // Marketing
   document.getElementById("ps-marketing").innerHTML=
-    `<span style="font-size:20px;flex-shrink:0">${mktg.icon}</span>`+
-    `<span style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.45">${mktg.text}</span>`;
+    `<div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:6px">👤 ${mktg.profile}</div>`+
+    `<div style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.5">${mktg.bonus}</div>`;
 
   // CTA
   const ctaWrap=document.getElementById("ps-cta-wrap");
