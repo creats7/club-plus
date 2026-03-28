@@ -787,8 +787,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cv-token-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px}
 .cv-token-count{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--text)}
 .cv-token-label{font-size:12px;color:var(--muted)}
-.btn-spin{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid var(--border2);color:var(--text);font-weight:700;font-size:13px;padding:10px 18px;border-radius:var(--rs);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
-.btn-spin:hover{background:rgba(255,255,255,.13);border-color:var(--border3);transform:translateY(-1px)}
+.btn-spin{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);border:1px solid var(--border2);color:var(--text);font-weight:700;font-size:13px;padding:10px 18px;border-radius:var(--rs);cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;letter-spacing:-.01em}
+.btn-spin:hover{background:rgba(255,255,255,.14);border-color:var(--border3);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .btn-spin:active{transform:scale(.97)}.btn-spin:disabled{opacity:.3;cursor:not-allowed;transform:none}
 /* ── CTA Commander ── */
 @keyframes ctaGlow{
@@ -839,8 +839,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .shop-product-dispo.ok{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
 .shop-product-dispo.out{background:rgba(248,113,113,.08);color:var(--danger);border:1px solid rgba(248,113,113,.18)}
 .shop-product-actions{flex-shrink:0;display:flex;align-items:center}
-.shop-add-btn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s}
-.shop-add-btn:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28)}
+.shop-add-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s;letter-spacing:-.01em}
+.shop-add-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.32);transform:translateY(-1px)}
+.shop-add-btn:active{transform:scale(.96)}
 .shop-qty-ctrl{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:4px 8px}
 .shop-qty-btn{background:none;border:none;color:#fff;font-size:18px;font-weight:700;cursor:pointer;padding:0 2px;line-height:1;font-family:'Inter',sans-serif}
 .shop-qty-val{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:20px;text-align:center}
@@ -908,7 +909,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .product-sheet-stock-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .product-sheet-desc{font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px}
 .product-sheet-marketing{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
-.product-sheet-cta{width:100%;padding:17px;border-radius:16px;background:#fff;color:#0a0a0a;border:none;font-size:16px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,opacity .15s}
+.product-sheet-cta{width:100%;padding:17px;border-radius:16px;background:#fff;color:#0a0a0a;border:none;font-size:16px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,box-shadow .2s,opacity .15s;box-shadow:0 4px 20px rgba(255,255,255,.1)}
+.product-sheet-cta:hover{box-shadow:0 8px 32px rgba(255,255,255,.2);transform:translateY(-1px)}
 .product-sheet-cta:active{transform:scale(.97)}
 .product-sheet-cta.out{background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);cursor:not-allowed}
 .product-sheet-qty{width:100%;display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:16px;padding:10px 16px}
@@ -1117,7 +1119,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <input class="input" id="new-name" placeholder="Prénom Nom" />
       <input class="input" id="new-phone" placeholder="Téléphone" style="margin-bottom:8px" />
       <div style="display:flex;gap:8px">
-        <button class="btn btn-accent" onclick="addClient()">Ajouter</button>
+        <button class="btn btn-accent" onclick="addClient()">Ajouter ✓</button>
         <button class="btn" onclick="toggleAddForm()">Annuler</button>
       </div>
     </div>
@@ -1157,7 +1159,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <label class="modal-label" style="margin-top:12px">Date et heure de fin</label>
       <div class="datetime-row"><input class="input" id="of-date" type="date" /><input class="input" id="of-time" type="time" /></div>
       <div style="display:flex;gap:8px;margin-top:4px">
-        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveOffer()">Publier</button>
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveOffer()">Publier l'offre ✓</button>
         <button class="btn" onclick="toggleOfferForm()">Annuler</button>
       </div>
     </div>
@@ -1219,7 +1221,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <img id="rf-image-img" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--border2)" />
       </div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveReward()">Enregistrer</button>
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveReward()">Enregistrer 💾</button>
         <button class="btn" onclick="toggleRewardForm()">Annuler</button>
       </div>
     </div>
@@ -1240,7 +1242,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <label class="modal-label">Stock</label><input class="input" id="pf-stock" type="number" min="0" placeholder="ex: 50" />
       <label class="modal-label">Image URL (optionnel)</label><input class="input" id="pf-image" placeholder="https://…" />
       <div style="display:flex;gap:8px;margin-top:4px">
-        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveProduct()">Enregistrer</button>
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveProduct()">Enregistrer 💾</button>
         <button class="btn" onclick="toggleProductForm()">Annuler</button>
       </div>
     </div>
@@ -1288,7 +1290,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <option value="">— Choisir une caisse —</option>
       </select>
       <div style="display:flex;gap:8px;margin-top:4px">
-        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveChallenge()">Enregistrer</button>
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveChallenge()">Enregistrer 💾</button>
         <button class="btn" onclick="toggleChallengeForm()">Annuler</button>
       </div>
     </div>
@@ -1390,7 +1392,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <button class="btn btn-sm" onclick="addCaseRewardRow()" style="margin-bottom:10px;width:100%;justify-content:center">+ Ajouter un lot</button>
       <div id="caf-prob-total" style="font-family:'DM Mono',monospace;font-size:12px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveCase()">Enregistrer</button>
+        <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveCase()">Enregistrer 💾</button>
         <button class="btn" onclick="toggleCaseForm()">Annuler</button>
       </div>
     </div>
@@ -1452,7 +1454,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </select>
         </div>
       </div>
-      <button class="btn btn-accent btn-sm" onclick="saveReferralConfig()" style="width:100%;justify-content:center">Enregistrer</button>
+      <button class="btn btn-accent btn-sm" onclick="saveReferralConfig()" style="width:100%;justify-content:center">Enregistrer 💾</button>
     </div>
 
     <!-- Stats globales -->
@@ -1577,7 +1579,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- CTA Commander -->
       <button class="cv-cta-v2" onclick="switchClientTab('commandes')" style="justify-content:center;text-align:center;flex-direction:column;gap:4px">
-        <div class="cv-cta-v2-title">Voir les puffs 👀</div>
+        <div class="cv-cta-v2-title">Voir les puffs 💨</div>
         <div class="cv-cta-v2-sub">Une puff = une récompense</div>
       </button>
 
@@ -1628,7 +1630,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">Ton code parrain</div>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:18px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.12em;color:#fff" id="cv-referral-code">—</div>
-          <button onclick="copyReferralCode()" style="background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif" id="cv-referral-copy-btn">Copier</button>
+          <button onclick="copyReferralCode()" style="background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif" id="cv-referral-copy-btn">Copier 📋</button>
         </div>
         <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin-top:6px">Partage ce code — tes amis reçoivent une caisse</div>
       </div>
@@ -1744,7 +1746,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="modal-field"><label class="modal-label">Achats total</label><input class="input" id="edit-stamps" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Tokens</label><input class="input" id="edit-tokens" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-actions">
-      <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveEdit()">Enregistrer</button>
+      <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveEdit()">Enregistrer 💾</button>
       <button class="btn" onclick="closeEdit()">Annuler</button>
     </div>
   </div>
@@ -1823,8 +1825,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div id="cart-chests-lines"></div>
       </div>
       <div id="cart-error" style="display:none;font-size:13px;font-weight:600;color:#f87171;font-family:'DM Mono',monospace;text-align:center;margin-bottom:10px;animation:redGlow 1.5s ease-in-out infinite"></div>
-      <button style="width:100%;justify-content:center;font-size:15px;padding:15px;background:#fff;color:#0a0a0a;border:none;border-radius:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:block" onclick="submitCart()">
-        Confirmer la commande
+      <button style="width:100%;justify-content:center;font-size:15px;padding:16px;background:#fff;color:#0a0a0a;border:none;border-radius:16px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;display:flex;align-items:center;gap:8px" onclick="submitCart()">
+        Valider ma commande ✓
       </button>
       <button class="btn" style="width:100%;justify-content:center;margin-top:8px" onclick="closeCartSheet()">Annuler</button>
     </div>
@@ -1909,8 +1911,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <label class="modal-label">Note (optionnel)</label>
     <input class="input" id="aom-note" placeholder="ex: variante, précision..." style="margin-bottom:12px" />
     <div class="reg-error" id="aom-error"></div>
-    <button style="width:100%;padding:13px;border-radius:12px;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px" onclick="submitAdminOrder()">
-      Confirmer la réservation
+    <button style="width:100%;padding:14px;border-radius:16px;background:#fff;color:#0a0a0a;border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px" onclick="submitAdminOrder()">
+      Valider la réservation ✓
     </button>
     <button class="btn" style="width:100%;justify-content:center" onclick="closeAdminOrderModal()">Annuler</button>
   </div>
@@ -1974,7 +1976,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <div class="reg-error" id="os-error"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn-spin" style="flex:1;justify-content:center;font-size:13px;padding:11px" onclick="submitOrder()">Confirmer la réservation</button>
+      <button class="btn-spin" style="flex:1;justify-content:center;font-size:13px;padding:11px" onclick="submitOrder()">Valider ma réservation ✓</button>
       <button class="btn" onclick="closeOrderModal()">Annuler</button>
     </div>
   </div>
@@ -2012,7 +2014,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
     <div style="display:flex;gap:10px">
       <button onclick="cancelOpenCase()" class="btn" style="flex:1;justify-content:center;padding:14px;font-size:14px">Annuler</button>
-      <button onclick="confirmOpenCase()" class="btn-spin" style="flex:2;justify-content:center;padding:14px;font-size:14px;font-weight:800;background:#fff;color:#0a0a0a;border:none;border-radius:var(--rs)">Ouvrir →</button>
+      <button onclick="confirmOpenCase()" class="btn-spin" style="flex:2;justify-content:center;padding:14px;font-size:14px;font-weight:800;background:#fff;color:#0a0a0a;border:none;border-radius:16px">Ouvrir ma caisse 🎁</button>
     </div>
   </div>
 </div>
@@ -2081,7 +2083,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="wheel-result" id="wheel-result"></div>
     <div class="wheel-result-sub" id="wheel-result-sub"></div>
     <div style="display:flex;gap:8px;justify-content:center">
-      <button class="btn-spin" id="wheel-spin-btn" onclick="doSpin()">Ouvrir</button>
+      <button class="btn-spin" id="wheel-spin-btn" onclick="doSpin()">Ouvrir ma caisse 🎁</button>
       <button class="btn" id="wheel-close-btn" onclick="closeWheel()" style="display:none">Fermer</button>
     </div>
   </div>
@@ -4168,7 +4170,7 @@ async function loadClientView(id){
         </div>`;
       });
       html+=`</div>
-      <button onclick="openAllTiersSheet()" style="width:100%;margin-top:6px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;color:rgba(255,255,255,.4);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.04em">Voir tous les paliers →</button>`;
+      <button onclick="openAllTiersSheet()" style="width:100%;margin-top:6px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;color:rgba(255,255,255,.4);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.04em">Voir mes paliers 🎯</button>`;
     } else if(cycleXP===0&&totalXP>0){
       html=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:#4ade80;margin-top:8px">✓ Cycle complété — nouveau cycle !</div>`;
     } else if(!nextTier){
@@ -4319,7 +4321,7 @@ function renderProductList(){
               <span class="shop-qty-val">${inCart}</span>
               <button class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
             </div>
-          `:`<button class="shop-add-btn" onclick="addToCart('${p.id}')">+ Ajouter</button>`}
+          `:`<button class="shop-add-btn" onclick="addToCart('${p.id}')">Ajouter 💨</button>`}
         `:`<div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">Indisponible</div>`}
       </div>
     </div>`;
@@ -4899,7 +4901,7 @@ function chestRow(chestId,clientChestId,ch,source){
       <div style="font-size:14px;font-weight:700">${ch.name||"Caisse"}</div>
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:${col};margin-top:2px">${label}</div>
     </div>
-    <button onclick="closeMyChestsSheet();openCaseGifted('${chestId}','${clientChestId}')" style="background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">Ouvrir →</button>
+    <button onclick="closeMyChestsSheet();openCaseGifted('${chestId}','${clientChestId}')" style="background:#fff;color:#0a0a0a;border:none;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">Ouvrir ma caisse 🎁</button>
   </div>`;
 }
 
@@ -5164,7 +5166,7 @@ async function showHcResult(won,clientChestId){
              color:#fff;cursor:pointer;font-family:'Inter',sans-serif;
              display:flex;flex-direction:column;align-items:center;gap:3px;
              position:relative;overflow:hidden;">
-      <span style="font-size:14px;font-weight:800;letter-spacing:-.03em">Voir les puffs 👀</span>
+      <span style="font-size:14px;font-weight:800;letter-spacing:-.03em">Voir les puffs 💨</span>
       <span style="font-size:10px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em">Une puff = une récompense</span>
     </button>
     <button style="width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeHcOpening()">Fermer</button>`;
