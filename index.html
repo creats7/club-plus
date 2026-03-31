@@ -2266,37 +2266,57 @@ async function doSignup(){
   const refInput=document.getElementById("signup-referral").value.trim().toUpperCase();
   const err=document.getElementById("signup-error");
   const succ=document.getElementById("signup-success");
+  const btn=document.querySelector("[onclick='doSignup()']");
   err.textContent="";succ.textContent="";
   if(!name){err.textContent="Entre ton prénom";return;}
   if(!raw){err.textContent="Entre ton numéro";return;}
-  const phone=normalizePhone(raw);
-  const existing=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
-  if(existing&&existing.length){err.textContent="Ce numéro est déjà inscrit — connecte-toi !";return;}
-  let referredBy=null;
-  if(refInput){
-    const parrain=await dbGet(T_CLIENTS+"?referral_code=eq."+encodeURIComponent(refInput)+"&limit=1");
-    if(!parrain||!parrain.length){err.textContent="Code parrain invalide";return;}
-    referredBy=parrain[0].id;
-  }
-  let referralCode=genReferralCode(name);
-  const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
-  if(check&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
-  const res=await dbPost(T_CLIENTS,{name,phone,snap:snap||null,stamps:0,tokens:0,total_stamps:0,referral_code:referralCode,referred_by:referredBy||null});
-  if(!res||!res.length){err.textContent="Erreur — réessaie";return;}
-  if(referredBy){
-    // Donner caisse au filleul si configurée
-    if(referralConfig.filleul_chest_id){
-      await dbPost(T_CLIENT_CHESTS,{client_id:res[0].id,chest_id:referralConfig.filleul_chest_id,opened:false});
+  if(btn){btn.disabled=true;}
+  try{
+    const phone=normalizePhone(raw);
+    const existing=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
+    if(Array.isArray(existing)&&existing.length){err.textContent="Ce numéro est déjà inscrit — connecte-toi !";return;}
+    let referredBy=null;
+    if(refInput){
+      const parrain=await dbGet(T_CLIENTS+"?referral_code=eq."+encodeURIComponent(refInput)+"&limit=1");
+      if(!Array.isArray(parrain)||!parrain.length){err.textContent="Code parrain invalide";return;}
+      referredBy=parrain[0].id;
     }
-    // Donner caisse au parrain si configurée
-    if(referralConfig.parrain_chest_id){
-      await dbPost(T_CLIENT_CHESTS,{client_id:referredBy,chest_id:referralConfig.parrain_chest_id,opened:false});
+    let referralCode=genReferralCode(name);
+    const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
+    if(Array.isArray(check)&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
+    const res=await dbPost(T_CLIENTS,{name,phone,snap:snap||null,stamps:0,tokens:0,total_stamps:0,referral_code:referralCode,referred_by:referredBy||null});
+    if(!Array.isArray(res)||!res.length){
+      const msg=res?.message||res?.hint||res?.details||"Erreur inconnue";
+      err.textContent="Erreur : "+msg;
+      console.error("Signup error",res);
+      return;
     }
-    succ.textContent="Bienvenue ! Une caisse t'a été offerte 🎁";
-  } else {
-    succ.textContent="Carte créée ! Redirection...";
+    if(referredBy){
+      // Charger la config parrainage si pas encore fait
+      if(!referralConfig.filleul_chest_id&&!referralConfig.parrain_chest_id){
+        const cfg=await dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain_chest,referral_filleul_chest)");
+        if(Array.isArray(cfg))cfg.forEach(r=>{
+          if(r.key==="referral_parrain_chest")referralConfig.parrain_chest_id=r.image_url||null;
+          if(r.key==="referral_filleul_chest")referralConfig.filleul_chest_id=r.image_url||null;
+        });
+      }
+      if(referralConfig.filleul_chest_id){
+        await dbPost(T_CLIENT_CHESTS,{client_id:res[0].id,chest_id:referralConfig.filleul_chest_id,opened:false});
+      }
+      if(referralConfig.parrain_chest_id){
+        await dbPost(T_CLIENT_CHESTS,{client_id:referredBy,chest_id:referralConfig.parrain_chest_id,opened:false});
+      }
+      succ.textContent="Bienvenue ! Une caisse t'a été offerte 🎁";
+    } else {
+      succ.textContent="Carte créée ! Redirection...";
+    }
+    setTimeout(()=>loadClientView(res[0].id),1200);
+  } catch(e){
+    err.textContent="Erreur réseau — vérifie ta connexion";
+    console.error("Signup exception",e);
+  } finally{
+    if(btn){btn.disabled=false;}
   }
-  setTimeout(()=>loadClientView(res[0].id),1200);
 }
 
 // ── PARRAINAGE ADMIN ──
