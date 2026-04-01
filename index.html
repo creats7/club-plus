@@ -1802,7 +1802,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <div class="order-overlay" id="all-tiers-overlay" onclick="closeAllTiersSheet()">
   <div class="order-sheet" onclick="event.stopPropagation()" style="max-height:85vh;display:flex;flex-direction:column">
     <div class="order-sheet-handle"></div>
-    <div class="order-sheet-title">Les 10 paliers</div>
+    <div class="order-sheet-title">Récompenses</div>
     <div id="all-tiers-list" style="flex:1;overflow-y:auto;padding-bottom:1rem"></div>
   </div>
 </div>
@@ -2646,16 +2646,18 @@ async function openAllTiersSheet(){
     const tier=tierBySlot[slot];
     const reached=cycleXPNow>=slot;
     const d=tier?.chest_id?chestDetailMap[tier.chest_id]:null;
-    const col=d?RCOL[d.rarity||"common"]:"rgba(255,255,255,.15)";
+    // Priorité : rareté du palier directement
+    const rarity=tier?.rarity||d?.rarity||"common";
+    const col=d?RCOL[rarity]:"rgba(255,255,255,.15)";
     const rem=slot-cycleXPNow;
     return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-      <div style="width:28px;height:28px;border-radius:50%;background:${reached?"#fff":"rgba(255,255,255,.05)"};border:1.5px solid ${reached?"#fff":"rgba(255,255,255,.12)"};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <div style="width:28px;height:28px;border-radius:50%;background:${reached?"#fff":"rgba(255,255,255,.05)"};border:1.5px solid ${reached?"#fff":d?RCOL[rarity].replace("1)","0.5)"):"rgba(255,255,255,.12)"};display:flex;align-items:center;justify-content:center;flex-shrink:0">
         ${reached
           ?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-          :`<span style="font-size:9px;font-weight:800;font-family:'DM Mono',monospace;color:rgba(255,255,255,.35)">${slot}</span>`}
+          :`<span style="font-size:9px;font-weight:800;font-family:'DM Mono',monospace;color:${d?RCOL[rarity]:"rgba(255,255,255,.35)"}">${slot}</span>`}
       </div>
       ${d
-        ?`<div style="width:38px;height:38px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111">
+        ?`<div style="width:38px;height:38px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;border:1.5px solid ${reached?"rgba(255,255,255,.1)":RCOL[rarity].replace("1)","0.3)")}">
             ${d.cover_url?`<img src="${d.cover_url}" style="width:100%;height:100%;object-fit:cover;opacity:${reached?.5:1}">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">🗃</div>`}
           </div>
           <div style="flex:1;min-width:0">
@@ -4208,7 +4210,7 @@ async function loadClientView(id){
         </div>`;
       });
       html+=`</div>
-      <button onclick="openAllTiersSheet()" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-top:6px">Voir mes paliers 🎯</button>`;
+      <button onclick="openAllTiersSheet()" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-top:6px">Voir les récompenses 🎯</button>`;
     } else if(cycleXP===0&&totalXP>0){
       html=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:#4ade80;margin-top:8px">✓ Cycle complété — nouveau cycle !</div>`;
     } else if(!nextTier){
