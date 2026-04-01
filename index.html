@@ -1042,6 +1042,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <span>Puffs quiz</span>
       </button>
     </div>
+      <button class="sidebar-item" id="nav-streak" onclick="switchTab('streak')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span>Streak quotidien</span>
+      </button>
+    </div>
     <button class="sidebar-logout" onclick="logout()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       <span>Déconnexion</span>
@@ -1436,6 +1441,57 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div id="puffs-list"></div>
   </div>
 
+  <!-- STREAK QUOTIDIEN ADMIN -->
+  <div id="panel-streak" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">Streak quotidien</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-danger" onclick="resetStreakConfig()">↺ Reset</button>
+        <button class="btn btn-sm btn-accent" onclick="saveStreakConfig()">💾 Sauver</button>
+      </div>
+    </div>
+
+    <!-- Config globale -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Configuration globale</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label class="modal-label">Nombre de jours</label>
+          <input class="input" id="streak-total-days" type="number" min="3" max="30" value="10" style="margin-bottom:0" />
+        </div>
+        <div>
+          <label class="modal-label">Après le dernier jour</label>
+          <select class="input" id="streak-after-last" style="margin-bottom:0">
+            <option value="reset">↺ Reset (recommence à J1)</option>
+            <option value="loop">🔁 Boucle (cycle infini)</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px">
+        <div>
+          <div style="font-size:13px;font-weight:600">Streak actif</div>
+          <div style="font-size:11px;color:var(--muted)">Afficher aux clients</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer">
+          <input type="checkbox" id="streak-active" checked style="opacity:0;width:0;height:0" onchange="updateStreakActiveToggle()">
+          <span id="streak-active-track" style="position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:11px;transition:all .2s;border:1px solid rgba(255,255,255,.15)"></span>
+          <span id="streak-active-thumb" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:rgba(255,255,255,.5);border-radius:50%;transition:all .2s"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Preview streak client -->
+    <div style="background:linear-gradient(135deg,rgba(251,146,60,.08),rgba(239,68,68,.06));border:1px solid rgba(251,146,60,.2);border-radius:14px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(251,146,60,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Aperçu client</div>
+      <div id="streak-preview-content" style="font-size:13px;color:var(--muted)">Configure et sauvegarde pour voir l'aperçu.</div>
+    </div>
+
+    <!-- Liste des jours -->
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Récompenses par jour</div>
+    <div id="streak-days-list"></div>
+    <button onclick="addStreakDay()" class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px">+ Ajouter un jour</button>
+  </div>
+
   <!-- PARRAINAGE -->
   <div id="panel-referral" style="display:none">
     <div class="panel-header">
@@ -1614,6 +1670,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- Offre du moment -->
       <div id="cv-offer-banner" style="margin-bottom:14px"></div>
+
+      <!-- STREAK QUOTIDIEN CLIENT -->
+      <div id="cv-streak-section" style="display:none;margin-bottom:12px"></div>
 
       <!-- Commande en cours -->
       <div id="cv-orders" style="display:none;margin-bottom:14px">
@@ -2181,6 +2240,7 @@ const T_SCHEDULED_DROPS=SUPA_URL+"/rest/v1/scheduled_drops";
 const T_CHEST_REWARDS=SUPA_URL+"/rest/v1/chest_rewards";
 const T_CLIENT_CHESTS=SUPA_URL+"/rest/v1/client_chests";
 const T_PUFFS=SUPA_URL+"/rest/v1/puffs";
+const T_STREAK_CONFIG=SUPA_URL+"/rest/v1/streak_config";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -2205,8 +2265,8 @@ function fmtDate(iso){
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards","referral","puffs"];
-const NAV_ITEMS=["home","clients","orders","cases","more","history","stamp_rewards","products","offers","challenges","stats","referral","puffs"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards","referral","puffs","streak"];
+const NAV_ITEMS=["home","clients","orders","cases","more","history","stamp_rewards","products","offers","challenges","stats","referral","puffs","streak"];
 
 function switchTab(tab){
   ALL_PANELS.forEach(t=>{
@@ -2235,6 +2295,7 @@ function switchTab(tab){
   if(tab==="history")loadHistory();
   if(tab==="referral")loadReferral();
   if(tab==="puffs")loadPuffs();
+  if(tab==="streak")loadStreakAdmin();
 }
 
 async function loadHome(){
@@ -3411,7 +3472,7 @@ function switchClientTab(tab){
   if(tab==="shop"&&currentClientId)loadClientShop(currentClientId);
   if(tab==="commandes"&&currentClientId){loadClientProducts();setTimeout(()=>{updateCartFab();updateCartProgressBar();},100);}
   else{const b=document.getElementById("cart-progress-bar");if(b)b.style.display="none";}
-  if(tab==="profil"&&currentClientId)loadClientChallenges(currentClientId);
+  if(tab==="profil"&&currentClientId){loadClientChallenges(currentClientId);loadClientStreak(currentClientId);}
 }
 
 function clientLogout(){
@@ -4323,6 +4384,7 @@ async function loadClientView(id){
   // Chargements annexes
   await loadClientOrders(id);
   loadClientChallenges(id);
+  loadClientStreak(id);
 }
 
 // ── SHOP TOKENS ──
@@ -5678,6 +5740,451 @@ async function init(){
   // Service worker — cache la page pour éviter les déconnexions au refresh
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("sw.js").catch(()=>{});
+  }
+}
+
+
+// ══════════════════════════════════════════════════════
+// ── STREAK QUOTIDIEN ──
+// ══════════════════════════════════════════════════════
+
+let streakConfigCache = null;
+
+const STREAK_REWARD_TYPES = [
+  {value:"case_common",    label:"🗃 Caisse Commune"},
+  {value:"case_rare",      label:"🔵 Caisse Rare"},
+  {value:"case_epic",      label:"🟣 Caisse Épique"},
+  {value:"case_legendary", label:"🟡 Caisse Légendaire"},
+  {value:"discount",       label:"💸 Réduction (%)"},
+  {value:"boost_rare",     label:"⚡ Boost Rare"},
+  {value:"boost_epic",     label:"⚡ Boost Épique"},
+  {value:"boost_jackpot",  label:"🔥 Boost Jackpot"},
+  {value:"custom",         label:"✏️ Personnalisé"},
+];
+
+const STREAK_DAY_ICONS = {
+  case_common:"🗃", case_rare:"🔵", case_epic:"🟣", case_legendary:"🌟",
+  discount:"💸", boost_rare:"⚡", boost_epic:"⚡", boost_jackpot:"🔥", custom:"🎁"
+};
+
+const STREAK_DAY_COLORS = {
+  case_common:"rgba(180,180,180,1)", case_rare:"rgba(75,145,255,1)",
+  case_epic:"rgba(170,80,255,1)", case_legendary:"rgba(255,185,0,1)",
+  discount:"rgba(74,222,128,1)", boost_rare:"rgba(75,145,255,1)",
+  boost_epic:"rgba(170,80,255,1)", boost_jackpot:"rgba(255,100,50,1)", custom:"rgba(255,255,255,.7)"
+};
+
+// ── ADMIN : Charger la config streak ──
+async function loadStreakAdmin() {
+  const data = await dbGet(T_STREAK_CONFIG + "?limit=1");
+  const cfg = data && data[0] ? data[0] : null;
+  streakConfigCache = cfg;
+
+  if (cfg) {
+    document.getElementById("streak-total-days").value = cfg.total_days || 10;
+    document.getElementById("streak-after-last").value = cfg.after_last || "reset";
+    const activeChk = document.getElementById("streak-active");
+    if (activeChk) { activeChk.checked = cfg.active !== false; updateStreakActiveToggle(); }
+    renderStreakDaysList(cfg.days || []);
+    renderStreakPreview(cfg);
+  } else {
+    // Créer config par défaut
+    const defaultDays = Array.from({length:10}, (_,i) => ({
+      day: i+1,
+      rewardType: i===9 ? "case_legendary" : i===4 ? "case_epic" : i%2===0 ? "case_rare" : "case_common",
+      rewardValue: i===9 ? "Eclipse" : null,
+      label: i===9 ? "Jackpot final 🌟" : i===4 ? "Mi-chemin 🟣" : "Jour "+(i+1),
+      isSpecial: i===4 || i===9
+    }));
+    renderStreakDaysList(defaultDays);
+  }
+}
+
+function updateStreakActiveToggle() {
+  const chk = document.getElementById("streak-active");
+  const track = document.getElementById("streak-active-track");
+  const thumb = document.getElementById("streak-active-thumb");
+  if(!chk||!track||!thumb) return;
+  const on = chk.checked;
+  track.style.background = on ? "rgba(251,146,60,.4)" : "rgba(255,255,255,.1)";
+  track.style.borderColor = on ? "rgba(251,146,60,.6)" : "rgba(255,255,255,.15)";
+  thumb.style.left = on ? "20px" : "2px";
+  thumb.style.background = on ? "#fb923c" : "rgba(255,255,255,.5)";
+}
+
+function renderStreakDaysList(days) {
+  const list = document.getElementById("streak-days-list");
+  if (!list) return;
+  const typeOpts = STREAK_REWARD_TYPES.map(t => `<option value="${t.value}">${t.label}</option>`).join("");
+  list.innerHTML = days.map((d, i) => {
+    const col = STREAK_DAY_COLORS[d.rewardType] || "rgba(255,255,255,.4)";
+    const selectedOpts = STREAK_REWARD_TYPES.map(t =>
+      `<option value="${t.value}" ${t.value === d.rewardType ? "selected" : ""}>${t.label}</option>`
+    ).join("");
+    return `<div class="streak-day-row" data-index="${i}" style="
+      background:var(--surface);border:1px solid ${d.isSpecial ? col.replace("1)","0.3)") : "var(--border)"};
+      border-radius:12px;padding:12px 14px;margin-bottom:8px;
+      ${d.isSpecial ? "box-shadow:0 0 0 1px "+col.replace("1)","0.1)")+";" : ""}
+    ">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:32px;height:32px;border-radius:9px;background:${col.replace("1)","0.12)")};border:1px solid ${col.replace("1)","0.3)")};display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${STREAK_DAY_ICONS[d.rewardType]||"🎁"}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:${col}">Jour ${d.day}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${d.label||""}</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button onclick="toggleStreakSpecial(${i})" class="btn btn-sm" style="color:${d.isSpecial?"#fb923c":"var(--muted)"}">★</button>
+          <button onclick="removeStreakDay(${i})" class="btn btn-sm btn-danger">✕</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div>
+          <label class="modal-label" style="margin-bottom:3px">Type</label>
+          <select class="input" style="margin-bottom:0;font-size:11px;padding:5px" onchange="updateStreakDay(${i},'rewardType',this.value)">${selectedOpts}</select>
+        </div>
+        <div>
+          <label class="modal-label" style="margin-bottom:3px">Valeur</label>
+          <input class="input" style="margin-bottom:0;font-size:11px;padding:5px" placeholder="ex: -10%, ID caisse..." value="${d.rewardValue||""}" onchange="updateStreakDay(${i},'rewardValue',this.value)" />
+        </div>
+        <div>
+          <label class="modal-label" style="margin-bottom:3px">Label</label>
+          <input class="input" style="margin-bottom:0;font-size:11px;padding:5px" placeholder="Texte affiché" value="${d.label||""}" onchange="updateStreakDay(${i},'label',this.value)" />
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function getStreakDaysFromDOM() {
+  const rows = document.querySelectorAll(".streak-day-row");
+  const days = [];
+  rows.forEach((row, i) => {
+    const selects = row.querySelectorAll("select");
+    const inputs = row.querySelectorAll("input[placeholder]");
+    days.push({
+      day: i + 1,
+      rewardType: selects[0]?.value || "case_common",
+      rewardValue: inputs[0]?.value || null,
+      label: inputs[1]?.value || ("Jour " + (i+1)),
+      isSpecial: row.dataset.special === "true"
+    });
+  });
+  return days;
+}
+
+function updateStreakDay(index, field, value) {
+  const rows = document.querySelectorAll(".streak-day-row");
+  if (rows[index]) {
+    if (field === "rewardType") {
+      // Re-render juste cette row avec la nouvelle couleur
+      const days = getStreakDaysFromDOM();
+      days[index][field] = value;
+      renderStreakDaysList(days);
+    }
+  }
+}
+
+function toggleStreakSpecial(index) {
+  const rows = document.querySelectorAll(".streak-day-row");
+  const row = rows[index];
+  if (!row) return;
+  const isNow = row.dataset.special === "true";
+  row.dataset.special = isNow ? "false" : "true";
+  const days = getStreakDaysFromDOM();
+  days[index].isSpecial = !isNow;
+  renderStreakDaysList(days);
+}
+
+function removeStreakDay(index) {
+  let days = getStreakDaysFromDOM();
+  days.splice(index, 1);
+  days = days.map((d, i) => ({...d, day: i+1}));
+  renderStreakDaysList(days);
+}
+
+function addStreakDay() {
+  const days = getStreakDaysFromDOM();
+  days.push({ day: days.length+1, rewardType: "case_common", rewardValue: null, label: "Jour "+(days.length+1), isSpecial: false });
+  renderStreakDaysList(days);
+}
+
+async function saveStreakConfig() {
+  const days = getStreakDaysFromDOM();
+  const total_days = parseInt(document.getElementById("streak-total-days")?.value) || 10;
+  const after_last = document.getElementById("streak-after-last")?.value || "reset";
+  const active = document.getElementById("streak-active")?.checked !== false;
+
+  const payload = { days, total_days, after_last, active, updated_at: new Date().toISOString() };
+
+  if (streakConfigCache?.id) {
+    await dbPatch(T_STREAK_CONFIG + "?id=eq." + streakConfigCache.id, payload);
+  } else {
+    const res = await dbPost(T_STREAK_CONFIG, payload);
+    if (res && res[0]) streakConfigCache = res[0];
+  }
+  toast("Streak sauvegardé ✓");
+  renderStreakPreview(payload);
+}
+
+async function resetStreakConfig() {
+  if (!confirm("Réinitialiser la config streak aux valeurs par défaut ?")) return;
+  const defaultDays = Array.from({length:10}, (_,i) => ({
+    day: i+1,
+    rewardType: i===9?"case_legendary":i===4?"case_epic":i%2===0?"case_rare":"case_common",
+    rewardValue: null,
+    label: i===9?"Jackpot final 🌟":i===4?"Mi-chemin 🟣":"Jour "+(i+1),
+    isSpecial: i===4||i===9
+  }));
+  document.getElementById("streak-total-days").value = 10;
+  document.getElementById("streak-after-last").value = "reset";
+  renderStreakDaysList(defaultDays);
+  toast("Config réinitialisée — n'oublie pas de sauvegarder");
+}
+
+function renderStreakPreview(cfg) {
+  const preview = document.getElementById("streak-preview-content");
+  if (!preview) return;
+  const days = cfg.days || [];
+  if (!days.length) { preview.innerHTML = '<span style="color:var(--muted)">Aucun jour configuré</span>'; return; }
+  const dots = days.slice(0,10).map((d,i) => {
+    const col = STREAK_DAY_COLORS[d.rewardType] || "rgba(255,255,255,.4)";
+    return `<div title="J${d.day}: ${d.label}" style="
+      width:${d.isSpecial?"28px":"22px"};height:${d.isSpecial?"28px":"22px"};
+      border-radius:50%;background:${col.replace("1)","0.2)")};
+      border:2px solid ${col.replace("1)","0.6)")};
+      display:flex;align-items:center;justify-content:center;
+      font-size:${d.isSpecial?"11px":"9px"};
+      ${d.isSpecial?"box-shadow:0 0 8px "+col.replace("1)","0.4)")+";":""}
+    ">${d.isSpecial?"⭐":"•"}</div>`;
+  }).join("");
+  preview.innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">
+      <strong style="color:var(--text)">${days.length} jours</strong> · 
+      Après le dernier : <strong style="color:var(--text)">${cfg.after_last==="loop"?"🔁 Boucle":"↺ Reset"}</strong>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${dots}</div>`;
+}
+
+// ── CLIENT : Afficher le streak ──
+async function loadClientStreak(clientId) {
+  const section = document.getElementById("cv-streak-section");
+  if (!section) return;
+
+  const [cfgData, clientData] = await Promise.all([
+    dbGet(T_STREAK_CONFIG + "?active=eq.true&limit=1"),
+    dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_count,streak_last_claim&limit=1")
+  ]);
+
+  const cfg = cfgData && cfgData[0];
+  if (!cfg || !cfg.days || !cfg.days.length) { section.style.display="none"; return; }
+
+  const client = clientData && clientData[0];
+  const streakCount = client?.streak_count || 0;
+  const lastClaim = client?.streak_last_claim ? new Date(client.streak_last_claim) : null;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+
+  // Calculer l'état
+  let streakBroken = false;
+  if (lastClaim) {
+    const last = new Date(lastClaim); last.setHours(0,0,0,0);
+    if (last < yesterday) streakBroken = true;
+  }
+
+  const effectiveStreak = streakBroken ? 0 : streakCount;
+  const totalDays = cfg.total_days || cfg.days.length;
+  const dayIndex = effectiveStreak % totalDays;
+  const currentDay = cfg.days[dayIndex] || cfg.days[0];
+
+  const alreadyClaimed = lastClaim && new Date(lastClaim).setHours(0,0,0,0) === today.getTime();
+  const canClaim = !alreadyClaimed;
+
+  const col = STREAK_DAY_COLORS[currentDay?.rewardType] || "rgba(255,255,255,.7)";
+  const icon = STREAK_DAY_ICONS[currentDay?.rewardType] || "🎁";
+  const remaining = totalDays - dayIndex - 1;
+
+  const dots = Array.from({length:totalDays}, (_,i) => {
+    const d = cfg.days[i] || {};
+    const dc = STREAK_DAY_COLORS[d.rewardType] || "rgba(255,255,255,.3)";
+    const done = i < dayIndex || (i === dayIndex && alreadyClaimed);
+    const current = i === dayIndex && !alreadyClaimed;
+    return `<div style="
+      flex:1;height:4px;border-radius:2px;
+      background:${done?"rgba(251,146,60,.8)":current?"rgba(251,146,60,.4)":"rgba(255,255,255,.08)"};
+      ${current?"box-shadow:0 0 6px rgba(251,146,60,.5);":""}
+      transition:background .3s;
+    "></div>`;
+  }).join("");
+
+  section.style.display = "block";
+  section.innerHTML = `
+    <div style="
+      background:linear-gradient(135deg,rgba(251,146,60,.1) 0%,rgba(239,68,68,.07) 100%);
+      border:1px solid rgba(251,146,60,.25);border-radius:18px;padding:16px;
+      position:relative;overflow:hidden;
+    ">
+      <div style="position:absolute;top:-30px;right:-20px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(251,146,60,.15),transparent 70%);pointer-events:none"></div>
+
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:20px">🔥</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em">Streak quotidien</div>
+            <div style="font-size:10px;color:rgba(251,146,60,.7);font-family:'DM Mono',monospace;margin-top:1px">
+              ${streakBroken && effectiveStreak===0 && streakCount>0
+                ? "Streak perdu — recommence !"
+                : effectiveStreak>0
+                  ? `🔥 ${effectiveStreak} jour${effectiveStreak>1?"s":""} d'affilée`
+                  : "Commence ton streak aujourd'hui"}
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:800;font-family:'DM Mono',monospace;color:#fff">J${dayIndex+1}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace">/ ${totalDays}</div>
+        </div>
+      </div>
+
+      <!-- Barre de progression -->
+      <div style="display:flex;gap:3px;margin-bottom:14px">${dots}</div>
+
+      <!-- Récompense du jour -->
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+        <div style="width:40px;height:40px;border-radius:11px;background:${col.replace("1)","0.15)")};border:1px solid ${col.replace("1)","0.3)")};display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${icon}</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:${col}">${currentDay?.label || ("Jour "+(dayIndex+1))}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace;margin-top:2px">
+            ${getStreakRewardDescription(currentDay)}
+          </div>
+        </div>
+        ${alreadyClaimed ? `<div style="font-size:11px;font-weight:700;color:rgba(74,222,128,1);font-family:'DM Mono',monospace">✓ Récupéré</div>` : ""}
+      </div>
+
+      ${remaining > 0 && !alreadyClaimed ? `<div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;text-align:center;margin-bottom:10px">Plus que <strong style="color:rgba(251,146,60,.8)">${remaining}</strong> jour${remaining>1?"s":""} avant la récompense finale</div>` : ""}
+
+      ${canClaim
+        ? `<button onclick="claimStreakReward('${clientId}')" style="
+            width:100%;padding:13px;border-radius:13px;
+            background:linear-gradient(135deg,#fb923c,#ef4444);
+            border:none;color:#fff;font-size:14px;font-weight:800;
+            cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;
+            transition:all .2s;box-shadow:0 4px 20px rgba(251,146,60,.35);
+            -webkit-tap-highlight-color:transparent;
+          " onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'"
+             onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+            Récupérer ma récompense 🎁
+          </button>`
+        : `<div style="text-align:center;font-size:12px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;padding:8px 0">Reviens demain pour continuer ton streak ⏳</div>`}
+    </div>`;
+}
+
+function getStreakRewardDescription(day) {
+  if (!day) return "Récompense mystère";
+  switch(day.rewardType) {
+    case "case_common":    return "Caisse commune à ouvrir";
+    case "case_rare":      return "Caisse rare à ouvrir 🔵";
+    case "case_epic":      return "Caisse épique à ouvrir 🟣";
+    case "case_legendary": return "Caisse légendaire à ouvrir 🌟";
+    case "discount":       return `Réduction de ${day.rewardValue||"?"}`;
+    case "boost_rare":     return "Boost rare activé ⚡";
+    case "boost_epic":     return "Boost épique activé ⚡";
+    case "boost_jackpot":  return "Boost jackpot activé 🔥";
+    case "custom":         return day.rewardValue || "Récompense spéciale";
+    default:               return day.label || "Récompense";
+  }
+}
+
+async function claimStreakReward(clientId) {
+  const btn = document.querySelector("[onclick*='claimStreakReward']");
+  if (btn) btn.disabled = true;
+
+  const [cfgData, clientData] = await Promise.all([
+    dbGet(T_STREAK_CONFIG + "?active=eq.true&limit=1"),
+    dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_count,streak_last_claim&limit=1")
+  ]);
+
+  const cfg = cfgData && cfgData[0];
+  const client = clientData && clientData[0];
+  if (!cfg || !client) { toast("Erreur — réessaie"); return; }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+  const lastClaim = client.streak_last_claim ? new Date(client.streak_last_claim) : null;
+
+  // Vérifier déjà récupéré aujourd'hui
+  if (lastClaim && new Date(lastClaim).setHours(0,0,0,0) === today.getTime()) {
+    toast("Déjà récupéré aujourd'hui !");
+    return;
+  }
+
+  // Streak cassé ?
+  let streakCount = client.streak_count || 0;
+  if (lastClaim) {
+    const last = new Date(lastClaim); last.setHours(0,0,0,0);
+    if (last < yesterday) streakCount = 0; // reset
+  }
+
+  const totalDays = cfg.total_days || cfg.days.length;
+  const dayIndex = streakCount % totalDays;
+  const currentDay = cfg.days[dayIndex];
+  if (!currentDay) { toast("Erreur config streak"); return; }
+
+  // Appliquer la récompense
+  await handleStreakReward(currentDay, clientId);
+
+  // Incrémenter streak
+  const newStreak = streakCount + 1;
+  const isLast = (newStreak % totalDays === 0);
+
+  let finalStreak = newStreak;
+  if (isLast) {
+    finalStreak = cfg.after_last === "loop" ? newStreak : 0;
+    toast(`🌟 Streak final atteint ! Récompense spéciale débloquée !`, 4000);
+  } else {
+    toast(`🔥 Jour ${dayIndex+1} récupéré — ${currentDay.label} !`, 3000);
+  }
+
+  await dbPatch(T_CLIENTS + "?id=eq." + clientId, {
+    streak_count: finalStreak,
+    streak_last_claim: today.toISOString().split("T")[0]
+  });
+
+  // Refresh
+  window._currentClientData.streak_count = finalStreak;
+  window._currentClientData.streak_last_claim = today.toISOString().split("T")[0];
+  await loadClientStreak(clientId);
+}
+
+async function handleStreakReward(day, clientId) {
+  const type = day.rewardType;
+  const value = day.rewardValue;
+
+  if (type === "case_common" || type === "case_rare" || type === "case_epic" || type === "case_legendary") {
+    // Chercher une caisse du bon type (basé sur la valeur = chest_id ou chercher par rareté)
+    let chestId = null;
+    if (value && value.length > 10) {
+      // value est un chest_id direct
+      chestId = value;
+    } else {
+      // Chercher une caisse active — prendre la première correspondant à la rareté dans stamp_rewards
+      const rewards = await getStampRewards();
+      const rarityMap = { case_common:"common", case_rare:"rare", case_epic:"epic", case_legendary:"legendary" };
+      const targetRarity = rarityMap[type];
+      const tier = rewards.find(r => r.rarity === targetRarity && r.chest_id);
+      if (tier) chestId = tier.chest_id;
+    }
+    if (chestId) {
+      await dbPost(T_CLIENT_CHESTS, { client_id: clientId, chest_id: chestId, opened: false });
+    }
+  } else if (type === "discount") {
+    toast(`💸 Réduction ${value} offerte — montre ce message en boutique`, 5000);
+  } else if (type.startsWith("boost_")) {
+    toast(`⚡ Boost ${value||type} activé !`, 4000);
+  } else if (type === "custom") {
+    toast(`🎁 ${value || "Récompense spéciale"} — montre ce message en boutique`, 5000);
   }
 }
 
