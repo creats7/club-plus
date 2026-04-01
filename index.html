@@ -5750,6 +5750,7 @@ async function init(){
 let streakConfigCache = null;
 
 const STREAK_REWARD_TYPES = [
+  {value:"none",           label:"— Rien (palier intermédiaire)"},
   {value:"case_common",    label:"🗃 Caisse Commune"},
   {value:"case_rare",      label:"🔵 Caisse Rare"},
   {value:"case_epic",      label:"🟣 Caisse Épique"},
@@ -5762,11 +5763,12 @@ const STREAK_REWARD_TYPES = [
 ];
 
 const STREAK_DAY_ICONS = {
-  case_common:"🗃", case_rare:"🔵", case_epic:"🟣", case_legendary:"🌟",
+  none:"·", case_common:"🗃", case_rare:"🔵", case_epic:"🟣", case_legendary:"🌟",
   discount:"💸", boost_rare:"⚡", boost_epic:"⚡", boost_jackpot:"🔥", custom:"🎁"
 };
 
 const STREAK_DAY_COLORS = {
+  none:"rgba(255,255,255,.2)",
   case_common:"rgba(180,180,180,1)", case_rare:"rgba(75,145,255,1)",
   case_epic:"rgba(170,80,255,1)", case_legendary:"rgba(255,185,0,1)",
   discount:"rgba(74,222,128,1)", boost_rare:"rgba(75,145,255,1)",
@@ -6064,24 +6066,45 @@ async function loadClientStreak(clientId) {
       ${remaining > 0 && !alreadyClaimed ? `<div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;text-align:center;margin-bottom:10px">Plus que <strong style="color:rgba(251,146,60,.8)">${remaining}</strong> jour${remaining>1?"s":""} avant la récompense finale</div>` : ""}
 
       ${canClaim
-        ? `<button onclick="claimStreakReward('${clientId}')" style="
-            width:100%;padding:13px;border-radius:13px;
-            background:linear-gradient(135deg,#fb923c,#ef4444);
-            border:none;color:#fff;font-size:14px;font-weight:800;
-            cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;
-            transition:all .2s;box-shadow:0 4px 20px rgba(251,146,60,.35);
-            -webkit-tap-highlight-color:transparent;
-          " onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'"
-             onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
-            Récupérer ma récompense 🎁
-          </button>`
-        : `<div style="text-align:center;font-size:12px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;padding:8px 0">Reviens demain pour continuer ton streak ⏳</div>`}
+        ? currentDay?.rewardType === "none"
+          ? `<button onclick="claimStreakReward('${clientId}')" style="
+              width:100%;padding:13px;border-radius:13px;
+              background:linear-gradient(135deg,#fb923c,#ef4444);
+              border:none;color:#fff;font-size:14px;font-weight:800;
+              cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;
+              transition:all .2s;box-shadow:0 4px 20px rgba(251,146,60,.35);
+              -webkit-tap-highlight-color:transparent;
+            " onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'"
+               onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+              ${currentDay?.label || "Continue ton streak 🔥"}
+            </button>`
+          : `<button onclick="claimStreakReward('${clientId}')" style="
+              width:100%;padding:13px;border-radius:13px;
+              background:linear-gradient(135deg,#fb923c,#ef4444);
+              border:none;color:#fff;font-size:14px;font-weight:800;
+              cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:-.02em;
+              transition:all .2s;box-shadow:0 4px 20px rgba(251,146,60,.35);
+              -webkit-tap-highlight-color:transparent;
+            " onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'"
+               onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+              Récupérer ma récompense 🎁
+            </button>`
+        : alreadyClaimed
+          ? `<button disabled style="
+              width:100%;padding:13px;border-radius:13px;
+              background:rgba(255,255,255,.06);
+              border:1px solid rgba(255,255,255,.1);
+              color:rgba(255,255,255,.3);font-size:14px;font-weight:700;
+              cursor:not-allowed;font-family:'Inter',sans-serif;letter-spacing:-.02em;
+            ">✓ Validé pour aujourd'hui</button>`
+          : `<div style="text-align:center;font-size:12px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;padding:8px 0">Reviens demain pour continuer ton streak ⏳</div>`}
     </div>`;
 }
 
 function getStreakRewardDescription(day) {
   if (!day) return "Récompense mystère";
   switch(day.rewardType) {
+    case "none":           return day.label || "Palier intermédiaire — continue !";
     case "case_common":    return "Caisse commune à ouvrir";
     case "case_rare":      return "Caisse rare à ouvrir 🔵";
     case "case_epic":      return "Caisse épique à ouvrir 🟣";
@@ -6164,6 +6187,10 @@ async function handleStreakReward(day, clientId) {
   const type = day.rewardType;
   const value = day.rewardValue;
 
+  if (type === "none") {
+    // Pas de récompense — juste valider le jour pour maintenir le streak
+    return;
+  }
   if (type === "case_common" || type === "case_rare" || type === "case_epic" || type === "case_legendary") {
     // Chercher une caisse du bon type (basé sur la valeur = chest_id ou chercher par rareté)
     let chestId = null;
