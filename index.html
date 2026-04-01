@@ -2217,6 +2217,33 @@ select option{background:#1a1a1a;color:#fff}
   "></div>
 </div>
 
+<!-- MODAL STREAK CLIENT ADMIN -->
+<div class="modal-overlay" id="streak-modal">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-title">🔥 Streak client</div>
+    <input type="hidden" id="sm-client-id" />
+    <div id="sm-client-name" style="font-size:13px;font-weight:600;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <label class="modal-label">Jours de streak</label>
+        <input class="input" id="sm-streak-count" type="number" min="0" max="999" style="margin-bottom:0" />
+      </div>
+      <div>
+        <label class="modal-label">Dernier claim (YYYY-MM-DD)</label>
+        <input class="input" id="sm-last-claim" placeholder="ex: 2025-01-15" style="margin-bottom:0" />
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="btn btn-sm btn-danger" style="flex:1;justify-content:center" onclick="resetClientStreak()">↺ Reset streak</button>
+      <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="setLastClaimToday()">📅 Claim = aujourd'hui</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" style="flex:1;justify-content:center" onclick="saveStreakModal()">Enregistrer 💾</button>
+      <button class="btn" onclick="closeStreakModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -3263,11 +3290,12 @@ function renderList(cl){
       <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:10px">
         <div style="height:100%;width:${pct}%;background:rgba(255,255,255,.5);border-radius:2px;transition:width .4s"></div>
       </div>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;margin-bottom:4px">
         <button class="btn btn-sm btn-accent" style="flex:1;justify-content:center" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},1)">+ Achat</button>
         <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
         <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
-      </div>`;
+      </div>
+      <button class="btn btn-sm" style="width:100%;justify-content:center;color:${(c.streak_count||0)>0?'#fb923c':'var(--muted)'};border-color:${(c.streak_count||0)>0?'rgba(251,146,60,.3)':'var(--border)'}" onclick="openStreakModal('${c.id}','${c.name.replace(/'/g,"\\'")}',${c.streak_count||0},'${c.streak_last_claim||''}')">🔥 Streak : ${c.streak_count||0} jour${(c.streak_count||0)>1?'s':''}${c.streak_last_claim?' · '+c.streak_last_claim:' · jamais'}</button>`;
     list.appendChild(div);
   });
 }
@@ -6172,15 +6200,28 @@ async function claimStreakReward(clientId) {
     toast(`🔥 Jour ${dayIndex+1} récupéré — ${currentDay.label} !`, 3000);
   }
 
+  const claimDateStr = new Date().toLocaleDateString("fr-CA"); // YYYY-MM-DD heure locale
   await dbPatch(T_CLIENTS + "?id=eq." + clientId, {
     streak_count: finalStreak,
-    streak_last_claim: today.toISOString().split("T")[0]
+    streak_last_claim: claimDateStr
   });
 
-  // Refresh
-  window._currentClientData.streak_count = finalStreak;
-  window._currentClientData.streak_last_claim = today.toISOString().split("T")[0];
-  await loadClientStreak(clientId);
+  // Refresh immédiat du cache local AVANT de recharger l'UI
+  if(window._currentClientData) {
+    window._currentClientData.streak_count = finalStreak;
+    window._currentClientData.streak_last_claim = claimDateStr;
+  }
+  if(btn) {
+    // Griser immédiatement le bouton sans attendre le re-render
+    btn.disabled = true;
+    btn.style.background = "rgba(255,255,255,.06)";
+    btn.style.border = "1px solid rgba(255,255,255,.1)";
+    btn.style.color = "rgba(255,255,255,.3)";
+    btn.style.boxShadow = "none";
+    btn.style.cursor = "not-allowed";
+    btn.textContent = "✓ Validé pour aujourd'hui";
+  }
+  setTimeout(() => loadClientStreak(clientId), 600);
 }
 
 async function handleStreakReward(day, clientId) {
@@ -6217,6 +6258,41 @@ async function handleStreakReward(day, clientId) {
   }
 }
 
+
+// ── MODAL STREAK ADMIN ──
+function openStreakModal(clientId, name, streakCount, lastClaim) {
+  document.getElementById("sm-client-id").value = clientId;
+  document.getElementById("sm-client-name").textContent = name;
+  document.getElementById("sm-streak-count").value = streakCount || 0;
+  document.getElementById("sm-last-claim").value = lastClaim || "";
+  document.getElementById("streak-modal").classList.add("open");
+}
+
+function closeStreakModal() {
+  document.getElementById("streak-modal").classList.remove("open");
+}
+
+function resetClientStreak() {
+  document.getElementById("sm-streak-count").value = 0;
+  document.getElementById("sm-last-claim").value = "";
+}
+
+function setLastClaimToday() {
+  document.getElementById("sm-last-claim").value = new Date().toLocaleDateString("fr-CA");
+}
+
+async function saveStreakModal() {
+  const clientId = document.getElementById("sm-client-id").value;
+  const streakCount = Math.max(0, parseInt(document.getElementById("sm-streak-count").value) || 0);
+  const lastClaim = document.getElementById("sm-last-claim").value.trim() || null;
+  await dbPatch(T_CLIENTS + "?id=eq." + clientId, {
+    streak_count: streakCount,
+    streak_last_claim: lastClaim
+  });
+  closeStreakModal();
+  toast("Streak mis à jour ✓");
+  await loadAll();
+}
 </script>
 </body>
 </html>
