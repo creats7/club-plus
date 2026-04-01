@@ -1613,78 +1613,120 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="cv-section" id="cvs-profil">
 
       <!-- Offre du moment -->
-      <div id="cv-offer-banner" style="margin-bottom:12px"></div>
-
-      <!-- QUIZ BOUTON -->
-      <button onclick="openQuiz()" class="btn" style="width:100%;gap:12px;text-align:left;margin-bottom:14px">
-        <div style="width:40px;height:40px;border-radius:10px;background:rgba(167,139,250,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:#fff">Trouve ta puff idéale</div>
-          <div style="font-size:11px;color:rgba(167,139,250,.8);font-family:'DM Mono',monospace;margin-top:2px">Quiz · 4 questions · Top 3 résultats</div>
-        </div>
-        <svg style="margin-left:auto;flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
+      <div id="cv-offer-banner" style="margin-bottom:14px"></div>
 
       <!-- Commande en cours -->
-      <div id="cv-orders" style="display:none;margin-bottom:12px">
+      <div id="cv-orders" style="display:none;margin-bottom:14px">
         <div class="cv-section-header">Commande en cours</div>
         <div id="cv-orders-list"></div>
       </div>
 
-      <!-- Code parrain -->
-      <div id="cv-referral-row" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;margin-bottom:12px">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">Ton code parrain</div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:18px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:.12em;color:#fff" id="cv-referral-code">—</div>
-          <button onclick="copyReferralCode()" class="btn btn-sm" id="cv-referral-copy-btn">Copier 📋</button>
+      <!-- QUIZ BOUTON — hero card -->
+      <div onclick="openQuiz()" style="
+        position:relative;overflow:hidden;cursor:pointer;
+        background:linear-gradient(135deg,rgba(167,139,250,.18) 0%,rgba(99,79,220,.12) 50%,rgba(0,0,0,0) 100%);
+        border:1px solid rgba(167,139,250,.3);
+        border-radius:18px;padding:18px 20px;margin-bottom:10px;
+        transition:transform .18s,box-shadow .18s;
+        -webkit-tap-highlight-color:transparent;
+      " onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+        <div style="position:absolute;top:-30px;right:-20px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.25),transparent 70%);pointer-events:none"></div>
+        <div style="position:absolute;bottom:-20px;left:10px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(99,79,220,.15),transparent 70%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1">
+          <div style="width:46px;height:46px;border-radius:13px;background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px">💨</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:3px">Trouve ta puff idéale</div>
+            <div style="font-size:11px;color:rgba(167,139,250,.75);font-family:'DM Mono',monospace;letter-spacing:.03em">5 questions · Résultats personnalisés</div>
+          </div>
+          <div style="width:30px;height:30px;border-radius:50%;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
         </div>
-        <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin-top:6px">Partage ce code — tes amis reçoivent une caisse</div>
+      </div>
+
+      <!-- Grille actions rapides -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+
+        <!-- Code parrain -->
+        <div id="cv-referral-row" style="
+          background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+          border-radius:16px;padding:14px;grid-column:1/-1;
+        ">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:16px">🎁</div>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#fff">Code parrain</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin-top:1px">Tes amis reçoivent une caisse</div>
+              </div>
+            </div>
+            <button onclick="copyReferralCode()" class="btn btn-sm" id="cv-referral-copy-btn" style="flex-shrink:0">Copier</button>
+          </div>
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:.18em;color:#fff" id="cv-referral-code">—</div>
+          </div>
+        </div>
+
+        <!-- Voir récompenses -->
+        <div onclick="openAllTiersSheet()" style="
+          background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+          border-radius:16px;padding:14px;cursor:pointer;
+          transition:transform .15s;-webkit-tap-highlight-color:transparent;
+        " onmousedown="this.style.transform='scale(.97)'" ontouchstart="this.style.transform='scale(.97)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+          <div style="font-size:24px;margin-bottom:8px">🎯</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">Récompenses</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;line-height:1.4">Voir les paliers et caisses</div>
+        </div>
+
+        <!-- Caisses shop -->
+        <div onclick="switchClientTab('shop')" style="
+          background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+          border-radius:16px;padding:14px;cursor:pointer;
+          transition:transform .15s;-webkit-tap-highlight-color:transparent;
+        " onmousedown="this.style.transform='scale(.97)'" ontouchstart="this.style.transform='scale(.97)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+          <div style="font-size:24px;margin-bottom:8px">🗃</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">Caisses</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;line-height:1.4">Voir les caisses dispo</div>
+        </div>
+
       </div>
 
       <!-- Défis actifs -->
-      <div id="cv-defis-section" style="margin-bottom:12px">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Défis</div>
+      <div id="cv-defis-section" style="margin-bottom:10px">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">Défis en cours</div>
         <div id="cv-challenges-list"></div>
         <div id="cv-defis-empty"></div>
       </div>
 
       <!-- Comment ça marche -->
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Comment ça marche</div>
-      <div class="cv-how">
-        <div class="cv-how-item">
-          <div class="cv-how-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          </div>
-          <div class="cv-how-text">
-            <div class="cv-how-title">Achète</div>
-            <div class="cv-how-sub">Chaque puff = +1 sur ta progression</div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;margin-top:4px">Comment ça marche</div>
+      <div style="display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.06);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.08)">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface)">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🛍</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em">Achète une puff</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">Chaque achat = +1 sur ta barre</div>
           </div>
         </div>
-        <div class="cv-how-item">
-          <div class="cv-how-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <div class="cv-how-text">
-            <div class="cv-how-title">Passe des paliers</div>
-            <div class="cv-how-sub">À chaque palier atteint, une caisse se débloque</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface)">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">📈</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em">Passe des paliers</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">Chaque palier débloque une caisse</div>
           </div>
         </div>
-        <div class="cv-how-item">
-          <div class="cv-how-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-          </div>
-          <div class="cv-how-text">
-            <div class="cv-how-title">Ouvre ta caisse</div>
-            <div class="cv-how-sub">Tente ta chance et gagne des lots exclusifs</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface)">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🎁</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em">Ouvre ta caisse</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">Tente ta chance et gagne des lots</div>
           </div>
         </div>
       </div>
 
-      <!-- Changer de compte -->
+      <!-- Déconnexion -->
       <div style="text-align:center;margin-top:20px;margin-bottom:8px">
-        <span onclick="clientLogout()" style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;cursor:pointer;opacity:0.35">Changer de compte</span>
+        <span onclick="clientLogout()" style="font-size:11px;color:rgba(255,255,255,.2);font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.08em">Changer de compte</span>
       </div>
     </div>
 
