@@ -223,6 +223,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .input{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:var(--rs);padding:9px 12px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;margin-bottom:8px;display:block;transition:border-color .15s;font-weight:400}
 .input:focus{border-color:rgba(255,255,255,0.35);box-shadow:0 0 0 2px rgba(255,255,255,0.06)}
 .input::placeholder{color:var(--muted2)}.input[type=date],.input[type=time]{color-scheme:dark}
+select.input,select{color-scheme:dark;color:var(--text);background:rgba(255,255,255,0.05)}
+select option{background:#1a1a1a;color:#fff}
 .modal-label{font-size:11px;color:var(--muted2);margin-bottom:5px;font-family:'DM Mono',monospace;display:block;letter-spacing:.06em;text-transform:uppercase}.modal-field{margin-bottom:12px}
 .search-wrap{position:relative;margin-bottom:1rem}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
@@ -1648,7 +1650,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- Changer de compte -->
       <div style="text-align:center;margin-top:8px">
-        <span onclick="clientLogout()" style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;cursor:pointer;opacity:0.3">Changer de compte</span>
+        <button onclick="clientLogout()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:99px;padding:8px 18px;font-size:11px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.08em;-webkit-tap-highlight-color:transparent">Changer de compte</button>
       </div>
     </div>
 
@@ -1784,7 +1786,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- Déconnexion -->
       <div style="text-align:center;margin-top:20px;margin-bottom:8px">
-        <span onclick="clientLogout()" style="font-size:11px;color:rgba(255,255,255,.2);font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.08em">Changer de compte</span>
+        <button onclick="clientLogout()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:99px;padding:8px 18px;font-size:11px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.08em;-webkit-tap-highlight-color:transparent">Changer de compte</button>
       </div>
     </div>
 
@@ -2331,11 +2333,9 @@ async function loadHome(){
 
   // Quick cards counters
   const todayCount=(orders||[]).filter(o=>{const d=new Date(o.created_at);const n=new Date();return d.toDateString()===n.toDateString();}).length;
-  document.getElementById("qc-clients").textContent=(clients?.length||0)+" inscrits";
-  document.getElementById("qc-orders").textContent=todayCount+" aujourd'hui";
-  document.getElementById("qc-products").textContent=(products?.length||0)+" produits";
-  document.getElementById("qc-challenges").textContent=(challenges?.length||0)+" actifs";
-  document.getElementById("qc-offers").textContent=offers&&offers.length?offers[0].title:"Aucune";
+  const elClients=document.getElementById("qc-clients");if(elClients)elClients.textContent=(clients?.length||0)+" inscrits";
+  const elOrders=document.getElementById("qc-orders");if(elOrders)elOrders.textContent=todayCount+" aujourd'hui";
+  const elOffers=document.getElementById("qc-offers");if(elOffers)elOffers.textContent=offers&&offers.length?offers[0].title:"Aucune";
   const badge=document.getElementById("qc-badge");
   if(badge&&pendingOrders&&pendingOrders.length){badge.textContent=pendingOrders.length;badge.style.display="block";}
 }
