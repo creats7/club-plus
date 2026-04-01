@@ -4163,9 +4163,10 @@ async function loadClientView(id){
       const isNext=nextTier&&slot===nextTier.slot;
       const chestId=tier?.chest_id||null;
       const chDetail=chestId?chestDetailMap[chestId]:null;
-      const rarity=chDetail?.rarity||"common";
+      // Priorité : rareté du palier (stamp_rewards.rarity) > rareté de la caisse
+      const rarity=tier?.rarity||chDetail?.rarity||"common";
       const col=chestId?RARITY_COL[rarity]:"rgba(255,255,255,.6)";
-      const dotClass=reached?"reached":isNext?(chestId?RARITY_DOT_CLASS[rarity]:"next-plain"):"";
+      const dotClass=reached?"reached":isNext?(chestId?RARITY_DOT_CLASS[rarity]:"next-plain"):(chestId?RARITY_DOT_CLASS[rarity]:"");
       const iconOpacity=reached?"0.5":isNext?"1":"0.25";
       const isLast=slot===MAX_STAMPS;
 
@@ -4192,7 +4193,8 @@ async function loadClientView(id){
       html+=`<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">`;
       show.forEach((t,i)=>{
         const d=chestDetailMap[t.chest_id]||{};
-        const col=RARITY_COL[d.rarity||"common"];
+        // Priorité : rareté du palier
+        const col=RARITY_COL[t.rarity||d.rarity||"common"];
         const rem=t.slot-cycleXP;
         const isNext=i===0;
         html+=`<div style="display:flex;align-items:center;gap:10px;background:${isNext?col.replace("1)","0.08)"):"rgba(255,255,255,.03)"};border:1px solid ${isNext?col.replace("1)","0.18)"):"rgba(255,255,255,.07)"};border-radius:10px;padding:8px 11px">
