@@ -5979,25 +5979,24 @@ async function loadClientStreak(clientId) {
 
   const client = clientData && clientData[0];
   const streakCount = client?.streak_count || 0;
-  const lastClaim = client?.streak_last_claim ? new Date(client.streak_last_claim) : null;
+  // lastClaim remplacé par lastClaimStr ci-dessous
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+  // Travailler en strings YYYY-MM-DD pour éviter les bugs de timezone mobile
+  const todayStr = new Date().toLocaleDateString("fr-CA");
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yesterdayStr = yesterday.toLocaleDateString("fr-CA");
+  const lastClaimStr = client?.streak_last_claim || null;
 
   // Calculer l'état
   let streakBroken = false;
-  if (lastClaim) {
-    const last = new Date(lastClaim); last.setHours(0,0,0,0);
-    if (last < yesterday) streakBroken = true;
-  }
+  if (lastClaimStr && lastClaimStr < yesterdayStr) streakBroken = true;
 
   const effectiveStreak = streakBroken ? 0 : streakCount;
   const totalDays = cfg.total_days || cfg.days.length;
   const dayIndex = effectiveStreak % totalDays;
   const currentDay = cfg.days[dayIndex] || cfg.days[0];
 
-  const alreadyClaimed = lastClaim && new Date(lastClaim).setHours(0,0,0,0) === today.getTime();
+  const alreadyClaimed = lastClaimStr === todayStr;
   const canClaim = !alreadyClaimed;
 
   const col = STREAK_DAY_COLORS[currentDay?.rewardType] || "rgba(255,255,255,.7)";
@@ -6100,6 +6099,7 @@ async function claimStreakReward(clientId) {
   const btn = document.querySelector("[onclick*='claimStreakReward']");
   if (btn) btn.disabled = true;
 
+  // Re-fetch depuis la DB pour éviter le cache
   const [cfgData, clientData] = await Promise.all([
     dbGet(T_STREAK_CONFIG + "?active=eq.true&limit=1"),
     dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_count,streak_last_claim&limit=1")
@@ -6107,23 +6107,26 @@ async function claimStreakReward(clientId) {
 
   const cfg = cfgData && cfgData[0];
   const client = clientData && clientData[0];
-  if (!cfg || !client) { toast("Erreur — réessaie"); return; }
+  if (!cfg || !client) { toast("Erreur — réessaie"); if(btn)btn.disabled=false; return; }
 
-  const today = new Date(); today.setHours(0,0,0,0);
-  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
-  const lastClaim = client.streak_last_claim ? new Date(client.streak_last_claim) : null;
+  // Travailler avec des strings YYYY-MM-DD pour éviter les bugs de timezone
+  const todayStr = new Date().toLocaleDateString("fr-CA"); // format YYYY-MM-DD
+  const lastClaimStr = client.streak_last_claim || null; // déjà en YYYY-MM-DD dans Supabase
 
-  // Vérifier déjà récupéré aujourd'hui
-  if (lastClaim && new Date(lastClaim).setHours(0,0,0,0) === today.getTime()) {
-    toast("Déjà récupéré aujourd'hui !");
+  // Vérifier déjà récupéré aujourd'hui — comparaison de strings pure
+  if (lastClaimStr === todayStr) {
+    toast("Déjà récupéré aujourd'hui ! Reviens demain 🔥");
+    if(btn)btn.disabled=false;
     return;
   }
 
-  // Streak cassé ?
+  // Streak cassé ? (lastClaim avant hier)
   let streakCount = client.streak_count || 0;
-  if (lastClaim) {
-    const last = new Date(lastClaim); last.setHours(0,0,0,0);
-    if (last < yesterday) streakCount = 0; // reset
+  if (lastClaimStr) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString("fr-CA");
+    if (lastClaimStr < yesterdayStr) streakCount = 0; // streak cassé
   }
 
   const totalDays = cfg.total_days || cfg.days.length;
