@@ -943,20 +943,40 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div class="reg-wrap">
     <div class="reg-logo">Crts+ · Fidélité</div>
     <div class="reg-title">Bienvenue 👋</div>
-    <div class="reg-sub">Crée ta carte ou accède à la tienne</div>
+    <div class="reg-sub">Prends ta puff. Joue. Gagne.</div>
     <div class="reg-card">
+
+      <!-- ONGLETS -->
+      <div class="reg-tabs">
+        <button class="reg-tab active" id="rtab-login" onclick="switchRegTab('login')">Se connecter</button>
+        <button class="reg-tab" id="rtab-signup" onclick="switchRegTab('signup')">Créer un compte</button>
+      </div>
 
       <!-- LOGIN -->
       <div id="rpanel-login">
         <label class="modal-label">Pseudo</label>
-        <input class="input" id="login-username" placeholder="ex: lucas7" style="font-family:'DM Mono',monospace;letter-spacing:.05em" autocomplete="username" />
+        <input class="input" id="login-username" placeholder="ton pseudo" style="font-family:'DM Mono',monospace;letter-spacing:.05em" autocomplete="username" />
         <label class="modal-label">Mot de passe</label>
         <input class="input" id="login-password" placeholder="••••••••" type="password" autocomplete="current-password" />
         <div class="reg-error" id="login-error"></div>
-        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doLogin()">Accéder à ma carte</button>
+        <button class="btn btn-accent" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">Accéder à ma carte →</button>
       </div>
 
-      
+      <!-- SIGNUP -->
+      <div id="rpanel-signup" style="display:none">
+        <label class="modal-label">Prénom Nom</label>
+        <input class="input" id="signup-name" placeholder="ex: Lucas Martin" autocomplete="name" />
+        <label class="modal-label">Pseudo</label>
+        <input class="input" id="signup-username" placeholder="ex: lucas7" style="font-family:'DM Mono',monospace;letter-spacing:.05em" autocomplete="username" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')" />
+        <label class="modal-label">Mot de passe</label>
+        <input class="input" id="signup-password" placeholder="••••••••" type="password" autocomplete="new-password" />
+        <label class="modal-label">Code parrain <span style="color:rgba(255,255,255,.3);font-weight:400">(optionnel)</span></label>
+        <input class="input" id="signup-referral" placeholder="ex: LUCAS7" style="text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace" oninput="this.value=this.value.toUpperCase()" />
+        <div class="reg-error" id="signup-error"></div>
+        <div class="reg-success" id="signup-success"></div>
+        <button class="btn btn-accent" style="width:100%;justify-content:center;margin-top:4px" onclick="doSignup()">Créer ma carte 🎁</button>
+      </div>
+
     </div>
     <div class="cv-footer" style="margin-top:1.5rem;text-align:center">
       <span onclick="showView('pin')" style="cursor:pointer;opacity:0.3;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.1em;user-select:none">Accès admin</span>
@@ -2226,7 +2246,15 @@ function logout(){
 }
 
 // ── INSCRIPTION / CONNEXION CLIENT ──
-function switchRegTab(tab){}
+function switchRegTab(tab){
+  document.getElementById("rtab-login").classList.toggle("active",tab==="login");
+  document.getElementById("rtab-signup").classList.toggle("active",tab==="signup");
+  document.getElementById("rpanel-login").style.display=tab==="login"?"block":"none";
+  document.getElementById("rpanel-signup").style.display=tab==="signup"?"block":"none";
+  document.getElementById("login-error").textContent="";
+  if(document.getElementById("signup-error"))document.getElementById("signup-error").textContent="";
+  if(document.getElementById("signup-success"))document.getElementById("signup-success").textContent="";
+}
 
 async function doLogin(){
   const username=document.getElementById("login-username").value.trim().toLowerCase();
@@ -2243,7 +2271,63 @@ async function doLogin(){
 
 function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
 
-async function doSignup(){}
+async function doSignup(){
+  const name=document.getElementById("signup-name").value.trim();
+  const username=document.getElementById("signup-username").value.trim().toLowerCase();
+  const password=document.getElementById("signup-password").value;
+  const refInput=document.getElementById("signup-referral").value.trim().toUpperCase();
+  const err=document.getElementById("signup-error");
+  const succ=document.getElementById("signup-success");
+  const btn=document.querySelector("[onclick='doSignup()']");
+  err.textContent="";succ.textContent="";
+  if(!name){err.textContent="Entre ton prénom et nom";return;}
+  if(!username||username.length<3){err.textContent="Pseudo trop court (3 caractères min)";return;}
+  if(!password||password.length<4){err.textContent="Mot de passe trop court (4 caractères min)";return;}
+  if(btn)btn.disabled=true;
+  try{
+    // Vérifier pseudo unique
+    const existing=await dbGet(T_CLIENTS+"?username=eq."+encodeURIComponent(username)+"&limit=1");
+    if(Array.isArray(existing)&&existing.length){err.textContent="Ce pseudo est déjà pris — choisis-en un autre";return;}
+    // Parrain
+    let referredBy=null;
+    if(refInput){
+      const parrain=await dbGet(T_CLIENTS+"?referral_code=eq."+encodeURIComponent(refInput)+"&limit=1");
+      if(!Array.isArray(parrain)||!parrain.length){err.textContent="Code parrain invalide";return;}
+      referredBy=parrain[0].id;
+    }
+    // Code parrain unique
+    let referralCode=genReferralCode(name);
+    const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
+    if(Array.isArray(check)&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
+    // Création du compte
+    const res=await dbPost(T_CLIENTS,{name,username,password,stamps:0,tokens:0,total_stamps:0,referral_code:referralCode,referred_by:referredBy||null});
+    if(!Array.isArray(res)||!res.length){
+      err.textContent="Erreur : "+(res?.message||res?.hint||"inconnue");
+      console.error("Signup error",res);return;
+    }
+    // Caisse parrain/filleul
+    if(referredBy){
+      if(!referralConfig.filleul_chest_id&&!referralConfig.parrain_chest_id){
+        const cfg=await dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain_chest,referral_filleul_chest)");
+        if(Array.isArray(cfg))cfg.forEach(r=>{
+          if(r.key==="referral_parrain_chest")referralConfig.parrain_chest_id=r.image_url||null;
+          if(r.key==="referral_filleul_chest")referralConfig.filleul_chest_id=r.image_url||null;
+        });
+      }
+      if(referralConfig.filleul_chest_id)await dbPost(T_CLIENT_CHESTS,{client_id:res[0].id,chest_id:referralConfig.filleul_chest_id,opened:false});
+      if(referralConfig.parrain_chest_id)await dbPost(T_CLIENT_CHESTS,{client_id:referredBy,chest_id:referralConfig.parrain_chest_id,opened:false});
+      succ.textContent="Compte créé ! Une caisse t'a été offerte 🎁";
+    } else {
+      succ.textContent="Compte créé ! Bienvenue 🎉";
+    }
+    setTimeout(()=>loadClientView(res[0].id),1200);
+  } catch(e){
+    err.textContent="Erreur réseau — vérifie ta connexion";
+    console.error("Signup exception",e);
+  } finally{
+    if(btn)btn.disabled=false;
+  }
+}
 
 // ── PARRAINAGE ADMIN ──
 let referralConfig={parrain_chest_id:null,filleul_chest_id:null};
