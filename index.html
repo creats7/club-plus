@@ -948,8 +948,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <!-- LOGIN -->
       <div id="rpanel-login">
-        <label class="modal-label">Numéro de téléphone</label>
-        <input class="input" id="login-phone" placeholder="06 12 34 56 78" type="tel" />
+        <label class="modal-label">Pseudo</label>
+        <input class="input" id="login-username" placeholder="ex: lucas7" style="font-family:'DM Mono',monospace;letter-spacing:.05em" autocomplete="username" />
+        <label class="modal-label">Mot de passe</label>
+        <input class="input" id="login-password" placeholder="••••••••" type="password" autocomplete="current-password" />
         <div class="reg-error" id="login-error"></div>
         <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doLogin()">Accéder à ma carte</button>
       </div>
@@ -1099,7 +1101,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
     <div class="add-form-wrap" id="add-form">
       <input class="input" id="new-name" placeholder="Prénom Nom" />
-      <input class="input" id="new-phone" placeholder="Téléphone" style="margin-bottom:8px" />
+      <input class="input" id="new-username" placeholder="Pseudo (ex: lucas7)" style="font-family:'DM Mono',monospace" />
+      <input class="input" id="new-password" placeholder="Mot de passe" style="margin-bottom:8px" />
       <div style="display:flex;gap:8px">
         <button class="btn btn-accent" onclick="addClient()">Ajouter ✓</button>
         <button class="btn" onclick="toggleAddForm()">Annuler</button>
@@ -1725,6 +1728,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <input type="hidden" id="edit-id" />
     <div class="modal-field"><label class="modal-label">Nom</label><input class="input" id="edit-name" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Téléphone</label><input class="input" id="edit-phone" style="margin-bottom:0" /></div>
+    <div class="modal-field"><label class="modal-label">Pseudo</label><input class="input" id="edit-username" placeholder="ex: lucas7" style="margin-bottom:0;font-family:'DM Mono',monospace" /></div>
+    <div class="modal-field"><label class="modal-label">Mot de passe</label><input class="input" id="edit-password" placeholder="••••••••" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Achats total</label><input class="input" id="edit-stamps" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Tokens</label><input class="input" id="edit-tokens" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-actions">
@@ -2224,11 +2229,15 @@ function logout(){
 function switchRegTab(tab){}
 
 async function doLogin(){
-  const raw=document.getElementById("login-phone").value.trim();
-  if(!raw){document.getElementById("login-error").textContent="Entre ton numéro";return;}
-  const phone=normalizePhone(raw);
-  const data=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
-  if(!data||!data.length){document.getElementById("login-error").textContent="Numéro introuvable — inscris-toi !";return;}
+  const username=document.getElementById("login-username").value.trim().toLowerCase();
+  const password=document.getElementById("login-password").value;
+  const errEl=document.getElementById("login-error");
+  errEl.textContent="";
+  if(!username){errEl.textContent="Entre ton pseudo";return;}
+  if(!password){errEl.textContent="Entre ton mot de passe";return;}
+  const data=await dbGet(T_CLIENTS+"?username=eq."+encodeURIComponent(username)+"&limit=1");
+  if(!data||!data.length){errEl.textContent="Pseudo introuvable";return;}
+  if(data[0].password!==password){errEl.textContent="Mot de passe incorrect";return;}
   loadClientView(data[0].id);
 }
 
@@ -3033,7 +3042,8 @@ function renderList(cl){
           <div style="min-width:0">
             <div class="client-name-text">${c.name}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
-              ${c.phone?`<div class="client-phone">${c.phone}</div>`:""}
+              ${c.phone?`<div class="client-phone">${c.phone||""}</div>
+              ${c.username?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-top:1px">@${c.username}</div>`:""}`:""}
               
             </div>
             ${c.referral_code?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px">
@@ -3044,7 +3054,7 @@ function renderList(cl){
           </div>
         </div>
         <div class="client-actions">
-          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${totalStamps},${c.tokens||0})">✎</button>
+          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${totalStamps},${c.tokens||0},'${(c.username||"").replace(/'/g,"\\'")}','${(c.password||"").replace(/'/g,"\\'")}'">✎</button>
           <button class="btn btn-sm" onclick="showQR('${c.id}','${c.name.replace(/'/g,"\\'")}')">QR</button>
           <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
@@ -3065,16 +3075,32 @@ function renderList(cl){
 function filterClients(q){renderList(allClients.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||(c.phone||"").toLowerCase().includes(q.toLowerCase())));}
 function toggleAddForm(){const f=document.getElementById("add-form");f.classList.toggle("open");if(f.classList.contains("open"))document.getElementById("new-name").focus();}
 async function addClient(){
-  const name=document.getElementById("new-name").value.trim(),phone=document.getElementById("new-phone").value.trim();if(!name)return;
-  document.getElementById("new-name").value="";document.getElementById("new-phone").value="";
+  const name=document.getElementById("new-name").value.trim();
+  const username=document.getElementById("new-username").value.trim().toLowerCase();
+  const password=document.getElementById("new-password").value.trim();
+  if(!name){toast("Entre un prénom");return;}
+  if(!username){toast("Entre un pseudo");return;}
+  if(!password){toast("Entre un mot de passe");return;}
+  // Vérifier si le pseudo existe déjà
+  const existing=await dbGet(T_CLIENTS+"?username=eq."+encodeURIComponent(username)+"&limit=1");
+  if(existing&&existing.length){toast("Ce pseudo est déjà pris");return;}
+  document.getElementById("new-name").value="";
+  document.getElementById("new-username").value="";
+  document.getElementById("new-password").value="";
   document.getElementById("add-form").classList.remove("open");
-  await dbPost(T_CLIENTS,{name,phone:phone?normalizePhone(phone):null,stamps:0,tokens:0});
+  // Générer un code parrain
+  let referralCode=genReferralCode(name);
+  const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
+  if(Array.isArray(check)&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
+  await dbPost(T_CLIENTS,{name,username,password,stamps:0,tokens:0,total_stamps:0,referral_code:referralCode});
   toast("Client ajouté ✓");await loadAll();
 }
-function openEdit(id,name,phone,totalStamps,tokens){
+function openEdit(id,name,phone,totalStamps,tokens,username,password){
   document.getElementById("edit-id").value=id;document.getElementById("edit-name").value=name;
-  document.getElementById("edit-phone").value=phone;document.getElementById("edit-stamps").value=totalStamps;
+  document.getElementById("edit-phone").value=phone||"";document.getElementById("edit-stamps").value=totalStamps;
   document.getElementById("edit-tokens").value=tokens;
+  const uEl=document.getElementById("edit-username");if(uEl)uEl.value=username||"";
+  const pEl=document.getElementById("edit-password");if(pEl)pEl.value=password||"";
   document.getElementById("edit-modal").classList.add("open");
 }
 function closeEdit(){document.getElementById("edit-modal").classList.remove("open");}
@@ -3083,9 +3109,14 @@ async function saveEdit(){
   const phone=document.getElementById("edit-phone").value.trim();
   const totalStamps=Math.max(0,parseInt(document.getElementById("edit-stamps").value)||0);
   const tokens=Math.max(0,parseInt(document.getElementById("edit-tokens").value)||0);
+  const username=document.getElementById("edit-username")?.value.trim().toLowerCase()||null;
+  const password=document.getElementById("edit-password")?.value.trim()||null;
   if(!name)return;
   const cycleStamps=totalStamps%MAX_STAMPS;
-  await dbPatch(T_CLIENTS+"?id=eq."+id,{name,phone:phone?normalizePhone(phone):null,stamps:cycleStamps,total_stamps:totalStamps,tokens});
+  const patch={name,phone:phone?normalizePhone(phone):null,stamps:cycleStamps,total_stamps:totalStamps,tokens};
+  if(username)patch.username=username;
+  if(password)patch.password=password;
+  await dbPatch(T_CLIENTS+"?id=eq."+id,patch);
   closeEdit();toast("Client modifié ✓");await loadAll();
 }
 // Cache des récompenses par case (chargé au démarrage)
