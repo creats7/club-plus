@@ -1570,9 +1570,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div id="cv-chests-available" style="display:none">
           <div style="height:1px;background:rgba(255,255,255,.06);margin:10px 0"></div>
           <button onclick="openMyChestsSheet()" class="btn" style="width:100%;justify-content:space-between;animation:plusGlow 2s ease-in-out infinite">
-            <div style="display:flex;align-items:center;gap:10px">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 12v4"/><path d="M10 14h4"/></svg>
-              <div style="text-align:left">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 8h14M5 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M9 8V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3"/>
+                <line x1="10" y1="13" x2="14" y2="13"/>
+              </svg>
+              <div style="text-align:center">
                 <div style="font-size:14px;font-weight:800;letter-spacing:-.02em" id="cv-chests-count-label">1 caisse à ouvrir</div>
                 <div style="font-size:10px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;margin-top:1px">Appuie pour ouvrir</div>
               </div>
