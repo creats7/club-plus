@@ -1015,7 +1015,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </button>
       <button class="sidebar-item" id="nav-stamp_rewards" onclick="switchTab('stamp_rewards')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        <span>Paliers XP</span>
+        <span>Palier caisse</span>
       </button>
       <button class="sidebar-item" id="nav-products" onclick="switchTab('products')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -1313,7 +1313,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div class="quick-card green" onclick="switchTab('stamp_rewards')">
         <div class="quick-icon">🃏</div>
-        <div class="quick-label">Paliers XP</div>
+        <div class="quick-label">Palier caisse</div>
         <div class="quick-sub">Tokens par palier</div>
       </div>
       <div class="quick-card token" onclick="switchTab('products')">
@@ -1407,7 +1407,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- STAMP REWARDS ADMIN -->
   <div id="panel-stamp_rewards" style="display:none">
     <div class="panel-header">
-      <div class="panel-title">Paliers — Caisses</div>
+      <div class="panel-title">Palier caisse</div>
     </div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5">À chaque palier atteint, une caisse est débloquée pour le client.</p>
     <div id="stamp-rewards-list"></div>
@@ -2632,14 +2632,11 @@ async function openAllTiersSheet(){
   const chestIds=[...new Set(rewards.filter(r=>r.chest_id).map(r=>r.chest_id))];
   const chestDetailMap={};
   if(chestIds.length){
-    const [chestData,rarityData]=await Promise.all([
-      dbGet(T_CHESTS+"?id=in.("+chestIds.join(",")+")"+"&select=id,name,cover_url"),
-      dbGet(T_CHEST_REWARDS+"?chest_id=in.("+chestIds.join(",")+")"+"&select=chest_id,rarity&order=probability.desc")
-    ]);
+    const chestData=await dbGet(T_CHESTS+"?id=in.("+chestIds.join(",")+")"+"&select=id,name,cover_url");
     (chestData||[]).forEach(ch=>{chestDetailMap[ch.id]={name:ch.name,cover_url:ch.cover_url||null,rarity:"common"};});
-    const seen=new Set();
-    (rarityData||[]).forEach(r=>{if(!seen.has(r.chest_id)){seen.add(r.chest_id);if(chestDetailMap[r.chest_id])chestDetailMap[r.chest_id].rarity=r.rarity||"common";}});
   }
+  // Rareté du palier en priorité
+  rewards.forEach(t=>{if(t.chest_id&&chestDetailMap[t.chest_id]&&t.rarity)chestDetailMap[t.chest_id].rarity=t.rarity;});
 
   const RCOL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(200,200,210,.5)"};
   const tierBySlot={};rewards.forEach(r=>tierBySlot[r.slot]=r);
@@ -3199,7 +3196,7 @@ async function saveEdit(){
 let stampRewardsCache=null;
 async function getStampRewards(){
   if(!stampRewardsCache){
-    const d=await dbGet(T_STAMP_REWARDS+"?order=slot.asc&select=slot,tokens,chest_id");
+    const d=await dbGet(T_STAMP_REWARDS+"?order=slot.asc&select=slot,tokens,chest_id,rarity");
     stampRewardsCache=d||[];
   }
   return stampRewardsCache;
@@ -4123,19 +4120,18 @@ async function loadClientView(id){
   const sortedTiers=rewards.slice().sort((a,b)=>a.slot-b.slot);
   const tierChestIds=[...new Set(sortedTiers.filter(t=>t.chest_id).map(t=>t.chest_id))];
 
-  // Fetch chest details (name + dominant rarity)
+  // Fetch chest details (name + cover) — rarity vient du palier (stamp_rewards.rarity)
   const chestDetailMap={};
   if(tierChestIds.length){
-    const [chestData,rarityData]=await Promise.all([
-      dbGet(T_CHESTS+"?id=in.("+tierChestIds.join(",")+")"+"&select=id,name,cover_url"),
-      dbGet(T_CHEST_REWARDS+"?chest_id=in.("+tierChestIds.join(",")+")"+"&select=chest_id,rarity&order=probability.desc")
-    ]);
+    const chestData=await dbGet(T_CHESTS+"?id=in.("+tierChestIds.join(",")+")"+"&select=id,name,cover_url");
     (chestData||[]).forEach(ch=>{chestDetailMap[ch.id]={name:ch.name,cover_url:ch.cover_url||null,rarity:"common"};});
-    const seen=new Set();
-    (rarityData||[]).forEach(r=>{
-      if(!seen.has(r.chest_id)){seen.add(r.chest_id);if(chestDetailMap[r.chest_id])chestDetailMap[r.chest_id].rarity=r.rarity||"common";}
-    });
   }
+  // Appliquer la rareté définie dans le palier (priorité sur le contenu de la caisse)
+  sortedTiers.forEach(t=>{
+    if(t.chest_id&&chestDetailMap[t.chest_id]&&t.rarity){
+      chestDetailMap[t.chest_id].rarity=t.rarity;
+    }
+  });
 
   const RARITY_COL={legendary:"rgba(255,185,0,1)",epic:"rgba(170,80,255,1)",rare:"rgba(75,145,255,1)",common:"rgba(200,200,210,.5)"};
   const RARITY_DOT_CLASS={legendary:"next-legendary",epic:"next-epic",rare:"next-rare",common:"next-plain"};
@@ -5412,42 +5408,78 @@ async function loadStampRewards(){
   const list=document.getElementById("stamp-rewards-list");
   if(!list)return;
 
-  // Map slot → chest_id
-  const slotMap={};(rewards||[]).forEach(r=>slotMap[r.slot]=r.chest_id||"");
+  // Map slot → {chest_id, rarity}
+  const slotMap={};
+  (rewards||[]).forEach(r=>slotMap[r.slot]={chest_id:r.chest_id||"",rarity:r.rarity||"common"});
+
+  const RARITIES=[
+    {value:"common",  label:"⬜ Commun",   col:"rgba(180,180,180,1)"},
+    {value:"rare",    label:"🔵 Rare",     col:"rgba(75,145,255,1)"},
+    {value:"epic",    label:"🟣 Épique",   col:"rgba(170,80,255,1)"},
+    {value:"legendary",label:"🟡 Légendaire",col:"rgba(255,185,0,1)"},
+  ];
 
   const chestOptions='<option value="">— Aucune —</option>'+(chests||[]).map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join("");
 
-  // Grille fixe slots 1 à 10
   list.innerHTML=Array.from({length:10},(_,i)=>{
     const slot=i+1;
-    const selectedChest=slotMap[slot]||"";
+    const data=slotMap[slot]||{chest_id:"",rarity:"common"};
+    const selectedChest=data.chest_id;
+    const selectedRarity=data.rarity;
     const isPrestige=slot===10;
-    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px">
-      <div style="width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.07);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;flex-shrink:0;color:var(--text)">${slot}${isPrestige?" ⭐":""}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px">Achat #${slot}${isPrestige?" — Prestige":""}</div>
-        <select data-slot="${slot}" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px;outline:none">
+    const rarityCol=RARITIES.find(r=>r.value===selectedRarity)?.col||"rgba(180,180,180,1)";
+    const rarityOpts=RARITIES.map(r=>`<option value="${r.value}"${r.value===selectedRarity?" selected":""}>${r.label}</option>`).join("");
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.07);border:1.5px solid ${rarityCol.replace("1)","0.4)")};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:800;flex-shrink:0;color:${rarityCol}">${slot}${isPrestige?" ⭐":""}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Achat #${slot}${isPrestige?" — Prestige":""}</div>
+          <div style="font-size:10px;color:${rarityCol};font-family:'DM Mono',monospace;margin-top:1px">${RARITIES.find(r=>r.value===selectedRarity)?.label||"⬜ Commun"}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <select data-slot="${slot}" data-type="chest" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:5px;outline:none">
           ${chestOptions.replace(`value="${selectedChest}"`,`value="${selectedChest}" selected`)}
+        </select>
+        <select data-slot="${slot}" data-type="rarity" onchange="updateSlotRarityPreview(this)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid ${rarityCol.replace("1)","0.35)")};border-radius:7px;color:${rarityCol};font-family:'DM Mono',monospace;font-size:11px;padding:5px;outline:none;font-weight:700">
+          ${rarityOpts}
         </select>
       </div>
     </div>`;
   }).join("")+`
-  <div style="margin-top:10px">
-    <button onclick="saveStampRewards()" class="btn btn-accent" style="width:100%;justify-content:center">💾 Enregistrer</button>
+  <div style="margin-top:12px">
+    <button onclick="saveStampRewards()" class="btn btn-accent" style="width:100%;justify-content:center">💾 Enregistrer les paliers</button>
   </div>`;
 }
 
+function updateSlotRarityPreview(sel){
+  const RCOL={common:"rgba(180,180,180,1)",rare:"rgba(75,145,255,1)",epic:"rgba(170,80,255,1)",legendary:"rgba(255,185,0,1)"};
+  const col=RCOL[sel.value]||RCOL.common;
+  sel.style.borderColor=col.replace("1)","0.35)");
+  sel.style.color=col;
+  // Mettre à jour le badge numéro dans la même row
+  const row=sel.closest("div[style*='border-radius:12px']");
+  if(!row)return;
+  const badge=row.querySelector("div[style*='font-weight:800']");
+  if(badge){
+    badge.style.borderColor=col.replace("1)","0.4)");
+    badge.style.color=col;
+  }
+  const label=row.querySelector("div[style*='font-family']>div:last-child");
+}
+
 async function saveStampRewards(){
-  const selects=document.querySelectorAll("#stamp-rewards-list select[data-slot]");
-  for(const sel of selects){
+  const chestSelects=document.querySelectorAll("#stamp-rewards-list select[data-type='chest']");
+  for(const sel of chestSelects){
     const slot=parseInt(sel.dataset.slot);
     const chest_id=sel.value||null;
-    // Upsert — patch si existe, sinon insert
+    const rarSel=document.querySelector(`#stamp-rewards-list select[data-slot="${slot}"][data-type="rarity"]`);
+    const rarity=rarSel?.value||"common";
     const existing=await dbGet(T_STAMP_REWARDS+"?slot=eq."+slot+"&limit=1");
     if(existing&&existing.length){
-      await dbPatch(T_STAMP_REWARDS+"?slot=eq."+slot,{chest_id});
+      await dbPatch(T_STAMP_REWARDS+"?slot=eq."+slot,{chest_id,rarity});
     } else if(chest_id){
-      await dbPost(T_STAMP_REWARDS,{slot,tokens:1,chest_id});
+      await dbPost(T_STAMP_REWARDS,{slot,tokens:1,chest_id,rarity});
     }
   }
   invalidateStampCache();
