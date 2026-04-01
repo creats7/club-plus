@@ -945,10 +945,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="reg-title">Bienvenue 👋</div>
     <div class="reg-sub">Crée ta carte ou accède à la tienne</div>
     <div class="reg-card">
-      <div class="reg-tabs">
-        <button class="reg-tab active" id="rtab-login" onclick="switchRegTab('login')">Se connecter</button>
-        <button class="reg-tab" id="rtab-signup" onclick="switchRegTab('signup')">S'inscrire</button>
-      </div>
 
       <!-- LOGIN -->
       <div id="rpanel-login">
@@ -958,20 +954,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doLogin()">Accéder à ma carte</button>
       </div>
 
-      <!-- SIGNUP -->
-      <div id="rpanel-signup" style="display:none">
-        <label class="modal-label">Prénom Nom</label>
-        <input class="input" id="signup-name" placeholder="ex: Lucas Martin" />
-        <label class="modal-label">Numéro de téléphone</label>
-        <input class="input" id="signup-phone" placeholder="06 12 34 56 78" type="tel" />
-        <label class="modal-label">Snapchat <span style="color:rgba(255,255,255,.3);font-weight:400">(optionnel)</span></label>
-        <input class="input" id="signup-snap" placeholder="ex: crts.exe" style="font-family:'DM Mono',monospace" />
-        <label class="modal-label">Code parrain <span style="color:rgba(255,255,255,.3);font-weight:400">(optionnel)</span></label>
-        <input class="input" id="signup-referral" placeholder="ex: LUCAS7" style="text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace" oninput="this.value=this.value.toUpperCase()" />
-        <div class="reg-error" id="signup-error"></div>
-        <div class="reg-success" id="signup-success"></div>
-        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="doSignup()">Créer ma carte</button>
-      </div>
+      
     </div>
     <div class="cv-footer" style="margin-top:1.5rem;text-align:center">
       <span onclick="showView('pin')" style="cursor:pointer;opacity:0.3;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.1em;user-select:none">Accès admin</span>
@@ -2238,15 +2221,7 @@ function logout(){
 }
 
 // ── INSCRIPTION / CONNEXION CLIENT ──
-function switchRegTab(tab){
-  document.getElementById("rtab-login").classList.toggle("active",tab==="login");
-  document.getElementById("rtab-signup").classList.toggle("active",tab==="signup");
-  document.getElementById("rpanel-login").style.display=tab==="login"?"block":"none";
-  document.getElementById("rpanel-signup").style.display=tab==="signup"?"block":"none";
-  document.getElementById("login-error").textContent="";
-  document.getElementById("signup-error").textContent="";
-  document.getElementById("signup-success").textContent="";
-}
+function switchRegTab(tab){}
 
 async function doLogin(){
   const raw=document.getElementById("login-phone").value.trim();
@@ -2259,65 +2234,7 @@ async function doLogin(){
 
 function normalizePhone(p){return p.replace(/[\s\.\-]/g,"").replace(/^0/,"+33");}
 
-async function doSignup(){
-  const name=document.getElementById("signup-name").value.trim();
-  const raw=document.getElementById("signup-phone").value.trim();
-  const snap=document.getElementById("signup-snap")?.value.trim()||null;
-  const refInput=document.getElementById("signup-referral").value.trim().toUpperCase();
-  const err=document.getElementById("signup-error");
-  const succ=document.getElementById("signup-success");
-  const btn=document.querySelector("[onclick='doSignup()']");
-  err.textContent="";succ.textContent="";
-  if(!name){err.textContent="Entre ton prénom";return;}
-  if(!raw){err.textContent="Entre ton numéro";return;}
-  if(btn){btn.disabled=true;}
-  try{
-    const phone=normalizePhone(raw);
-    const existing=await dbGet(T_CLIENTS+"?phone=eq."+encodeURIComponent(phone)+"&limit=1");
-    if(Array.isArray(existing)&&existing.length){err.textContent="Ce numéro est déjà inscrit — connecte-toi !";return;}
-    let referredBy=null;
-    if(refInput){
-      const parrain=await dbGet(T_CLIENTS+"?referral_code=eq."+encodeURIComponent(refInput)+"&limit=1");
-      if(!Array.isArray(parrain)||!parrain.length){err.textContent="Code parrain invalide";return;}
-      referredBy=parrain[0].id;
-    }
-    let referralCode=genReferralCode(name);
-    const check=await dbGet(T_CLIENTS+"?referral_code=eq."+referralCode+"&limit=1");
-    if(Array.isArray(check)&&check.length)referralCode=referralCode.slice(0,4)+Math.floor(Math.random()*90+10);
-    const res=await dbPost(T_CLIENTS,{name,phone,snap:snap||null,stamps:0,tokens:0,total_stamps:0,referral_code:referralCode,referred_by:referredBy||null});
-    if(!Array.isArray(res)||!res.length){
-      const msg=res?.message||res?.hint||res?.details||"Erreur inconnue";
-      err.textContent="Erreur : "+msg;
-      console.error("Signup error",res);
-      return;
-    }
-    if(referredBy){
-      // Charger la config parrainage si pas encore fait
-      if(!referralConfig.filleul_chest_id&&!referralConfig.parrain_chest_id){
-        const cfg=await dbGet(T_SHOP_CONFIG+"?key=in.(referral_parrain_chest,referral_filleul_chest)");
-        if(Array.isArray(cfg))cfg.forEach(r=>{
-          if(r.key==="referral_parrain_chest")referralConfig.parrain_chest_id=r.image_url||null;
-          if(r.key==="referral_filleul_chest")referralConfig.filleul_chest_id=r.image_url||null;
-        });
-      }
-      if(referralConfig.filleul_chest_id){
-        await dbPost(T_CLIENT_CHESTS,{client_id:res[0].id,chest_id:referralConfig.filleul_chest_id,opened:false});
-      }
-      if(referralConfig.parrain_chest_id){
-        await dbPost(T_CLIENT_CHESTS,{client_id:referredBy,chest_id:referralConfig.parrain_chest_id,opened:false});
-      }
-      succ.textContent="Bienvenue ! Une caisse t'a été offerte 🎁";
-    } else {
-      succ.textContent="Carte créée ! Redirection...";
-    }
-    setTimeout(()=>loadClientView(res[0].id),1200);
-  } catch(e){
-    err.textContent="Erreur réseau — vérifie ta connexion";
-    console.error("Signup exception",e);
-  } finally{
-    if(btn){btn.disabled=false;}
-  }
-}
+async function doSignup(){}
 
 // ── PARRAINAGE ADMIN ──
 let referralConfig={parrain_chest_id:null,filleul_chest_id:null};
