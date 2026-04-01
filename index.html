@@ -6023,11 +6023,16 @@ async function loadClientStreak(clientId) {
 
   const effectiveStreak = streakBroken ? 0 : streakCount;
   const totalDays = cfg.total_days || cfg.days.length;
-  const dayIndex = effectiveStreak % totalDays;
-  const currentDay = cfg.days[dayIndex] || cfg.days[0];
 
   const alreadyClaimed = lastClaimStr === todayStr;
   const canClaim = !alreadyClaimed;
+
+  // Si déjà validé aujourd'hui : on montre le jour qui VIENT d'être validé (index = effectiveStreak - 1)
+  // Sinon : on montre le jour EN COURS à valider (index = effectiveStreak)
+  const dayIndex = alreadyClaimed
+    ? (effectiveStreak - 1 + totalDays) % totalDays
+    : effectiveStreak % totalDays;
+  const currentDay = cfg.days[dayIndex] || cfg.days[0];
 
   const col = STREAK_DAY_COLORS[currentDay?.rewardType] || "rgba(255,255,255,.7)";
   const icon = STREAK_DAY_ICONS[currentDay?.rewardType] || "🎁";
@@ -6206,13 +6211,8 @@ async function claimStreakReward(clientId) {
     streak_last_claim: claimDateStr
   });
 
-  // Refresh immédiat du cache local AVANT de recharger l'UI
-  if(window._currentClientData) {
-    window._currentClientData.streak_count = finalStreak;
-    window._currentClientData.streak_last_claim = claimDateStr;
-  }
+  // Griser le bouton immédiatement — feedback instantané
   if(btn) {
-    // Griser immédiatement le bouton sans attendre le re-render
     btn.disabled = true;
     btn.style.background = "rgba(255,255,255,.06)";
     btn.style.border = "1px solid rgba(255,255,255,.1)";
@@ -6221,7 +6221,16 @@ async function claimStreakReward(clientId) {
     btn.style.cursor = "not-allowed";
     btn.textContent = "✓ Validé pour aujourd'hui";
   }
-  setTimeout(() => loadClientStreak(clientId), 600);
+
+  // Mettre à jour _currentClientData avec les NOUVELLES valeurs (après incrément)
+  // pour que loadClientStreak affiche bien "déjà réclamé aujourd'hui"
+  if(window._currentClientData) {
+    window._currentClientData.streak_count = finalStreak;
+    window._currentClientData.streak_last_claim = claimDateStr;
+  }
+
+  // Re-render après un court délai — la DB est déjà à jour
+  setTimeout(() => loadClientStreak(clientId), 400);
 }
 
 async function handleStreakReward(day, clientId) {
