@@ -1723,13 +1723,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 <!-- EDIT CLIENT MODAL -->
 <div class="modal-overlay" id="edit-modal">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:380px">
     <div class="modal-title">Modifier le client</div>
     <input type="hidden" id="edit-id" />
-    <div class="modal-field"><label class="modal-label">Nom</label><input class="input" id="edit-name" style="margin-bottom:0" /></div>
-    <div class="modal-field"><label class="modal-label">Téléphone</label><input class="input" id="edit-phone" style="margin-bottom:0" /></div>
-    <div class="modal-field"><label class="modal-label">Pseudo</label><input class="input" id="edit-username" placeholder="ex: lucas7" style="margin-bottom:0;font-family:'DM Mono',monospace" /></div>
+    <div class="modal-field"><label class="modal-label">Nom complet</label><input class="input" id="edit-name" style="margin-bottom:0" /></div>
+    <div class="modal-field"><label class="modal-label">Pseudo</label><input class="input" id="edit-username" placeholder="ex: lucas7" style="margin-bottom:0;font-family:'DM Mono',monospace;letter-spacing:.05em" /></div>
     <div class="modal-field"><label class="modal-label">Mot de passe</label><input class="input" id="edit-password" placeholder="••••••••" style="margin-bottom:0" /></div>
+    <input type="hidden" id="edit-phone" />
     <div class="modal-field"><label class="modal-label">Achats total</label><input class="input" id="edit-stamps" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-field"><label class="modal-label">Tokens</label><input class="input" id="edit-tokens" type="number" min="0" style="margin-bottom:0" /></div>
     <div class="modal-actions">
@@ -3034,40 +3034,32 @@ function renderList(cl){
   cl.forEach(c=>{
     const totalStamps=c.total_stamps||0;
     const cycleStamps=c.stamps||0;
-    const div=document.createElement("div");div.className="client-card";
+    const pct=Math.round((cycleStamps/MAX_STAMPS)*100);
+    const div=document.createElement("div");
+    div.className="client-card";
+    div.style.cssText="padding:.85rem;margin-bottom:8px";
     div.innerHTML=`
-      <div class="client-top">
-        <div class="client-info">
-          <div class="avatar">${ini(c.name)}</div>
-          <div style="min-width:0">
-            <div class="client-name-text">${c.name}</div>
-            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
-              ${c.phone?`<div class="client-phone">${c.phone||""}</div>
-              ${c.username?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-top:1px">@${c.username}</div>`:""}`:""}
-              
-            </div>
-            ${c.referral_code?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);letter-spacing:.08em">CODE</span>
-              <span style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7)">${c.referral_code}</span>
-              <button onclick="navigator.clipboard.writeText('${c.referral_code}').then(()=>toast('Code copié ✓'))" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Copier</button>
-            </div>`:""}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="avatar" style="width:38px;height:38px;font-size:13px;flex-shrink:0">${ini(c.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:2px;flex-wrap:wrap">
+            ${c.username?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4)">@${c.username}</span>`:''}
+            <span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25)">${totalStamps} achat${totalStamps>1?'s':''} · cycle ${cycleStamps}/${MAX_STAMPS}</span>
           </div>
         </div>
-        <div class="client-actions">
-          <button class="btn btn-icon" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${totalStamps},${c.tokens||0},'${(c.username||"").replace(/'/g,"\\'")}','${(c.password||"").replace(/'/g,"\\'")}'">✎</button>
-          <button class="btn btn-sm" onclick="showQR('${c.id}','${c.name.replace(/'/g,"\\'")}')">QR</button>
-          <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn btn-icon btn-sm" title="Modifier" onclick="openEdit('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}',${totalStamps},${c.tokens||0},'${(c.username||"").replace(/'/g,"\\'")}','${(c.password||"").replace(/'/g,"\\'")}')">✎</button>
+          <button class="btn btn-icon btn-sm btn-danger" title="Supprimer" onclick="delClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">✕</button>
         </div>
       </div>
-      <div class="stamp-controls">
-        <div class="stamp-count"><span class="n">${totalStamps}</span> achats · cycle ${cycleStamps}/10</div>
-        <div class="stamp-btns">
-          <button class="btn btn-sm" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},-1)" ${totalStamps===0?"disabled":""}>−</button>
-          <button class="btn btn-sm btn-accent" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},1)">+ Achat</button>
-          <button class="btn btn-sm" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
-          <button class="btn btn-sm" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
-          <button class="btn btn-sm" onclick="openClientFiche('${c.id}','${c.name.replace(/'/g,"\\'")}')">📋 Fiche</button>
-        </div>
+      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:10px">
+        <div style="height:100%;width:${pct}%;background:rgba(255,255,255,.5);border-radius:2px;transition:width .4s"></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-accent" style="flex:1;justify-content:center" onclick="chg('${c.id}',${totalStamps},${c.tokens||0},1)">+ Achat</button>
+        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
+        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
       </div>`;
     list.appendChild(div);
   });
