@@ -1128,7 +1128,10 @@ select option{background:#1a1a1a;color:#fff}
   <div id="panel-clients" style="display:none">
     <div class="panel-header">
       <div class="panel-title">Clients</div>
-      <button class="btn btn-accent btn-sm" onclick="toggleAddForm()">+ Nouveau</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-danger" onclick="clearAllTimedRewards()" title="Vider toutes les récompenses en cours">🗑 Récompenses</button>
+        <button class="btn btn-accent btn-sm" onclick="toggleAddForm()">+ Nouveau</button>
+      </div>
     </div>
     <div class="add-form-wrap" id="add-form">
       <input class="input" id="new-name" placeholder="Prénom Nom" />
@@ -2450,6 +2453,12 @@ function backToAdmin(){
   showView("admin");
   loadAll();
   switchTab("home");
+}
+
+async function clearAllTimedRewards(){
+  if(!confirm("Vider toutes les récompenses temporaires en cours ?"))return;
+  await dbDelete(T_CLIENT_TIMED_REWARDS+"?id=neq.00000000-0000-0000-0000-000000000000");
+  toast("Récompenses vidées ✓");
 }
 
 function logout(){
