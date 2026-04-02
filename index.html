@@ -1967,6 +1967,8 @@ select option{background:#1a1a1a;color:#fff}
     </div>
     <!-- Footer fixe -->
     <div style="flex-shrink:0;padding:0 1.5rem 1.5rem;border-top:1px solid rgba(255,255,255,.08);margin-top:0">
+      <!-- Récompense temporaire active -->
+      <div id="cart-timed-reward-row" style="display:none;padding:10px 0 0"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0">
         <div style="font-size:12px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em">Total</div>
         <div id="cart-total" style="font-size:26px;font-weight:800;font-family:'DM Mono',monospace;animation:greenGlow 2s ease-in-out infinite;color:#4ade80">0.00 €</div>
@@ -2581,12 +2583,12 @@ async function loadReferral(){
       <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${ini(f.name)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600">${f.name}</div>
-        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">
+        <div style="font-size:11px;color:var(--muted);font-family:sans-serif;margin-top:2px">
           Parrainé par <strong style="color:rgba(255,255,255,.7)">${parrain?parrain.name:"Inconnu"}</strong>
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted)">${fmtDate(f.created_at)}</div>
+        <div style="font-size:10px;font-family:sans-serif;color:var(--muted)">${fmtDate(f.created_at)}</div>
       </div>
     </div>`;
   }).join("");
@@ -2691,12 +2693,12 @@ async function openClientFiche(clientId, name){
   const unlockedByTier=tiers.filter(t=>t.chest_id&&(client.stamps||0)>=t.slot).length;
   document.getElementById("fiche-stats").innerHTML=`
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;text-align:center">
-      <div style="font-size:22px;font-weight:800;font-family:'DM Mono',monospace">${totalXP}</div>
-      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">achats total</div>
+      <div style="font-size:22px;font-weight:800;font-family:sans-serif">${totalXP}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:sans-serif;margin-top:2px">achats total</div>
     </div>
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;text-align:center">
-      <div style="font-size:22px;font-weight:800;font-family:'DM Mono',monospace">${openedCount}</div>
-      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">caisses ouvertes</div>
+      <div style="font-size:22px;font-weight:800;font-family:sans-serif">${openedCount}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:sans-serif;margin-top:2px">caisses ouvertes</div>
     </div>`;
 
   // Inventaire — grouper par caisse
@@ -2716,7 +2718,7 @@ async function openClientFiche(clientId, name){
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ch.name||"Caisse inconnue"}</div>
-        <div style="font-size:11px;font-family:'DM Mono',monospace;color:${statusCol};margin-top:2px">${statusIcon} ${statusTxt}</div>
+        <div style="font-size:11px;font-family:sans-serif;color:${statusCol};margin-top:2px">${statusIcon} ${statusTxt}</div>
       </div>
       ${!cc.opened?`<button onclick="deleteClientChest('${cc.id}')" class="btn btn-sm btn-danger" style="flex-shrink:0">✕</button>`:""}
     </div>`;
@@ -2768,10 +2770,10 @@ async function loadScheduledDrops(){
     return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:9px 12px;margin-bottom:6px">
       <div>
         <div style="font-size:12px;font-weight:700">${chestMap[d.chest_id]||"Caisse"}</div>
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4);margin-top:2px">${fmtDate(d.scheduled_at)}</div>
+        <div style="font-size:10px;font-family:sans-serif;color:rgba(255,255,255,.4);margin-top:2px">${fmtDate(d.scheduled_at)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:10px;font-family:'DM Mono',monospace;color:${statusCol}">${statusTxt}</span>
+        <span style="font-size:10px;font-family:sans-serif;color:${statusCol}">${statusTxt}</span>
         ${!d.executed&&isPast?`<button onclick="executeDropAdmin('${d.id}')" class="btn btn-sm">▶ Lancer</button>`:""}
         ${!d.executed?`<button onclick="cancelDrop('${d.id}')" class="btn btn-sm btn-danger">✕</button>`:""}
       </div>
@@ -2866,7 +2868,7 @@ async function openAllTiersSheet(){
       <div style="width:28px;height:28px;border-radius:50%;background:${reached?"#fff":"rgba(255,255,255,.05)"};border:1.5px solid ${reached?"#fff":d?RCOL[rarity].replace("1)","0.5)"):"rgba(255,255,255,.12)"};display:flex;align-items:center;justify-content:center;flex-shrink:0">
         ${reached
           ?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-          :`<span style="font-size:9px;font-weight:800;font-family:'DM Mono',monospace;color:${d?RCOL[rarity]:"rgba(255,255,255,.35)"}">${slot}</span>`}
+          :`<span style="font-size:9px;font-weight:800;font-family:sans-serif;color:${d?RCOL[rarity]:"rgba(255,255,255,.35)"}">${slot}</span>`}
       </div>
       ${d
         ?`<div style="width:38px;height:38px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;border:1.5px solid ${reached?"rgba(255,255,255,.1)":RCOL[rarity].replace("1)","0.3)")}">
@@ -2874,9 +2876,9 @@ async function openAllTiersSheet(){
           </div>
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;font-weight:700;color:${reached?"rgba(255,255,255,.4)":"#fff"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
-            <div style="font-size:10px;font-family:'DM Mono',monospace;color:${reached?"rgba(255,255,255,.2)":col};margin-top:1px">${reached?"✓ Débloquée ce cycle":rem<=0?"Disponible maintenant":`dans ${rem} achat${rem>1?"s":""}`}</div>
+            <div style="font-size:10px;font-family:sans-serif;color:${reached?"rgba(255,255,255,.2)":col};margin-top:1px">${reached?"✓ Débloquée ce cycle":rem<=0?"Disponible maintenant":`dans ${rem} achat${rem>1?"s":""}`}</div>
           </div>`
-        :`<div style="flex:1"><div style="font-size:12px;color:rgba(255,255,255,.2);font-family:'DM Mono',monospace">Achat #${slot}${slot===MAX_STAMPS?" · Fin de cycle":""}</div></div>`}
+        :`<div style="flex:1"><div style="font-size:12px;color:rgba(255,255,255,.2);font-family:sans-serif">Achat #${slot}${slot===MAX_STAMPS?" · Fin de cycle":""}</div></div>`}
     </div>`;
   }).join("");
 }
@@ -2896,7 +2898,7 @@ async function loadPuffs(){
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:700;color:var(--text)">${p.name}</div>
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:2px">${p.tags||"—"}</div>
+        <div style="font-size:10px;font-family:sans-serif;color:var(--muted);margin-top:2px">${p.tags||"—"}</div>
         ${p.description?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${p.description}</div>`:""}
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
@@ -2923,8 +2925,8 @@ function openAddPuff(puff=null){
       <input id="pf-name" class="input" placeholder="Nom de la puff" value="${name}" style="margin-bottom:8px">
       <input id="pf-desc" class="input" placeholder="Description courte (optionnel)" value="${desc}" style="margin-bottom:8px">
       <input id="pf-img" class="input" placeholder="URL image (optionnel)" value="${img}" style="margin-bottom:8px">
-      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px">Tags (séparés par virgule) :</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;margin-bottom:6px">ex: sucre, fruit, fraise, menthol, ice, tabac, leger, medium, fort, doux, frais</div>
+      <div style="font-size:11px;color:var(--muted);font-family:sans-serif;margin-bottom:4px">Tags (séparés par virgule) :</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.25);font-family:sans-serif;margin-bottom:6px">ex: sucre, fruit, fraise, menthol, ice, tabac, leger, medium, fort, doux, frais</div>
       <input id="pf-tags" class="input" placeholder="sucre, fruit, fraise, doux" value="${tags}" style="margin-bottom:14px">
       <div style="display:flex;gap:8px">
         <button onclick="savePuff()" class="btn btn-accent" style="flex:1;justify-content:center">💾 Enregistrer</button>
@@ -3036,7 +3038,7 @@ function renderQuizStep(){
       <div style="height:4px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden">
         <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#a78bfa,#60a5fa);border-radius:99px;transition:width .4s cubic-bezier(.34,1.4,.64,1)"></div>
       </div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-top:6px">${quizStep+1} / ${QUIZ_Q.length}</div>
+      <div style="font-size:11px;font-family:sans-serif;color:rgba(255,255,255,.3);margin-top:6px">${quizStep+1} / ${QUIZ_Q.length}</div>
     </div>
 
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
@@ -3119,7 +3121,7 @@ function renderQuizResult(){
     <div style="text-align:center;margin-bottom:28px">
       <div style="font-size:40px;margin-bottom:12px">💨</div>
       <div style="font-size:24px;font-weight:800;color:#fff;line-height:1.2">Ta puff idéale est prête</div>
-      <div style="display:inline-block;margin-top:10px;background:${col}22;border:1px solid ${col}55;border-radius:99px;padding:4px 14px;font-size:13px;font-weight:700;color:${col};font-family:'DM Mono',monospace">${profile.label}</div>
+      <div style="display:inline-block;margin-top:10px;background:${col}22;border:1px solid ${col}55;border-radius:99px;padding:4px 14px;font-size:13px;font-weight:700;color:${col};font-family:sans-serif">${profile.label}</div>
       <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:10px;line-height:1.5">${profile.desc}</div>
     </div>
 
@@ -3129,7 +3131,7 @@ function renderQuizResult(){
           <div style="width:42px;height:42px;border-radius:10px;background:${i===0?col+"22":"rgba(255,255,255,.06)"};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💨</div>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700;color:${i===0?"#fff":"rgba(255,255,255,.7)"}">${name}</div>
-            ${i===0?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:${col};margin-top:2px">★ Recommandé pour toi</div>`:""}
+            ${i===0?`<div style="font-size:11px;font-family:sans-serif;color:${col};margin-top:2px">★ Recommandé pour toi</div>`:""}
           </div>
           ${i===0?`<div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>`:""}
         </div>`).join("")}
@@ -3243,9 +3245,9 @@ function renderDash(cl){
       <div class="avatar">${ini(c.name)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
-        ${c.phone?`<div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">👻 ${c.phone}</div>`:""}
+        ${c.phone?`<div style="font-size:11px;color:var(--muted);font-family:sans-serif">👻 ${c.phone}</div>`:""}
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent3)">${c.stamps||0} achats</div>
+      <div style="font-family:sans-serif;font-size:12px;color:var(--accent3)">${c.stamps||0} achats</div>
     </div>`).join(""):'<div style="color:var(--muted);font-size:13px">Aucun client</div>';
 }
 
@@ -3339,8 +3341,8 @@ function renderList(cl){
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:2px;flex-wrap:wrap">
-            ${c.username?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.4)">@${c.username}</span>`:''}
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25)">${totalStamps} achat${totalStamps>1?'s':''} · cycle ${cycleStamps}/${MAX_STAMPS}</span>
+            ${c.username?`<span style="font-size:10px;font-family:sans-serif;color:rgba(255,255,255,.4)">@${c.username}</span>`:''}
+            <span style="font-size:10px;font-family:sans-serif;color:rgba(255,255,255,.25)">${totalStamps} achat${totalStamps>1?'s':''} · cycle ${cycleStamps}/${MAX_STAMPS}</span>
           </div>
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0">
@@ -3578,7 +3580,7 @@ const TRACKER_STEPS=[
 ];
 
 function buildTracker(status){
-  if(status==="cancelled") return `<div style="font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;margin-bottom:8px">✕ Commande annulée</div>`;
+  if(status==="cancelled") return `<div style="font-size:12px;color:var(--danger);font-family:sans-serif;margin-bottom:8px">✕ Commande annulée</div>`;
   const curIdx=TRACKER_STEPS.findIndex(s=>s.key===status);
   const pct=curIdx<=0?0:Math.round((curIdx/(TRACKER_STEPS.length-1))*100);
   const steps=TRACKER_STEPS.map((s,i)=>{
@@ -4222,7 +4224,7 @@ async function loadHistory(){
     return `<div class="spin-row" style="background:${bgCol};border:1px solid ${borderCol};border-radius:10px;margin-bottom:7px;padding:10px 12px">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
-          <span style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:${col};background:${bgCol};border:1px solid ${borderCol};border-radius:99px;padding:1px 8px;letter-spacing:.06em;flex-shrink:0">${lbl}</span>
+          <span style="font-size:10px;font-weight:700;font-family:sans-serif;color:${col};background:${bgCol};border:1px solid ${borderCol};border-radius:99px;padding:1px 8px;letter-spacing:.06em;flex-shrink:0">${lbl}</span>
           <div class="spin-reward" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${rarity==="legendary"?col:"#fff"}">${l.reward_name||"—"}</div>
         </div>
         <div class="spin-meta">${clientMap[l.client_id]||"Client inconnu"} · ${chestMap[l.chest_id]||"Caisse"}</div>
@@ -4393,7 +4395,7 @@ async function loadClientView(id){
         :!chestId?""
         :reached
           ?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-          :`<span style="font-size:9px;font-weight:800;font-family:'DM Mono',monospace;color:${col};opacity:${iconOpacity}">+1</span>`;
+          :`<span style="font-size:9px;font-weight:800;font-family:sans-serif;color:${col};opacity:${iconOpacity}">+1</span>`;
 
       return `<div class="ms-dot ${dotClass}" style="left:${leftPct}%"></div>
       <span class="ms-label" style="left:${leftPct}%;bottom:calc(50% + 14px);display:flex;align-items:center;justify-content:center">${svgIcon}</span>`;
@@ -4419,17 +4421,17 @@ async function loadClientView(id){
           </div>
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;font-weight:700;color:${isNext?"#fff":"rgba(255,255,255,.5)"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name||"Caisse"}</div>
-            <div style="font-size:10px;font-family:'DM Mono',monospace;color:${isNext?col:"rgba(255,255,255,.25)"};margin-top:1px">achat #${t.slot} — encore ${rem} achat${rem>1?"s":""}</div>
+            <div style="font-size:10px;font-family:sans-serif;color:${isNext?col:"rgba(255,255,255,.25)"};margin-top:1px">achat #${t.slot} — encore ${rem} achat${rem>1?"s":""}</div>
           </div>
         </div>`;
       });
       html+=`</div>
       <button onclick="openAllTiersSheet()" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-top:6px">Voir les récompenses 🎯</button>`;
     } else if(cycleXP===0&&totalXP>0){
-      html=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:#4ade80;margin-top:8px">✓ Cycle complété — nouveau cycle !</div>`;
+      html=`<div style="font-size:10px;font-family:sans-serif;color:#4ade80;margin-top:8px">✓ Cycle complété — nouveau cycle !</div>`;
     } else if(!nextTier){
       const rem=MAX_STAMPS-cycleXP;
-      html=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);margin-top:6px">encore <strong style="color:rgba(255,255,255,.6)">${rem}</strong> achat${rem>1?"s":""} pour finir le cycle</div>`;
+      html=`<div style="font-size:10px;font-family:sans-serif;color:rgba(255,255,255,.3);margin-top:6px">encore <strong style="color:rgba(255,255,255,.6)">${rem}</strong> achat${rem>1?"s":""} pour finir le cycle</div>`;
     }
     hint.innerHTML=html;
   }
@@ -4507,8 +4509,8 @@ async function loadClientShop(clientId){
       <div class="hc-info">
         <div style="flex:1;min-width:0">
           <div class="hc-title">${ch.name}</div>
-          ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin:3px 0 5px;line-height:1.4">${ch.description}</div>`:''}
-          ${cs?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.6)">Bientôt disponible</div>`:''}
+          ${ch.description&&!cs?`<div style="font-size:11px;color:rgba(255,255,255,.35);font-family:sans-serif;margin:3px 0 5px;line-height:1.4">${ch.description}</div>`:''}
+          ${cs?`<div style="font-size:11px;font-family:sans-serif;color:rgba(167,139,250,.6)">Bientôt disponible</div>`:''}
         </div>
       </div>
     </div>`;
@@ -4582,9 +4584,9 @@ async function updateCartProgressBar(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:6px">
         <span style="font-size:12px">${RICON[tier.rarity]}</span>
-        <span style="font-size:11px;font-weight:700;color:${col};font-family:'DM Mono',monospace;letter-spacing:.04em">${chestName}</span>
+        <span style="font-size:11px;font-weight:700;color:${col};font-family:sans-serif;letter-spacing:.04em">${chestName}</span>
       </div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.55)">
+      <div style="font-size:11px;font-family:sans-serif;color:rgba(255,255,255,.55)">
         ${withCart===0
           ?`<span style="color:${col};font-weight:800">🎁 Débloquée !</span>`
           :`<span style="color:#fff;font-weight:700">${withCart}</span> <span style="color:rgba(255,255,255,.4)">puff${withCart>1?"s":""} restante${withCart>1?"s":""}</span>`}
@@ -4640,7 +4642,7 @@ function renderProductList(){
               <button class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
             </div>
           `:`<button class="shop-add-btn" onclick="addToCart('${p.id}')">Ajouter 💨</button>`}
-        `:`<div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">Indisponible</div>`}
+        `:`<div style="font-size:11px;color:var(--muted);font-family:sans-serif">Indisponible</div>`}
       </div>
     </div>`;
   }).join("");
@@ -4751,7 +4753,7 @@ function openProductSheet(productId){
   const stockCol=dispo?(p.stock<=5?"#fbbf24":"#4ade80"):"#f87171";
   const stockTxt=p.stock===0?"Rupture de stock":p.stock<=5?`⚠ Seulement ${p.stock} unité${p.stock>1?"s":""}`:`✓ En stock (${p.stock})`;
   document.getElementById("ps-stock-row").innerHTML=
-    `<span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:${stockCol}">${stockTxt}</span>`;
+    `<span style="font-size:12px;font-weight:700;font-family:sans-serif;color:${stockCol}">${stockTxt}</span>`;
 
   // Description
   document.getElementById("ps-desc").textContent=desc;
@@ -4828,13 +4830,50 @@ async function openCartSheet(){
         :`<div style="width:44px;height:44px;background:rgba(255,255,255,.04);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">📦</div>`}
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
-        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">x${qty} · ${p.price!=null?p.price.toFixed(2)+" €/u":"—"}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:sans-serif">x${qty} · ${p.price!=null?p.price.toFixed(2)+" €/u":"—"}</div>
       </div>
-      <div style="font-size:13px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0;color:rgba(255,255,255,.8)">${p.price!=null?(p.price*qty).toFixed(2)+" €":"—"}</div>
+      <div style="font-size:13px;font-weight:700;font-family:sans-serif;flex-shrink:0;color:rgba(255,255,255,.8)">${p.price!=null?(p.price*qty).toFixed(2)+" €":"—"}</div>
     </div>`).join("");
 
+  // Récompense temporaire active — calculer et afficher
+  const trNow = new Date().toISOString();
+  const trData = currentClientId ? await dbGet(T_CLIENT_TIMED_REWARDS
+    +"?client_id=eq."+currentClientId+"&used=eq.false&expires_at=gte."+encodeURIComponent(trNow)+"&order=expires_at.asc&limit=1") : null;
+  const activeTimedReward = trData && trData[0] ? trData[0] : null;
+
+  let finalTotal = total;
+  if (activeTimedReward) {
+    if (activeTimedReward.type==="discount_pct") finalTotal = Math.max(0, total*(1-(parseFloat(activeTimedReward.value)||0)/100));
+    else if (activeTimedReward.type==="discount_fixed") finalTotal = Math.max(0, total-(parseFloat(activeTimedReward.value)||0));
+  }
+
   // Update total
-  document.getElementById("cart-total").textContent=total.toFixed(2)+" €";
+  const totalEl = document.getElementById("cart-total");
+  if (activeTimedReward && finalTotal !== total) {
+    const tcol = TIMED_TYPE_COLORS[activeTimedReward.type]||"rgba(74,222,128,1)";
+    totalEl.innerHTML = '<span style="text-decoration:line-through;color:rgba(255,255,255,.3);font-size:16px">'+total.toFixed(2)+'€</span> <span style="color:'+tcol+'">'+finalTotal.toFixed(2)+' €</span>';
+  } else {
+    totalEl.textContent = finalTotal.toFixed(2)+" €";
+  }
+
+  // Afficher bannière récompense dans le récap
+  const trBannerEl = document.getElementById("cart-timed-reward-row");
+  if (trBannerEl) {
+    if (activeTimedReward) {
+      const tcol = TIMED_TYPE_COLORS[activeTimedReward.type]||"rgba(74,222,128,1)";
+      const rem = new Date(activeTimedReward.expires_at).getTime()-Date.now();
+      trBannerEl.style.display = "flex";
+      trBannerEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;background:'+tcol.replace("1)","0.08)")+';border:1px solid '+tcol.replace("1)","0.2)")+';border-radius:10px;padding:9px 12px;width:100%">'
+        +'<span style="font-size:16px">🎁</span>'
+        +'<div style="flex:1"><div style="font-size:12px;font-weight:700;color:'+tcol+'">'+timedLabel(activeTimedReward)+' appliquée</div>'
+        +'<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">Expire dans '+timedFmt(rem)+'</div></div>'
+        +(finalTotal!==total?'<div style="font-size:13px;font-weight:800;color:'+tcol+'">-'+(total-finalTotal).toFixed(2)+'€</div>':'')
+      +'</div>';
+    } else {
+      trBannerEl.style.display = "none";
+      trBannerEl.innerHTML = "";
+    }
+  }
 
   // Preview caisses débloquées
   const previewEl=document.getElementById("cart-chests-preview");
@@ -5140,7 +5179,7 @@ async function loadCasesAdmin(){
       header.appendChild(img);
     }
     const info=document.createElement("div");info.style.flex="1;min-width:0";
-    info.innerHTML=`<div style="font-size:14px;font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${ch.cost||1} ◈ · ${ch.active?"Actif":"Inactif"}</div>`;
+    info.innerHTML=`<div style="font-size:14px;font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--muted);font-family:sans-serif">${ch.cost||1} ◈ · ${ch.active?"Actif":"Inactif"}</div>`;
     const actions=document.createElement("div");actions.style.cssText="display:flex;gap:4px;flex-shrink:0";
     const btnActive=document.createElement("button");btnActive.className="btn btn-sm";btnActive.textContent=ch.active?"● Actif":"○ Inactif";btnActive.onclick=()=>toggleCaseActive(ch.id,ch.active);
     const btnEdit=document.createElement("button");btnEdit.className="btn btn-icon";btnEdit.textContent="✎";btnEdit.onclick=()=>editCase(ch.id);
@@ -5148,14 +5187,14 @@ async function loadCasesAdmin(){
     actions.append(btnActive,btnEdit,btnDel);
     header.append(info,actions);div.appendChild(header);
     const probLine=document.createElement("div");
-    probLine.style.cssText=`font-size:10px;font-family:'DM Mono',monospace;color:${total===100?"var(--green)":"var(--danger)"};margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em`;
+    probLine.style.cssText=`font-size:10px;font-family:sans-serif;color:${total===100?"var(--green)":"var(--danger)"};margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em`;
     probLine.textContent=`Lots : ${total}%${total!==100?" ⚠":"  ✓"}`;
     div.appendChild(probLine);
     (rewards||[]).forEach(r=>{
       const row=document.createElement("div");row.className="chest-reward-row";
       const nameSpan=document.createElement("span");nameSpan.className="chest-reward-name";nameSpan.textContent=r.name;
       const probSpan=document.createElement("span");probSpan.className="chest-reward-prob";probSpan.textContent=r.probability+"%";
-      const rarSpan=document.createElement("span");rarSpan.style.cssText="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace";rarSpan.textContent=r.rarity||"common";
+      const rarSpan=document.createElement("span");rarSpan.style.cssText="font-size:10px;color:var(--muted);font-family:sans-serif";rarSpan.textContent=r.rarity||"common";
       row.append(nameSpan,probSpan,rarSpan);div.appendChild(row);
     });
     list.appendChild(div);
@@ -5177,7 +5216,7 @@ function openCaseInfo(name,rwJson){
 
   document.getElementById("case-info-title").textContent=name;
   document.getElementById("case-info-list").innerHTML=`
-    <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-align:center;margin-bottom:12px;letter-spacing:.06em">LOTS POSSIBLES</div>
+    <div style="font-size:11px;font-family:sans-serif;color:rgba(255,255,255,.3);text-align:center;margin-bottom:12px;letter-spacing:.06em">LOTS POSSIBLES</div>
     ${rewards.map(r=>{
       const col=RCOL[r.rarity||"common"];
       const bg=RBG[r.rarity||"common"];
@@ -5185,15 +5224,15 @@ function openCaseInfo(name,rwJson){
       return `<div style="display:flex;align-items:center;gap:10px;background:${bg};border:1px solid ${brd};border-radius:11px;padding:10px 12px;margin-bottom:7px">
         ${r.image_url
           ?`<img src="${r.image_url}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`
-          :`<div style="width:42px;height:42px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.2);flex-shrink:0">IMG</div>`}
+          :`<div style="width:42px;height:42px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:sans-serif;color:rgba(255,255,255,.2);flex-shrink:0">IMG</div>`}
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</div>
-          <div style="font-size:10px;font-family:'DM Mono',monospace;color:${col};margin-top:2px">${RLBL[r.rarity||"common"]}</div>
+          <div style="font-size:10px;font-family:sans-serif;color:${col};margin-top:2px">${RLBL[r.rarity||"common"]}</div>
         </div>
       </div>`;
     }).join("")}
     <div style="margin-top:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;text-align:center">
-      <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;line-height:1.5">Chaque ouverture est unique.<br>Bonne chance ! 🍀</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:sans-serif;line-height:1.5">Chaque ouverture est unique.<br>Bonne chance ! 🍀</div>
     </div>`;
   document.getElementById("case-info-overlay").classList.add("open");
 }
@@ -5238,7 +5277,7 @@ function chestRow(chestId,clientChestId,ch,source){
     </div>
     <div style="flex:1;min-width:0">
       <div style="font-size:14px;font-weight:700">${ch.name||"Caisse"}</div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:${col};margin-top:2px">${label}</div>
+      <div style="font-size:11px;font-family:sans-serif;color:${col};margin-top:2px">${label}</div>
     </div>
     <button onclick="closeMyChestsSheet();openCaseGifted('${chestId}','${clientChestId}')" class="hc-open-btn">Ouvrir ma caisse 🎁</button>
   </div>`;
@@ -5501,7 +5540,21 @@ async function showHcResult(won,clientChestId){
   document.getElementById("hc-result-name").style.color=rarity==="legendary"?col:"#fff";
 
   const msgs={common:"Retente ta chance !",rare:"Belle prise ! 🔵",epic:"Incroyable ! 🟣",legendary:"LÉGENDAIRE ! 🔥"};
-  document.getElementById("hc-result-sub").textContent=msgs[rarity];
+
+  // Récompense temporaire — afficher clairement le type et la durée
+  if(won.reward_type&&won.reward_type!=="standard"&&won.duration_hours){
+    const tcol=TIMED_TYPE_COLORS[won.reward_type]||"rgba(74,222,128,1)";
+    const tlabel=timedLabel({type:won.reward_type,value:won.timed_value,name:won.name});
+    const tdur=won.duration_hours>=24?Math.round(won.duration_hours/24)+"j":won.duration_hours+"h";
+    document.getElementById("hc-result-sub").innerHTML=
+      '<div style="background:'+tcol.replace("1)","0.12)")+';border:1px solid '+tcol.replace("1)","0.3)")+';border-radius:12px;padding:10px 14px;margin-bottom:4px;text-align:left">'
+      +'<div style="font-size:10px;font-family:sans-serif;color:'+tcol+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">🎁 Récompense limitée obtenue</div>'
+      +'<div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:5px">'+tlabel+'</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,.5);font-family:sans-serif">⏱ Valable <strong style="color:'+tcol+'">'+tdur+'</strong> — appliquée auto à ta prochaine commande</div>'
+      +'</div>';
+  } else {
+    document.getElementById("hc-result-sub").textContent=msgs[rarity];
+  }
 
   // ── Lancer les effets ──
   spawnRarityEffect(rarity,col,overlay);
@@ -5521,7 +5574,7 @@ async function showHcResult(won,clientChestId){
              display:flex;flex-direction:column;align-items:center;gap:3px;
              position:relative;overflow:hidden;">
       <span style="font-size:14px;font-weight:800;letter-spacing:-.03em">Voir les puffs 💨</span>
-      <span style="font-size:10px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em">Une puff = une récompense</span>
+      <span style="font-size:10px;color:rgba(255,255,255,.45);font-family:sans-serif;letter-spacing:.04em">Une puff = une récompense</span>
     </button>
     <button class="btn btn-secondary" style="width:100%;justify-content:center" onclick="closeHcOpening()">Fermer</button>`;
 }
@@ -5749,17 +5802,17 @@ async function loadStampRewards(){
     const rarityOpts=RARITIES.map(r=>`<option value="${r.value}"${r.value===selectedRarity?" selected":""}>${r.label}</option>`).join("");
     return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        <div style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.07);border:1.5px solid ${rarityCol.replace("1)","0.4)")};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:800;flex-shrink:0;color:${rarityCol}">${slot}${isPrestige?" ⭐":""}</div>
+        <div style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.07);border:1.5px solid ${rarityCol.replace("1)","0.4)")};display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:13px;font-weight:800;flex-shrink:0;color:${rarityCol}">${slot}${isPrestige?" ⭐":""}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;font-weight:600;color:var(--text)">Achat #${slot}${isPrestige?" — Prestige":""}</div>
-          <div style="font-size:10px;color:${rarityCol};font-family:'DM Mono',monospace;margin-top:1px">${RARITIES.find(r=>r.value===selectedRarity)?.label||"⬜ Commun"}</div>
+          <div style="font-size:10px;color:${rarityCol};font-family:sans-serif;margin-top:1px">${RARITIES.find(r=>r.value===selectedRarity)?.label||"⬜ Commun"}</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <select data-slot="${slot}" data-type="chest" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:5px;outline:none">
+        <select data-slot="${slot}" data-type="chest" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:sans-serif;font-size:11px;padding:5px;outline:none">
           ${chestOptions.replace(`value="${selectedChest}"`,`value="${selectedChest}" selected`)}
         </select>
-        <select data-slot="${slot}" data-type="rarity" onchange="updateSlotRarityPreview(this)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid ${rarityCol.replace("1)","0.35)")};border-radius:7px;color:${rarityCol};font-family:'DM Mono',monospace;font-size:11px;padding:5px;outline:none;font-weight:700">
+        <select data-slot="${slot}" data-type="rarity" onchange="updateSlotRarityPreview(this)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid ${rarityCol.replace("1)","0.35)")};border-radius:7px;color:${rarityCol};font-family:sans-serif;font-size:11px;padding:5px;outline:none;font-weight:700">
           ${rarityOpts}
         </select>
       </div>
@@ -5988,7 +6041,7 @@ function renderStreakDaysList(days) {
         <div style="width:32px;height:32px;border-radius:9px;background:${col.replace("1)","0.12)")};border:1px solid ${col.replace("1)","0.3)")};display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${STREAK_DAY_ICONS[d.rewardType]||"🎁"}</div>
         <div style="flex:1">
           <div style="font-size:13px;font-weight:700;color:${col}">Jour ${d.day}</div>
-          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${d.label||""}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:sans-serif">${d.label||""}</div>
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0">
           <button onclick="toggleStreakSpecial(${i})" class="btn btn-sm" style="color:${d.isSpecial?"#fb923c":"var(--muted)"}">★</button>
@@ -6257,7 +6310,7 @@ async function loadClientStreak(clientId) {
           <div style="width:36px;height:36px;border-radius:10px;background:rgba(124,111,247,.2);border:1px solid rgba(124,111,247,.35);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">⚡</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em">Streak quotidien</div>
-            <div style="font-size:10px;color:rgba(167,139,250,.75);font-family:'DM Mono',monospace;margin-top:1px">
+            <div style="font-size:10px;color:rgba(167,139,250,.75);font-family:sans-serif;margin-top:1px">
               ${streakBroken && effectiveStreak===0 && streakCount>0
                 ? "⚠ Streak perdu — recommence !"
                 : effectiveStreak>0
@@ -6268,8 +6321,8 @@ async function loadClientStreak(clientId) {
           ${jokersEnabled && jokers > 0 ? buildJokersDisplay(jokers, jokersMax) : ""}
         </div>
         <div style="text-align:right">
-          <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1">${dayIndex+1}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.25);font-family:'DM Mono',monospace">/ ${totalDays}</div>
+          <div style="font-size:22px;font-weight:900;font-family:sans-serif;color:#fff;line-height:1">${dayIndex+1}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.25);font-family:sans-serif">/ ${totalDays}</div>
         </div>
       </div>
 
@@ -6563,12 +6616,12 @@ function renderTimedRewardCard(reward, clientId) {
     const urgent = remaining < 3600000;
     card.innerHTML = `<div style="background:linear-gradient(135deg,${col.replace("1)","0.12)")},rgba(0,0,0,0));border:1px solid ${col.replace("1)","0.3)")};border-radius:14px;padding:14px;position:relative;overflow:hidden">
       <div style="position:absolute;top:-20px;right:-16px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,${col.replace("1)","0.15)")},transparent 70%);pointer-events:none"></div>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:${col};text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">🎁 Récompense active</div>
+      <div style="font-size:10px;font-family:sans-serif;color:${col};text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">🎁 Récompense active</div>
       <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:10px">${timedLabel(reward)}</div>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:5px">
           <span style="font-size:12px">${urgent?"⏳":"⏱"}</span>
-          <span id="tr-countdown" style="font-size:${urgent?"16":"14"}px;font-weight:900;font-family:'DM Mono',monospace;color:${urgent?"#f87171":col}">${timedFmt(remaining)}</span>
+          <span id="tr-countdown" style="font-size:${urgent?"16":"14"}px;font-weight:900;font-family:sans-serif;color:${urgent?"#f87171":col}">${timedFmt(remaining)}</span>
         </div>
         <button onclick="switchClientTab('commandes')" style="background:${col};border:none;color:#fff;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Commander ⚡</button>
       </div>
@@ -6599,7 +6652,7 @@ function renderTimedRewardBanner(reward) {
   banner.innerHTML = `<div style="background:${col.replace("1)","0.1)")};border:1px solid ${col.replace("1)","0.25)")};border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:10px">
     <div style="flex:1">
       <div style="font-size:12px;font-weight:800;color:${col}">🎁 ${timedLabel(reward)}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace;margin-top:1px">Expire dans <span id="tr-cart-countdown">${timedFmt(rem)}</span> · Appliquée auto au panier</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">Expire dans <span id="tr-cart-countdown">${timedFmt(rem)}</span> · Appliquée auto au panier</div>
     </div>
   </div>`;
 }
