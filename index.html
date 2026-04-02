@@ -1472,6 +1472,27 @@ select option{background:#1a1a1a;color:#fff}
           </select>
         </div>
       </div>
+      <!-- Jokers config -->
+      <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:12px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px">🛡️</span>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:rgba(251,191,36,.9)">Jokers de streak</div>
+              <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">Sauvegarde 1 jour manqué</div>
+            </div>
+          </div>
+          <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer">
+            <input type="checkbox" id="streak-jokers-enabled" checked style="opacity:0;width:0;height:0" onchange="updateJokersToggle()">
+            <span id="streak-jokers-track" style="position:absolute;inset:0;background:rgba(251,191,36,.3);border-radius:11px;transition:all .2s;border:1px solid rgba(251,191,36,.5)"></span>
+            <span id="streak-jokers-thumb" style="position:absolute;left:20px;top:2px;width:18px;height:18px;background:#fbbf24;border-radius:50%;transition:all .2s"></span>
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label class="modal-label" style="margin-bottom:0;white-space:nowrap">Max jokers :</label>
+          <input class="input" id="streak-jokers-max" type="number" min="1" max="5" value="2" style="margin-bottom:0;width:70px;text-align:center" />
+        </div>
+      </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px">
         <div>
           <div style="font-size:13px;font-weight:600">Streak actif</div>
@@ -2233,14 +2254,18 @@ select option{background:#1a1a1a;color:#fff}
     <div class="modal-title">🔥 Streak client</div>
     <input type="hidden" id="sm-client-id" />
     <div id="sm-client-name" style="font-size:13px;font-weight:600;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
       <div>
         <label class="modal-label">Jours de streak</label>
         <input class="input" id="sm-streak-count" type="number" min="0" max="999" style="margin-bottom:0" />
       </div>
       <div>
-        <label class="modal-label">Dernier claim (YYYY-MM-DD)</label>
-        <input class="input" id="sm-last-claim" placeholder="ex: 2025-01-15" style="margin-bottom:0" />
+        <label class="modal-label">🛡️ Jokers</label>
+        <input class="input" id="sm-jokers" type="number" min="0" max="5" style="margin-bottom:0" />
+      </div>
+      <div>
+        <label class="modal-label">Dernier claim</label>
+        <input class="input" id="sm-last-claim" placeholder="YYYY-MM-DD" style="margin-bottom:0" />
       </div>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px">
@@ -3323,7 +3348,7 @@ function renderList(cl){
         <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="openAdminOrderModal('${c.id}','${c.name.replace(/'/g,"\\'")}','${(c.phone||"").replace(/'/g,"\\'")}')">🛍 Réserver</button>
         <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="openGiveCaseModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗃 Caisse</button>
       </div>
-      <button class="btn btn-sm" style="width:100%;justify-content:center;color:${(c.streak_count||0)>0?'#fb923c':'var(--muted)'};border-color:${(c.streak_count||0)>0?'rgba(251,146,60,.3)':'var(--border)'}" onclick="openStreakModal('${c.id}','${c.name.replace(/'/g,"\\'")}',${c.streak_count||0},'${c.streak_last_claim||''}')">🔥 Streak : ${c.streak_count||0} jour${(c.streak_count||0)>1?'s':''}${c.streak_last_claim?' · '+c.streak_last_claim:' · jamais'}</button>`;
+      <button class="btn btn-sm" style="width:100%;justify-content:center;color:${(c.streak_count||0)>0?'#7c6ff7':'var(--muted)'};border-color:${(c.streak_count||0)>0?'rgba(124,111,247,.3)':'var(--border)'}" onclick="openStreakModal('${c.id}','${c.name.replace(/'/g,"\\'")}',${c.streak_count||0},'${c.streak_last_claim||''}',${c.streak_jokers||0})">⚡ Streak ${c.streak_count||0}j ${(c.streak_jokers||0)>0?'· 🛡️×'+(c.streak_jokers||0):''}</button>`;
     list.appendChild(div);
   });
 }
@@ -5808,6 +5833,7 @@ let streakConfigCache = null;
 
 const STREAK_REWARD_TYPES = [
   {value:"none",           label:"— Rien (palier intermédiaire)"},
+  {value:"streak_joker",   label:"🛡️ Joker de streak"},
   {value:"case_common",    label:"🗃 Caisse Commune"},
   {value:"case_rare",      label:"🔵 Caisse Rare"},
   {value:"case_epic",      label:"🟣 Caisse Épique"},
@@ -5820,12 +5846,12 @@ const STREAK_REWARD_TYPES = [
 ];
 
 const STREAK_DAY_ICONS = {
-  none:"·", case_common:"🗃", case_rare:"🔵", case_epic:"🟣", case_legendary:"🌟",
+  none:"·", streak_joker:"🛡️", case_common:"🗃", case_rare:"🔵", case_epic:"🟣", case_legendary:"🌟",
   discount:"💸", boost_rare:"⚡", boost_epic:"⚡", boost_jackpot:"🔥", custom:"🎁"
 };
 
 const STREAK_DAY_COLORS = {
-  none:"rgba(255,255,255,.2)",
+  none:"rgba(255,255,255,.2)", streak_joker:"rgba(251,191,36,1)",
   case_common:"rgba(180,180,180,1)", case_rare:"rgba(75,145,255,1)",
   case_epic:"rgba(170,80,255,1)", case_legendary:"rgba(255,185,0,1)",
   discount:"rgba(74,222,128,1)", boost_rare:"rgba(75,145,255,1)",
@@ -5843,6 +5869,10 @@ async function loadStreakAdmin() {
     document.getElementById("streak-after-last").value = cfg.after_last || "reset";
     const activeChk = document.getElementById("streak-active");
     if (activeChk) { activeChk.checked = cfg.active !== false; updateStreakActiveToggle(); }
+    const jokersChk = document.getElementById("streak-jokers-enabled");
+    if (jokersChk) { jokersChk.checked = cfg.jokers_enabled !== false; updateJokersToggle(); }
+    const jokersMax = document.getElementById("streak-jokers-max");
+    if (jokersMax) jokersMax.value = cfg.jokers_max || 2;
     renderStreakDaysList(cfg.days || []);
     renderStreakPreview(cfg);
   } else {
@@ -5856,6 +5886,31 @@ async function loadStreakAdmin() {
     }));
     renderStreakDaysList(defaultDays);
   }
+}
+
+function updateJokersToggle() {
+  const chk = document.getElementById("streak-jokers-enabled");
+  const track = document.getElementById("streak-jokers-track");
+  const thumb = document.getElementById("streak-jokers-thumb");
+  if(!chk||!track||!thumb) return;
+  const on = chk.checked;
+  track.style.background = on ? "rgba(251,191,36,.3)" : "rgba(255,255,255,.1)";
+  track.style.borderColor = on ? "rgba(251,191,36,.5)" : "rgba(255,255,255,.15)";
+  thumb.style.left = on ? "20px" : "2px";
+  thumb.style.background = on ? "#fbbf24" : "rgba(255,255,255,.5)";
+}
+
+function buildJokersDisplay(jokers, max) {
+  let shields = "";
+  for (let i = 0; i < max; i++) {
+    const opacity = i < jokers ? "1" : "0.2";
+    const filter = i < jokers ? "drop-shadow(0 0 4px rgba(251,191,36,.6))" : "none";
+    shields += `<span style="font-size:16px;opacity:${opacity};filter:${filter}">🛡️</span>`;
+  }
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0">
+    <div style="display:flex;gap:2px">${shields}</div>
+    <div style="font-size:9px;color:rgba(251,191,36,.6);letter-spacing:.06em">${jokers}/${max}</div>
+  </div>`;
 }
 
 function updateStreakActiveToggle() {
@@ -5972,7 +6027,9 @@ async function saveStreakConfig() {
   const after_last = document.getElementById("streak-after-last")?.value || "reset";
   const active = document.getElementById("streak-active")?.checked !== false;
 
-  const payload = { days, total_days, after_last, active, updated_at: new Date().toISOString() };
+  const jokers_enabled = document.getElementById("streak-jokers-enabled")?.checked !== false;
+  const jokers_max = parseInt(document.getElementById("streak-jokers-max")?.value) || 2;
+  const payload = { days, total_days, after_last, active, jokers_enabled, jokers_max, updated_at: new Date().toISOString() };
 
   if (streakConfigCache?.id) {
     await dbPatch(T_STREAK_CONFIG + "?id=eq." + streakConfigCache.id, payload);
@@ -6088,7 +6145,7 @@ async function loadClientStreak(clientId) {
 
   const [cfgData, clientData] = await Promise.all([
     dbGet(T_STREAK_CONFIG + "?active=eq.true&limit=1"),
-    dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_count,streak_last_claim&limit=1")
+    dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_count,streak_last_claim,streak_jokers&limit=1")
   ]);
 
   const cfg = cfgData && cfgData[0];
@@ -6096,6 +6153,9 @@ async function loadClientStreak(clientId) {
 
   const client = clientData && clientData[0];
   const streakCount = client?.streak_count || 0;
+  const jokers = client?.streak_jokers || 0;
+  const jokersEnabled = cfg.jokers_enabled !== false;
+  const jokersMax = cfg.jokers_max || 2;
   // lastClaim remplacé par lastClaimStr ci-dessous
 
   // Travailler en strings YYYY-MM-DD pour éviter les bugs de timezone mobile
@@ -6150,7 +6210,7 @@ async function loadClientStreak(clientId) {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="width:36px;height:36px;border-radius:10px;background:rgba(124,111,247,.2);border:1px solid rgba(124,111,247,.35);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">⚡</div>
-          <div>
+          <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em">Streak quotidien</div>
             <div style="font-size:10px;color:rgba(167,139,250,.75);font-family:'DM Mono',monospace;margin-top:1px">
               ${streakBroken && effectiveStreak===0 && streakCount>0
@@ -6160,6 +6220,7 @@ async function loadClientStreak(clientId) {
                   : "Reviens chaque jour pour débloquer"}
             </div>
           </div>
+          ${jokersEnabled && jokers > 0 ? buildJokersDisplay(jokers, jokersMax) : ""}
         </div>
         <div style="text-align:right">
           <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1">${dayIndex+1}</div>
@@ -6183,6 +6244,7 @@ function getStreakRewardDescription(day) {
   if (!day) return "Récompense mystère";
   switch(day.rewardType) {
     case "none":           return day.label || "Palier intermédiaire — continue !";
+    case "streak_joker":   return "🛡️ Joker obtenu — sauvegarde 1 jour de streak";
     case "case_common":    return "Caisse commune à ouvrir";
     case "case_rare":      return "Caisse rare à ouvrir 🔵";
     case "case_epic":      return "Caisse épique à ouvrir 🟣";
@@ -6203,7 +6265,7 @@ async function claimStreakReward(clientId) {
   // Re-fetch depuis la DB pour éviter le cache
   const [cfgData, clientData] = await Promise.all([
     dbGet(T_STREAK_CONFIG + "?active=eq.true&limit=1"),
-    dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_count,streak_last_claim&limit=1")
+    dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_count,streak_last_claim,streak_jokers&limit=1")
   ]);
 
   const cfg = cfgData && cfgData[0];
@@ -6221,13 +6283,30 @@ async function claimStreakReward(clientId) {
     return;
   }
 
-  // Streak cassé ? (lastClaim avant hier)
+  // Streak cassé ? (lastClaim avant hier) — vérifier les jokers
   let streakCount = client.streak_count || 0;
+  let jokerUsed = false;
   if (lastClaimStr) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toLocaleDateString("fr-CA");
-    if (lastClaimStr < yesterdayStr) streakCount = 0; // streak cassé
+    if (lastClaimStr < yesterdayStr) {
+      // Streak potentiellement cassé — vérifier jokers
+      const jokers = client.streak_jokers || 0;
+      const jokersEnabled = cfg.jokers_enabled !== false;
+      // Un joker sauve seulement si on a manqué exactement 1 jour (lastClaim = avant-hier)
+      const dayBeforeYesterday = new Date();
+      dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
+      const dayBeforeYesterdayStr = dayBeforeYesterday.toLocaleDateString("fr-CA");
+      if (jokersEnabled && jokers > 0 && lastClaimStr >= dayBeforeYesterdayStr) {
+        // Exactement 1 jour manqué — joker !
+        jokerUsed = true;
+        await dbPatch(T_CLIENTS + "?id=eq." + clientId, {streak_jokers: jokers - 1});
+        toast("🛡️ Ton joker t'a sauvé ! Il t'en reste " + (jokers - 1), 3500);
+      } else {
+        streakCount = 0; // streak cassé
+      }
+    }
   }
 
   const totalDays = cfg.total_days || cfg.days.length;
@@ -6283,7 +6362,19 @@ async function handleStreakReward(day, clientId) {
   const value = day.rewardValue;
 
   if (type === "none") {
-    // Pas de récompense — juste valider le jour pour maintenir le streak
+    return;
+  }
+  if (type === "streak_joker") {
+    // Donner un joker — fetch config pour connaître le max
+    const cfgData = await dbGet(T_STREAK_CONFIG + "?active=eq.true&limit=1");
+    const maxJokers = cfgData && cfgData[0] ? (cfgData[0].jokers_max || 2) : 2;
+    const jokersEnabled = cfgData && cfgData[0] ? cfgData[0].jokers_enabled !== false : true;
+    if (!jokersEnabled) return;
+    const clientData = await dbGet(T_CLIENTS + "?id=eq." + clientId + "&select=streak_jokers&limit=1");
+    const current = clientData && clientData[0] ? (clientData[0].streak_jokers || 0) : 0;
+    const newCount = Math.min(current + 1, maxJokers);
+    await dbPatch(T_CLIENTS + "?id=eq." + clientId, {streak_jokers: newCount});
+    toast("🛡️ Joker de streak obtenu ! (" + newCount + "/" + maxJokers + ")", 3000);
     return;
   }
   if (type === "case_common" || type === "case_rare" || type === "case_epic" || type === "case_legendary") {
@@ -6314,11 +6405,13 @@ async function handleStreakReward(day, clientId) {
 
 
 // ── MODAL STREAK ADMIN ──
-function openStreakModal(clientId, name, streakCount, lastClaim) {
+function openStreakModal(clientId, name, streakCount, lastClaim, jokers) {
   document.getElementById("sm-client-id").value = clientId;
   document.getElementById("sm-client-name").textContent = name;
   document.getElementById("sm-streak-count").value = streakCount || 0;
   document.getElementById("sm-last-claim").value = lastClaim || "";
+  const jEl = document.getElementById("sm-jokers");
+  if (jEl) jEl.value = jokers || 0;
   document.getElementById("streak-modal").classList.add("open");
 }
 
@@ -6339,9 +6432,11 @@ async function saveStreakModal() {
   const clientId = document.getElementById("sm-client-id").value;
   const streakCount = Math.max(0, parseInt(document.getElementById("sm-streak-count").value) || 0);
   const lastClaim = document.getElementById("sm-last-claim").value.trim() || null;
+  const jokers = Math.max(0, parseInt(document.getElementById("sm-jokers")?.value) || 0);
   await dbPatch(T_CLIENTS + "?id=eq." + clientId, {
     streak_count: streakCount,
-    streak_last_claim: lastClaim
+    streak_last_claim: lastClaim,
+    streak_jokers: jokers
   });
   closeStreakModal();
   toast("Streak mis à jour ✓");
