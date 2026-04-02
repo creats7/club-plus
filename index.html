@@ -1048,6 +1048,10 @@ select option{background:#1a1a1a;color:#fff}
         <span>Streak quotidien</span>
       </button>
     </div>
+    <button onclick="switchToClientView()" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:none;background:rgba(124,111,247,.1);color:rgba(167,139,250,.8);font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s;margin-top:4px;width:100%;border:1px solid rgba(124,111,247,.2)" onmouseover="this.style.background='rgba(124,111,247,.18)'" onmouseout="this.style.background='rgba(124,111,247,.1)'">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span>Vue client</span>
+    </button>
     <button class="sidebar-logout" onclick="logout()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       <span>Déconnexion</span>
@@ -1565,6 +1569,12 @@ select option{background:#1a1a1a;color:#fff}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
       </div>
       <div class="nav-label">Plus</div>
+    </button>
+    <button class="nav-item" onclick="switchToClientView()" style="color:rgba(167,139,250,.7)">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div class="nav-label" style="color:rgba(167,139,250,.7)">Client</div>
     </button>
   </nav>
 </div>
@@ -2389,6 +2399,24 @@ function checkPin(){
     setTimeout(()=>{pinBuf="";dots(false);document.getElementById("pin-error").textContent="";},900);
   }
 }
+function switchToClientView(){
+  sessionStorage.setItem("clubplus_admin_back","1");
+  const saved = localStorage.getItem("clubplus_client_id");
+  if(saved){
+    loadClientView(saved);
+  } else {
+    showView("register");
+  }
+}
+
+function backToAdmin(){
+  sessionStorage.removeItem("clubplus_admin_back");
+  document.getElementById("admin-back-btn")?.parentNode?.remove();
+  showView("admin");
+  loadAll();
+  switchTab("home");
+}
+
 function logout(){
   pinBuf="";dots(false);
   localStorage.removeItem("clubplus_admin");
@@ -4405,6 +4433,16 @@ async function loadClientView(id){
   } else ob.innerHTML="";
 
   document.getElementById("cv-nav").classList.add("visible");
+  // Si on vient de l'admin, afficher un bouton retour flottant
+  const existingBack = document.getElementById("admin-return-fab");
+  if(existingBack) existingBack.remove();
+  if(sessionStorage.getItem("clubplus_admin_back")){
+    const fab = document.createElement("div");
+    fab.id = "admin-return-fab";
+    fab.style.cssText = "position:fixed;top:12px;left:12px;z-index:200;";
+    fab.innerHTML = '<button onclick="backToAdmin()" style="display:flex;align-items:center;gap:6px;background:rgba(124,111,247,.15);border:1px solid rgba(124,111,247,.3);border-radius:99px;padding:7px 14px;font-size:12px;font-weight:600;color:rgba(167,139,250,.9);font-family:Inter,sans-serif;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"15 18 9 12 15 6\"/></svg>Admin</button>';
+    document.body.appendChild(fab);
+  }
   switchClientTab("carte");
   executePendingDrops(id); // check & give pending drops
 
