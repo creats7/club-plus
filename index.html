@@ -1047,6 +1047,10 @@ select option{background:#1a1a1a;color:#fff}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         <span>Streak quotidien</span>
       </button>
+      <button class="sidebar-item" id="nav-flash" onclick="switchTab('flash')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Coffre Flash</span>
+      </button>
     </div>
     <button onclick="switchToClientView()" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:none;background:rgba(124,111,247,.1);color:rgba(167,139,250,.8);font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s;margin-top:4px;width:100%;border:1px solid rgba(124,111,247,.2)" onmouseover="this.style.background='rgba(124,111,247,.18)'" onmouseout="this.style.background='rgba(124,111,247,.1)'">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1518,6 +1522,53 @@ select option{background:#1a1a1a;color:#fff}
     <button onclick="addStreakDay()" class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px">+ Ajouter un jour</button>
   </div>
 
+  <!-- COFFRE FLASH ADMIN -->
+  <div id="panel-flash" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">⚡ Coffre Flash</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-danger" onclick="resetFlashConfig()">↺ Reset</button>
+        <button class="btn btn-sm btn-accent" onclick="saveFlashConfig()">💾 Sauver</button>
+      </div>
+    </div>
+
+    <!-- Config globale -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Configuration</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:10px">
+        <div>
+          <div style="font-size:13px;font-weight:600">Coffre Flash actif</div>
+          <div style="font-size:11px;color:var(--muted)">Affiché dans les caisses client</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer">
+          <input type="checkbox" id="flash-active" checked style="opacity:0;width:0;height:0" onchange="updateFlashActiveToggle()">
+          <span id="flash-active-track" style="position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:11px;transition:all .2s;border:1px solid rgba(255,255,255,.15)"></span>
+          <span id="flash-active-thumb" style="position:absolute;left:20px;top:2px;width:18px;height:18px;background:rgba(255,255,255,.5);border-radius:50%;transition:all .2s"></span>
+        </label>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="modal-label">Coût en tokens</label>
+          <input class="input" id="flash-cost" type="number" min="0" value="0" style="margin-bottom:0" />
+        </div>
+        <div>
+          <label class="modal-label">Image de cover (URL)</label>
+          <input class="input" id="flash-cover" placeholder="https://…" style="margin-bottom:0" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Récompenses Flash -->
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Récompenses (probabilités = 100%)</div>
+    <div id="flash-rewards-list"></div>
+    <button onclick="addFlashReward()" class="btn btn-sm" style="width:100%;justify-content:center;margin-bottom:10px">+ Ajouter une récompense</button>
+    <div id="flash-prob-total" style="font-family:'DM Mono',monospace;font-size:12px;margin-bottom:14px"></div>
+
+    <!-- Récompenses actives clients -->
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;margin-top:8px">Offres actives en ce moment</div>
+    <div id="flash-active-rewards"><div class="loader">Chargement...</div></div>
+  </div>
+
   <!-- PARRAINAGE -->
   <div id="panel-referral" style="display:none">
     <div class="panel-header">
@@ -1687,6 +1738,9 @@ select option{background:#1a1a1a;color:#fff}
 
     <!-- ── SECTION SHOP (cases) ── -->
     <div class="cv-section" id="cvs-shop">
+      <!-- OFFRE FLASH EN COURS -->
+      <div id="cv-flash-offer-banner" style="margin-bottom:14px"></div>
+
       <div style="margin-bottom:20px">
         <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px">Les caisses</div>
         <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Se débloquent par palier d'achats</div>
@@ -1695,6 +1749,8 @@ select option{background:#1a1a1a;color:#fff}
       <div id="cv-shop-empty" style="display:none;text-align:center;color:var(--muted);font-size:13px;padding:3rem 0">
         Aucune caisse disponible
       </div>
+      <!-- Coffre Flash card -->
+      <div id="cv-flash-chest-card" style="display:none"></div>
     </div>
 
     <!-- ── SECTION PROFIL ── -->
@@ -1781,6 +1837,9 @@ select option{background:#1a1a1a;color:#fff}
         </div>
 
       </div>
+
+      <!-- Offre Flash en cours -->
+      <div id="cv-flash-active-section" style="display:none;margin-bottom:10px"></div>
 
       <!-- Défis actifs -->
       <div id="cv-defis-section" style="margin-bottom:10px">
@@ -2231,6 +2290,31 @@ select option{background:#1a1a1a;color:#fff}
   </div>
 </div>
 
+<!-- COFFRE FLASH OPENING MODAL -->
+<div class="order-overlay" id="flash-opening-overlay" onclick="closeFlashOpening()">
+  <div class="order-sheet" onclick="event.stopPropagation()" style="max-height:80vh">
+    <div class="order-sheet-handle"></div>
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:28px;margin-bottom:8px">⚡</div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px">Coffre Flash</div>
+      <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Tu vas obtenir une offre à durée limitée</div>
+    </div>
+    <div id="flash-opening-content" style="margin-bottom:16px"></div>
+    <button onclick="confirmOpenFlash()" id="flash-open-btn" class="cta-white" style="margin-bottom:8px">Ouvrir le Coffre Flash ⚡</button>
+    <button onclick="closeFlashOpening()" class="btn" style="width:100%;justify-content:center">Annuler</button>
+  </div>
+</div>
+
+<!-- COFFRE FLASH RESULT MODAL -->
+<div class="order-overlay" id="flash-result-overlay" onclick="closeFlashResult()">
+  <div class="order-sheet" onclick="event.stopPropagation()">
+    <div class="order-sheet-handle"></div>
+    <div id="flash-result-content" style="padding:8px 0 16px"></div>
+    <button onclick="closeFlashResult()" class="cta-white" style="margin-bottom:8px">Profiter maintenant ⚡</button>
+    <button onclick="closeFlashResult()" class="btn" style="width:100%;justify-content:center">Fermer</button>
+  </div>
+</div>
+
 <!-- Barre progression caisse rare/légendaire — sticky top -->
 <div id="cart-progress-bar" style="
   display:none;
@@ -2304,6 +2388,8 @@ const T_CHEST_REWARDS=SUPA_URL+"/rest/v1/chest_rewards";
 const T_CLIENT_CHESTS=SUPA_URL+"/rest/v1/client_chests";
 const T_PUFFS=SUPA_URL+"/rest/v1/puffs";
 const T_STREAK_CONFIG=SUPA_URL+"/rest/v1/streak_config";
+const T_FLASH_REWARDS=SUPA_URL+"/rest/v1/flash_rewards";
+const T_FLASH_CONFIG=SUPA_URL+"/rest/v1/flash_config";
 
 let pinBuf="",allClients=[],selOfferColor="#7c6ff7",curOfferId=null,offerTick=null,clientOfferTick=null;
 let activeRewards=[],spinResult=null,isSpinning=false,wheelAngle=0,currentClientId=null;
@@ -2328,8 +2414,8 @@ function fmtDate(iso){
 function fmtTimer(ms){if(ms<=0)return"Expirée";const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;if(d>0)return d+"j "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+sc+"s";return m+"m "+sc+"s";}
 
 // ── TABS ──
-const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards","referral","puffs","streak"];
-const NAV_ITEMS=["home","clients","orders","cases","more","history","stamp_rewards","products","offers","challenges","stats","referral","puffs","streak"];
+const ALL_PANELS=["home","stats","clients","offers","products","orders","challenges","cases","more","history","stamp_rewards","rewards","referral","puffs","streak","flash"];
+const NAV_ITEMS=["home","clients","orders","cases","more","history","stamp_rewards","products","offers","challenges","stats","referral","puffs","streak","flash"];
 
 function switchTab(tab){
   ALL_PANELS.forEach(t=>{
@@ -2359,6 +2445,7 @@ function switchTab(tab){
   if(tab==="referral")loadReferral();
   if(tab==="puffs")loadPuffs();
   if(tab==="streak")loadStreakAdmin();
+  if(tab==="flash")loadFlashAdmin();
 }
 
 async function loadHome(){
@@ -3549,10 +3636,10 @@ function switchClientTab(tab){
     if(s)s.classList.toggle("active",t===tab);
     if(n)n.classList.toggle("active",t===tab);
   });
-  if(tab==="shop"&&currentClientId)loadClientShop(currentClientId);
+  if(tab==="shop"&&currentClientId){loadClientShop(currentClientId);loadClientFlash(currentClientId);}
   if(tab==="commandes"&&currentClientId){loadClientProducts();setTimeout(()=>{updateCartFab();updateCartProgressBar();},100);}
   else{const b=document.getElementById("cart-progress-bar");if(b)b.style.display="none";}
-  if(tab==="profil"&&currentClientId){loadClientChallenges(currentClientId);loadClientStreak(currentClientId);}
+  if(tab==="profil"&&currentClientId){loadClientChallenges(currentClientId);loadClientStreak(currentClientId);loadClientFlash(currentClientId);}
 }
 
 function clientLogout(){
@@ -4466,6 +4553,7 @@ async function loadClientView(id){
   await loadClientOrders(id);
   loadClientChallenges(id);
   loadClientStreak(id);
+  loadClientFlash(id);
 }
 
 // ── SHOP TOKENS ──
@@ -6442,6 +6530,484 @@ async function saveStreakModal() {
   toast("Streak mis à jour ✓");
   await loadAll();
 }
+
+// ══════════════════════════════════════════════════════
+// ── COFFRE FLASH ──
+// ══════════════════════════════════════════════════════
+
+let flashConfigCache = null;
+let flashTimerInterval = null;
+let _flashClientId = null;
+
+const FLASH_REWARD_TYPES = [
+  {value:"discount",       label:"💸 Réduction (%)"},
+  {value:"product_offer",  label:"🎁 Offre produit"},
+  {value:"free_shipping",  label:"🚚 Livraison offerte"},
+  {value:"custom_offer",   label:"✏️ Offre personnalisée"},
+];
+
+const FLASH_COLORS = {
+  discount:"rgba(74,222,128,1)",
+  product_offer:"rgba(251,191,36,1)",
+  free_shipping:"rgba(96,165,250,1)",
+  custom_offer:"rgba(167,139,250,1)",
+};
+
+const FLASH_ICONS = {
+  discount:"💸", product_offer:"🎁", free_shipping:"🚚", custom_offer:"⚡"
+};
+
+function fmtCountdown(ms) {
+  if (ms <= 0) return "00:00";
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const sc = s % 60;
+  return String(m).padStart(2,"0") + ":" + String(sc).padStart(2,"0");
+}
+
+function getFlashRewardLabel(r) {
+  if (!r) return "";
+  switch(r.type) {
+    case "discount":      return "-" + r.value + "% sur ta commande";
+    case "product_offer": return r.value || "Offre produit";
+    case "free_shipping": return "Livraison gratuite";
+    case "custom_offer":  return r.value || "Offre spéciale";
+    default: return r.value || r.type;
+  }
+}
+
+// ── ADMIN ──
+
+async function loadFlashAdmin() {
+  const [cfgData, activeRewards] = await Promise.all([
+    dbGet(T_FLASH_CONFIG + "?limit=1"),
+    dbGet(T_FLASH_REWARDS + "?is_active=eq.true&order=created_at.desc&limit=20")
+  ]);
+  flashConfigCache = cfgData && cfgData[0] ? cfgData[0] : null;
+  const cfg = flashConfigCache;
+
+  // Toggle actif
+  const activeChk = document.getElementById("flash-active");
+  if (activeChk) { activeChk.checked = cfg ? cfg.active !== false : true; updateFlashActiveToggle(); }
+
+  // Coût et cover
+  const costEl = document.getElementById("flash-cost");
+  const coverEl = document.getElementById("flash-cover");
+  if (costEl) costEl.value = cfg?.cost || 0;
+  if (coverEl) coverEl.value = cfg?.cover_url || "";
+
+  // Récompenses configurées
+  renderFlashRewardsList(cfg?.rewards || []);
+
+  // Offres actives clients
+  renderFlashActiveRewards(activeRewards || []);
+}
+
+function updateFlashActiveToggle() {
+  const chk = document.getElementById("flash-active");
+  const track = document.getElementById("flash-active-track");
+  const thumb = document.getElementById("flash-active-thumb");
+  if (!chk||!track||!thumb) return;
+  const on = chk.checked;
+  track.style.background = on ? "rgba(251,146,60,.4)" : "rgba(255,255,255,.1)";
+  track.style.borderColor = on ? "rgba(251,146,60,.6)" : "rgba(255,255,255,.15)";
+  thumb.style.left = on ? "20px" : "2px";
+  thumb.style.background = on ? "#fb923c" : "rgba(255,255,255,.5)";
+}
+
+function renderFlashRewardsList(rewards) {
+  const list = document.getElementById("flash-rewards-list");
+  if (!list) return;
+  const typeOpts = FLASH_REWARD_TYPES.map(t => '<option value="'+t.value+'">'+t.label+'</option>').join("");
+  list.innerHTML = rewards.map((r, i) => {
+    const col = FLASH_COLORS[r.type] || "rgba(255,255,255,.4)";
+    const selectedOpts = FLASH_REWARD_TYPES.map(t =>
+      '<option value="'+t.value+'"'+(t.value===r.type?' selected':'')+'>'+t.label+'</option>'
+    ).join("");
+    return '<div class="flash-reward-row" data-index="'+i+'" style="background:var(--surface);border:1px solid '+col.replace("1)","0.25)")+';border-radius:12px;padding:12px 14px;margin-bottom:8px">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+        + '<div style="width:30px;height:30px;border-radius:8px;background:'+col.replace("1)","0.12)")+';display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">'+( FLASH_ICONS[r.type]||"⚡")+'</div>'
+        + '<div style="flex:1;font-size:12px;font-weight:700;color:'+col+'">'+(r.label||("Récompense "+(i+1)))+'</div>'
+        + '<button onclick="removeFlashReward('+i+')" class="btn btn-sm btn-danger">✕</button>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 80px;gap:6px">'
+        + '<div><label class="modal-label" style="margin-bottom:2px">Type</label><select class="input" style="margin-bottom:0;font-size:11px;padding:5px" onchange="updateFlashReward('+i+',\'type\',this.value)">'+selectedOpts+'</select></div>'
+        + '<div><label class="modal-label" style="margin-bottom:2px">Valeur</label><input class="input" style="margin-bottom:0;font-size:11px;padding:5px" placeholder=\'ex: 20, "1 puff…"\' value="'+(r.value||"")+'" onchange="updateFlashReward('+i+',\'value\',this.value)" /></div>'
+        + '<div><label class="modal-label" style="margin-bottom:2px">Durée (min)</label><input class="input" type="number" min="1" style="margin-bottom:0;font-size:11px;padding:5px" value="'+(r.duration||30)+'" onchange="updateFlashReward('+i+',\'duration\',this.value)" /></div>'
+        + '<div><label class="modal-label" style="margin-bottom:2px">Proba %</label><input class="input" type="number" min="1" max="100" style="margin-bottom:0;font-size:11px;padding:5px" value="'+(r.probability||25)+'" onchange="updateFlashReward('+i+',\'probability\',this.value);updateFlashProbTotal()" /></div>'
+      + '</div>'
+    + '</div>';
+  }).join("");
+  updateFlashProbTotal();
+}
+
+function getFlashRewardsFromDOM() {
+  const rows = document.querySelectorAll(".flash-reward-row");
+  const rewards = [];
+  rows.forEach((row, i) => {
+    const selects = row.querySelectorAll("select");
+    const inputs = row.querySelectorAll("input:not([style*='display:none'])");
+    rewards.push({
+      type: selects[0]?.value || "discount",
+      value: inputs[0]?.value || "",
+      duration: parseInt(inputs[1]?.value) || 30,
+      probability: parseInt(inputs[2]?.value) || 25,
+      label: FLASH_REWARD_TYPES.find(t=>t.value===selects[0]?.value)?.label || "Récompense"
+    });
+  });
+  return rewards;
+}
+
+let _flashRewardsData = [];
+function updateFlashReward(index, field, value) {
+  // Re-render avec valeur mise à jour
+  const rewards = getFlashRewardsFromDOM();
+  if (rewards[index]) {
+    rewards[index][field] = field === "duration" || field === "probability" ? parseInt(value)||0 : value;
+    _flashRewardsData = rewards;
+    renderFlashRewardsList(rewards);
+  }
+}
+
+function removeFlashReward(index) {
+  const rewards = getFlashRewardsFromDOM();
+  rewards.splice(index, 1);
+  renderFlashRewardsList(rewards);
+}
+
+function addFlashReward() {
+  const rewards = getFlashRewardsFromDOM();
+  rewards.push({type:"discount", value:"20", duration:30, probability:25, label:"💸 Réduction (%)"});
+  renderFlashRewardsList(rewards);
+}
+
+function updateFlashProbTotal() {
+  const rows = document.querySelectorAll(".flash-reward-row");
+  let total = 0;
+  rows.forEach(row => { total += parseInt(row.querySelector("input[type=number]:last-of-type")?.value)||0; });
+  const el = document.getElementById("flash-prob-total");
+  if (el) {
+    el.textContent = "Total : " + total + "%";
+    el.style.color = total === 100 ? "var(--green)" : "var(--danger)";
+  }
+}
+
+async function saveFlashConfig() {
+  const rewards = getFlashRewardsFromDOM();
+  const active = document.getElementById("flash-active")?.checked !== false;
+  const cost = parseInt(document.getElementById("flash-cost")?.value) || 0;
+  const cover_url = document.getElementById("flash-cover")?.value.trim() || null;
+  const payload = { rewards, active, cost, cover_url, updated_at: new Date().toISOString() };
+  if (flashConfigCache?.id) {
+    await dbPatch(T_FLASH_CONFIG + "?id=eq." + flashConfigCache.id, payload);
+  } else {
+    const res = await dbPost(T_FLASH_CONFIG, payload);
+    if (res && res[0]) flashConfigCache = res[0];
+  }
+  toast("Coffre Flash sauvegardé ✓");
+  loadFlashAdmin();
+}
+
+async function resetFlashConfig() {
+  if (!confirm("Réinitialiser la config Coffre Flash ?")) return;
+  const defaults = [
+    {type:"discount", value:"10", duration:20, probability:40, label:"💸 -10%"},
+    {type:"discount", value:"20", duration:15, probability:25, label:"💸 -20%"},
+    {type:"product_offer", value:"1 puff à -50%", duration:30, probability:20, label:"🎁 Offre produit"},
+    {type:"free_shipping", value:"", duration:60, probability:10, label:"🚚 Livraison offerte"},
+    {type:"discount", value:"30", duration:10, probability:5, label:"💸 -30%"},
+  ];
+  renderFlashRewardsList(defaults);
+  toast("Config réinitialisée — sauvegarde pour appliquer");
+}
+
+async function renderFlashActiveRewards(rewards) {
+  const el = document.getElementById("flash-active-rewards");
+  if (!el) return;
+  if (!rewards.length) { el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem 0">Aucune offre active</div>'; return; }
+  // Fetch client names
+  const clientIds = [...new Set(rewards.map(r => r.client_id).filter(Boolean))];
+  const clientMap = {};
+  if (clientIds.length) {
+    const clients = await dbGet(T_CLIENTS + "?id=in.(" + clientIds.join(",") + ")&select=id,name");
+    (clients||[]).forEach(c => clientMap[c.id] = c.name);
+  }
+  el.innerHTML = rewards.map(r => {
+    const now = Date.now();
+    const expires = new Date(r.expires_at).getTime();
+    const remaining = expires - now;
+    const col = FLASH_COLORS[r.type] || "rgba(255,255,255,.4)";
+    return '<div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid '+col.replace("1)","0.2)")+';border-radius:10px;padding:10px 12px;margin-bottom:6px">'
+      + '<div style="font-size:20px">'+( FLASH_ICONS[r.type]||"⚡")+'</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:13px;font-weight:700;color:#fff">'+getFlashRewardLabel(r)+'</div>'
+        + '<div style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--muted);margin-top:2px">'+(clientMap[r.client_id]||"Client inconnu")+'</div>'
+      + '</div>'
+      + '<div style="font-size:12px;font-family:\'DM Mono\',monospace;color:'+col+';flex-shrink:0">'+(remaining > 0 ? fmtCountdown(remaining) : "Expirée")+'</div>'
+      + '<button onclick="deleteFlashReward(\''+r.id+'\')" class="btn btn-sm btn-danger">✕</button>'
+    + '</div>';
+  }).join("");
+}
+
+async function deleteFlashReward(id) {
+  await dbDelete(T_FLASH_REWARDS + "?id=eq." + id);
+  toast("Offre supprimée");
+  loadFlashAdmin();
+}
+
+// ── CLIENT ──
+
+async function loadClientFlash(clientId) {
+  if (!clientId) return;
+
+  // Nettoyer les offres expirées
+  const now = new Date().toISOString();
+  await dbPatch(T_FLASH_REWARDS + "?client_id=eq." + clientId + "&expires_at=lt." + encodeURIComponent(now), {is_active: false});
+
+  // Charger config + offre active du client
+  const [cfgData, activeReward] = await Promise.all([
+    dbGet(T_FLASH_CONFIG + "?active=eq.true&limit=1"),
+    dbGet(T_FLASH_REWARDS + "?client_id=eq." + clientId + "&is_active=eq.true&order=created_at.desc&limit=1")
+  ]);
+
+  const cfg = cfgData && cfgData[0];
+  const reward = activeReward && activeReward[0] ? activeReward[0] : null;
+
+  // Afficher le coffre flash dans la section shop
+  renderFlashChestCard(cfg, clientId);
+
+  // Afficher l'offre active dans profil et shop
+  renderClientFlashOffer(reward, clientId);
+
+  // Afficher dans le panier (section commandes)
+  renderCartFlashOffer(reward);
+}
+
+function renderFlashChestCard(cfg, clientId) {
+  const card = document.getElementById("cv-flash-chest-card");
+  if (!card) return;
+  if (!cfg) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  card.innerHTML = '<div class="hc-card can-afford" onclick="openFlashOpening(\''+clientId+'\')" style="margin-bottom:12px;cursor:pointer">'
+    + '<div class="hc-cover-wrap" style="position:relative;background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(239,68,68,.1))">'
+      + (cfg.cover_url
+        ? '<img class="hc-cover" src="'+cfg.cover_url+'">'
+        : '<div class="hc-cover-ph" style="font-size:56px">⚡</div>')
+      + '<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#fb923c,#ef4444);border-radius:99px;padding:3px 10px;font-size:10px;font-weight:800;font-family:\'DM Mono\',monospace;color:#fff;letter-spacing:.06em">FLASH</div>'
+    + '</div>'
+    + '<div class="hc-info"><div style="flex:1"><div class="hc-title">Coffre Flash ⚡</div>'
+      + '<div style="font-size:11px;color:rgba(251,146,60,.8);font-family:\'DM Mono\',monospace;margin-top:2px">Offre temporaire · durée limitée</div>'
+    + '</div>'
+    + (cfg.cost > 0 ? '<div class="hc-cost"><span class="hc-cost-val">'+cfg.cost+'</span> ◈</div>' : '<div style="font-size:11px;font-weight:700;color:rgba(74,222,128,1);font-family:\'DM Mono\',monospace">GRATUIT</div>')
+    + '</div></div>';
+}
+
+function renderClientFlashOffer(reward, clientId) {
+  // Section profil
+  const profSection = document.getElementById("cv-flash-active-section");
+  // Section shop banner
+  const shopBanner = document.getElementById("cv-flash-offer-banner");
+
+  if (!reward) {
+    if (profSection) profSection.style.display = "none";
+    if (shopBanner) shopBanner.innerHTML = "";
+    if (flashTimerInterval) { clearInterval(flashTimerInterval); flashTimerInterval = null; }
+    return;
+  }
+
+  const col = FLASH_COLORS[reward.type] || "rgba(251,146,60,1)";
+  const icon = FLASH_ICONS[reward.type] || "⚡";
+
+  function buildOfferHTML(compact) {
+    const remaining = new Date(reward.expires_at).getTime() - Date.now();
+    const expired = remaining <= 0;
+    if (expired) {
+      loadClientFlash(clientId);
+      return "";
+    }
+    if (compact) {
+      return '<div style="background:linear-gradient(135deg,'+col.replace("1)","0.12)")+',rgba(0,0,0,0));border:1px solid '+col.replace("1)","0.3)")+';border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">'
+        + '<div style="font-size:22px">'+icon+'</div>'
+        + '<div style="flex:1"><div style="font-size:13px;font-weight:800;color:#fff">'+getFlashRewardLabel(reward)+'</div>'
+          + '<div style="font-size:10px;font-family:\'DM Mono\',monospace;color:'+col+';margin-top:2px" id="flash-timer-compact">🔥 '+fmtCountdown(remaining)+'</div>'
+        + '</div>'
+        + '<button onclick="switchClientTab(\'commandes\')" style="background:'+col+';border:none;color:#fff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Inter\',sans-serif;white-space:nowrap">Commander ⚡</button>'
+      + '</div>';
+    }
+    return '<div style="background:linear-gradient(135deg,'+col.replace("1)","0.15)")+',rgba(0,0,0,0));border:1px solid '+col.replace("1)","0.35)")+';border-radius:16px;padding:16px;position:relative;overflow:hidden;margin-bottom:4px">'
+      + '<div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,'+col.replace("1)","0.2)")+',transparent 70%);pointer-events:none"></div>'
+      + '<div style="font-size:10px;font-family:\'DM Mono\',monospace;color:'+col+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">🔥 Offre flash en cours</div>'
+      + '<div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.03em;margin-bottom:4px">'+icon+' '+getFlashRewardLabel(reward)+'</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">'
+        + '<div style="font-size:24px;font-weight:900;font-family:\'DM Mono\',monospace;color:'+col+'" id="flash-timer-main">'+fmtCountdown(remaining)+'</div>'
+        + '<button onclick="switchClientTab(\'commandes\')" style="background:'+col+';border:none;color:#fff;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:\'Inter\',sans-serif">Profiter ⚡</button>'
+      + '</div>'
+    + '</div>';
+  }
+
+  if (profSection) {
+    profSection.style.display = "block";
+    profSection.innerHTML = '<div style="font-size:10px;font-family:\'DM Mono\',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">Offre en cours</div>'
+      + buildOfferHTML(false);
+  }
+  if (shopBanner) shopBanner.innerHTML = buildOfferHTML(true);
+
+  // Timer en temps réel
+  if (flashTimerInterval) clearInterval(flashTimerInterval);
+  let warned5min = false;
+  flashTimerInterval = setInterval(() => {
+    const rem = new Date(reward.expires_at).getTime() - Date.now();
+    if (rem <= 0) {
+      clearInterval(flashTimerInterval);
+      toast("Ton offre flash a expiré ⏰");
+      loadClientFlash(clientId);
+      return;
+    }
+    const fmt = fmtCountdown(rem);
+    const t1 = document.getElementById("flash-timer-main");
+    const t2 = document.getElementById("flash-timer-compact");
+    if (t1) t1.textContent = fmt;
+    if (t2) t2.textContent = "🔥 " + fmt;
+    // Warning 5 minutes
+    if (!warned5min && rem <= 300000) {
+      warned5min = true;
+      toast("⏳ Plus que 5 minutes sur ton offre flash !", 4000);
+    }
+  }, 1000);
+}
+
+function renderCartFlashOffer(reward) {
+  // Injecter une bannière flash dans la section commandes
+  let cartFlashBanner = document.getElementById("cart-flash-banner");
+  if (!cartFlashBanner) {
+    cartFlashBanner = document.createElement("div");
+    cartFlashBanner.id = "cart-flash-banner";
+    const shopHeader = document.querySelector(".shop-header");
+    if (shopHeader) shopHeader.parentNode.insertBefore(cartFlashBanner, shopHeader.nextSibling);
+  }
+  if (!reward) { cartFlashBanner.innerHTML = ""; return; }
+  const col = FLASH_COLORS[reward.type] || "rgba(251,146,60,1)";
+  const remaining = new Date(reward.expires_at).getTime() - Date.now();
+  if (remaining <= 0) { cartFlashBanner.innerHTML = ""; return; }
+  cartFlashBanner.innerHTML = '<div style="background:'+col.replace("1)","0.1)")+';border:1px solid '+col.replace("1)","0.25)")+';border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">'
+    + '<div style="font-size:16px">'+(FLASH_ICONS[reward.type]||"⚡")+'</div>'
+    + '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:'+col+'">'+getFlashRewardLabel(reward)+'</div>'
+      + '<div style="font-size:10px;font-family:\'DM Mono\',monospace;color:rgba(255,255,255,.4);margin-top:1px">Expire dans <span id="cart-flash-timer">'+fmtCountdown(remaining)+'</span></div>'
+    + '</div>'
+  + '</div>';
+}
+
+// ── OUVERTURE COFFRE FLASH ──
+
+async function openFlashOpening(clientId) {
+  _flashClientId = clientId;
+  const cfgData = await dbGet(T_FLASH_CONFIG + "?active=eq.true&limit=1");
+  const cfg = cfgData && cfgData[0];
+  if (!cfg || !cfg.rewards || !cfg.rewards.length) { toast("Coffre Flash non disponible"); return; }
+
+  const cost = cfg.cost || 0;
+  const content = document.getElementById("flash-opening-content");
+  if (content) {
+    const rewardPreviews = cfg.rewards.map(r => {
+      const col = FLASH_COLORS[r.type] || "rgba(255,255,255,.4)";
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+        + '<span style="font-size:14px">'+(FLASH_ICONS[r.type]||"⚡")+'</span>'
+        + '<span style="font-size:12px;color:#fff;flex:1">'+getFlashRewardLabel(r)+'</span>'
+        + '<span style="font-size:10px;font-family:\'DM Mono\',monospace;color:rgba(255,255,255,.4)">'+(r.duration||30)+'min · '+r.probability+'%</span>'
+      + '</div>';
+    }).join("");
+    content.innerHTML = '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;margin-bottom:14px">'
+      + '<div style="font-size:10px;font-family:\'DM Mono\',monospace;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Lots possibles</div>'
+      + rewardPreviews
+    + '</div>'
+    + (cost > 0 ? '<div style="text-align:center;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px">Coût : <strong style="color:#fff">'+cost+' ◈</strong></div>' : '');
+  }
+
+  document.getElementById("flash-opening-overlay").classList.add("open");
+}
+
+function closeFlashOpening() {
+  document.getElementById("flash-opening-overlay").classList.remove("open");
+}
+
+async function confirmOpenFlash() {
+  const btn = document.getElementById("flash-open-btn");
+  if (btn) btn.disabled = true;
+
+  const cfgData = await dbGet(T_FLASH_CONFIG + "?active=eq.true&limit=1");
+  const cfg = cfgData && cfgData[0];
+  if (!cfg) { toast("Erreur — réessaie"); if(btn)btn.disabled=false; return; }
+
+  // Vérifier tokens si coût > 0
+  if (cfg.cost > 0) {
+    const clientData = await dbGet(T_CLIENTS + "?id=eq." + _flashClientId + "&select=tokens&limit=1");
+    const tokens = clientData && clientData[0] ? clientData[0].tokens || 0 : 0;
+    if (tokens < cfg.cost) { toast("Pas assez de tokens ◈"); if(btn)btn.disabled=false; return; }
+    await dbPatch(T_CLIENTS + "?id=eq." + _flashClientId, {tokens: tokens - cfg.cost});
+  }
+
+  // Tirer une récompense selon probabilités
+  const rewards = cfg.rewards || [];
+  const total = rewards.reduce((s,r) => s + (r.probability||0), 0);
+  let rand = Math.random() * total, cumul = 0;
+  let won = rewards[rewards.length-1];
+  for (const r of rewards) { cumul += r.probability||0; if (rand <= cumul) { won = r; break; } }
+
+  // Désactiver l'ancienne offre active
+  await dbPatch(T_FLASH_REWARDS + "?client_id=eq." + _flashClientId + "&is_active=eq.true", {is_active: false});
+
+  // Créer la nouvelle
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + (won.duration||30) * 60 * 1000);
+  const res = await dbPost(T_FLASH_REWARDS, {
+    client_id: _flashClientId,
+    type: won.type,
+    value: won.value || null,
+    duration: won.duration || 30,
+    created_at: now.toISOString(),
+    expires_at: expiresAt.toISOString(),
+    is_active: true
+  });
+
+  closeFlashOpening();
+  toast("🔥 Offre flash débloquée — " + (won.duration||30) + " minutes !", 4000);
+
+  // Afficher le résultat
+  showFlashResult(won, expiresAt);
+
+  // Refresh
+  loadClientFlash(_flashClientId);
+}
+
+function showFlashResult(won, expiresAt) {
+  const col = FLASH_COLORS[won.type] || "rgba(251,146,60,1)";
+  const icon = FLASH_ICONS[won.type] || "⚡";
+  const content = document.getElementById("flash-result-content");
+  if (!content) return;
+  content.innerHTML = '<div style="text-align:center">'
+    + '<div style="font-size:56px;margin-bottom:12px">'+icon+'</div>'
+    + '<div style="font-size:10px;font-family:\'DM Mono\',monospace;color:'+col+';text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">🔥 Offre flash débloquée</div>'
+    + '<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.03em;margin-bottom:8px">'+getFlashRewardLabel(won)+'</div>'
+    + '<div style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:16px">Valable <strong style="color:'+col+'">'+(won.duration||30)+' minutes</strong></div>'
+    + '<div style="background:'+col.replace("1)","0.1)")+';border:1px solid '+col.replace("1)","0.25)")+';border-radius:12px;padding:12px;display:inline-flex;align-items:center;gap:8px">'
+      + '<span style="font-size:20px">⏱</span>'
+      + '<div style="font-size:22px;font-weight:900;font-family:\'DM Mono\',monospace;color:'+col+'" id="flash-result-timer">'+fmtCountdown(expiresAt.getTime()-Date.now())+'</div>'
+    + '</div>'
+  + '</div>';
+  document.getElementById("flash-result-overlay").classList.add("open");
+  // Timer dans le résultat
+  const resultTimer = setInterval(() => {
+    const rem = expiresAt.getTime() - Date.now();
+    const el = document.getElementById("flash-result-timer");
+    if (el) el.textContent = fmtCountdown(Math.max(0, rem));
+    if (rem <= 0) clearInterval(resultTimer);
+  }, 1000);
+}
+
+function closeFlashResult() {
+  document.getElementById("flash-result-overlay").classList.remove("open");
+}
+
 </script>
 </body>
 </html>
