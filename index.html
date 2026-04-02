@@ -5064,14 +5064,14 @@ async function editCase(id){
   if(csChk){csChk.checked=!!ch.coming_soon;updateCsToggle();}
   if(ch.cover_url){document.getElementById("caf-cover-preview").style.display="block";document.getElementById("caf-cover-img").src=ch.cover_url;}
   document.getElementById("case-form-title").textContent="Modifier la caisse";
-  (rewards||[]).forEach(r=>addCaseRewardRow(r.name,r.probability,r.rarity||"common",r.image_url||"",r.reward_type||"standard",r.timed_value||"",r.duration_hours||24));
+  (rewards||[]).forEach(r=>{const dm=r.duration_minutes||r.duration_hours*60||1440;const unit=dm%60===0&&dm>=60?"hours":"minutes";const val=unit==="hours"?dm/60:dm;addCaseRewardRow(r.name,r.probability,r.rarity||"common",r.image_url||"",r.reward_type||"standard",r.timed_value||"",val,unit);});
   if(!rewards||!rewards.length)addCaseRewardRow();
   f.classList.add("open");
   document.getElementById("caf-name").focus();
   updateCaseProbTotal();
 }
 
-function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="standard",timedValue="",duration=24){
+function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="standard",timedValue="",duration=24,durationUnit="hours"){
   const list=document.getElementById("caf-rewards-list");
   const row=document.createElement("div");
   row.className="chest-reward-row car-row";
@@ -5101,8 +5101,11 @@ function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="sta
       </select>
       <div class="car-timed-fields" style="display:${(!rewardType||rewardType==='standard')?'none':'flex'};gap:4px;align-items:center;flex-shrink:0">
         <input class="input car-timed-value" placeholder="valeur (ex: 10)" value="${timedValue||''}" style="margin-bottom:0;width:80px;font-size:11px" />
-        <input class="input car-timed-duration" type="number" min="1" placeholder="h" value="${duration||24}" style="margin-bottom:0;width:48px;font-size:11px;text-align:center" />
-        <span style="font-size:10px;color:var(--muted)">h</span>
+        <input class="input car-timed-duration" type="number" min="1" placeholder="durée" value="${duration||24}" style="margin-bottom:0;width:48px;font-size:11px;text-align:center" />
+        <select class="input car-timed-unit" style="margin-bottom:0;width:52px;font-size:10px;padding:5px 4px">
+          <option value="hours" ${(durationUnit||'hours')==='hours'?'selected':''}>h</option>
+          <option value="minutes" ${durationUnit==='minutes'?'selected':''}>min</option>
+        </select>
       </div>
     </div>`;
   list.appendChild(row);
@@ -5125,8 +5128,10 @@ async function saveCase(){
     const image_url=r.querySelector(".car-img")?.value.trim()||null;
     const reward_type=r.querySelector(".car-reward-type")?.value||"standard";
     const timed_value=r.querySelector(".car-timed-value")?.value.trim()||null;
-    const duration_hours=parseInt(r.querySelector(".car-timed-duration")?.value)||24;
-    if(n&&p>0)rewards.push({name:n,probability:p,rarity,image_url,reward_type,timed_value,duration_hours});
+    const durationRaw=parseInt(r.querySelector(".car-timed-duration")?.value)||24;
+    const durationUnit=r.querySelector(".car-timed-unit")?.value||"hours";
+    const duration_minutes=durationUnit==="minutes"?durationRaw:durationRaw*60;
+    if(n&&p>0)rewards.push({name:n,probability:p,rarity,image_url,reward_type,timed_value,duration_minutes});
   });
   const id=document.getElementById("caf-id").value;
   if(!id&&!rewards.length){toast("Ajoute au moins un lot");return;}
@@ -5140,7 +5145,7 @@ async function saveCase(){
     await dbPatch(T_CHESTS+"?id=eq."+id,{name,description:desc,cover_url,cost,coming_soon:cs});
     if(rewards.length){
       await dbDelete(T_CHEST_REWARDS+"?chest_id=eq."+id);
-      for(const r of rewards)await dbPost(T_CHEST_REWARDS,{chest_id:id,name:r.name,probability:r.probability,rarity:r.rarity,image_url:r.image_url,reward_type:r.reward_type||"standard",timed_value:r.timed_value||null,duration_hours:r.duration_hours||null});
+      for(const r of rewards)await dbPost(T_CHEST_REWARDS,{chest_id:id,name:r.name,probability:r.probability,rarity:r.rarity,image_url:r.image_url,reward_type:r.reward_type||"standard",timed_value:r.timed_value||null,duration_minutes:r.duration_minutes||null});
     }
     toast("Caisse modifiée ✓");
   } else {
@@ -5500,13 +5505,14 @@ async function showHcResult(won,clientChestId){
   // Si récompense temporaire — la créer pour le client
   if(won.reward_type&&won.reward_type!=="standard"&&won.duration_hours){
     const now=new Date();
-    const expiresAt=new Date(now.getTime()+won.duration_hours*3600000);
+    const expiresAt=new Date(now.getTime()+(won.duration_minutes||won.duration_hours*60||1440)*60000);
+    const durMinutes=won.duration_minutes||won.duration_hours*60||1440;
     await dbPost(T_CLIENT_TIMED_REWARDS,{
       client_id:currentClientId,
       name:won.name,
       type:won.reward_type,
       value:won.timed_value||null,
-      duration_hours:won.duration_hours,
+      duration_minutes:durMinutes,
       created_at:now.toISOString(),
       expires_at:expiresAt.toISOString(),
       used:false
@@ -5545,7 +5551,8 @@ async function showHcResult(won,clientChestId){
   if(won.reward_type&&won.reward_type!=="standard"&&won.duration_hours){
     const tcol=TIMED_TYPE_COLORS[won.reward_type]||"rgba(74,222,128,1)";
     const tlabel=timedLabel({type:won.reward_type,value:won.timed_value,name:won.name});
-    const tdur=won.duration_hours>=24?Math.round(won.duration_hours/24)+"j":won.duration_hours+"h";
+    const dm=won.duration_minutes||won.duration_hours*60||1440;
+    const tdur=dm<60?dm+"min":dm%60===0&&dm<1440?dm/60+"h":dm<1440?Math.floor(dm/60)+"h"+dm%60+"m":Math.round(dm/1440)+"j";
     document.getElementById("hc-result-sub").innerHTML=
       '<div style="background:'+tcol.replace("1)","0.12)")+';border:1px solid '+tcol.replace("1)","0.3)")+';border-radius:12px;padding:10px 14px;margin-bottom:4px;text-align:left">'
       +'<div style="font-size:10px;font-family:sans-serif;color:'+tcol+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">🎁 Récompense limitée obtenue</div>'
