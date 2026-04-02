@@ -1661,18 +1661,19 @@ select option{background:#1a1a1a;color:#fff}
         <!-- Caisses disponibles -->
         <div id="cv-chests-available" style="display:none">
           <div style="height:1px;background:rgba(255,255,255,.06);margin:10px 0"></div>
-          <button onclick="openMyChestsSheet()" class="btn" style="width:100%;justify-content:space-between;animation:plusGlow 2s ease-in-out infinite">
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 8h14M5 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M9 8V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3"/>
-                <line x1="10" y1="13" x2="14" y2="13"/>
-              </svg>
-              <div style="text-align:center">
-                <div style="font-size:14px;font-weight:800;letter-spacing:-.02em" id="cv-chests-count-label">1 caisse à ouvrir</div>
-                <div style="font-size:10px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;margin-top:1px">Appuie pour ouvrir</div>
-              </div>
+          <button onclick="openMyChestsSheet()" style="
+              width:100%;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
+              background:linear-gradient(135deg,rgba(124,111,247,.18),rgba(99,79,220,.12));
+              border:1px solid rgba(124,111,247,.35);border-radius:16px;padding:14px 16px;
+              position:relative;overflow:hidden;text-align:left;
+            ">
+            <div style="position:absolute;top:-20px;right:-16px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(124,111,247,.2),transparent 70%);pointer-events:none"></div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(167,139,250,.8);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">🗃 Caisses disponibles</div>
+            <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:-.03em;margin-bottom:10px" id="cv-chests-count-label">1 caisse à ouvrir</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace">Appuie pour ouvrir tes récompenses</div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>
@@ -4875,9 +4876,19 @@ async function openCartSheet(){
       trBannerEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;background:'+tcol.replace("1)","0.08)")+';border:1px solid '+tcol.replace("1)","0.2)")+';border-radius:10px;padding:9px 12px;width:100%">'
         +'<span style="font-size:16px">🎁</span>'
         +'<div style="flex:1"><div style="font-size:12px;font-weight:700;color:'+tcol+'">'+timedLabel(activeTimedReward)+' appliquée</div>'
-        +'<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">Expire dans '+timedFmt(rem)+'</div></div>'
+        +'<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">Expire dans <span id="cart-reward-timer">'+timedFmt(rem)+'</span></div></div>'
         +(finalTotal!==total?'<div style="font-size:13px;font-weight:800;color:'+tcol+'">-'+(total-finalTotal).toFixed(2)+'€</div>':'')
       +'</div>';
+    // Timer défilant dans le panier
+    if(window._cartRewardTimer) clearInterval(window._cartRewardTimer);
+    const _cartExpires = new Date(activeTimedReward.expires_at).getTime();
+    window._cartRewardTimer = setInterval(()=>{
+      const el = document.getElementById("cart-reward-timer");
+      if(!el){ clearInterval(window._cartRewardTimer); return; }
+      const r2 = _cartExpires - Date.now();
+      if(r2 <= 0){ el.textContent="Expirée"; clearInterval(window._cartRewardTimer); return; }
+      el.textContent = timedFmt(r2);
+    }, 1000);
     } else {
       trBannerEl.style.display = "none";
       trBannerEl.innerHTML = "";
@@ -5562,13 +5573,26 @@ async function showHcResult(won,clientChestId){
     const tcol=TIMED_TYPE_COLORS[won.reward_type]||"rgba(74,222,128,1)";
     const tlabel=timedLabel({type:won.reward_type,value:won.timed_value,name:won.name});
     const dm=won.duration_minutes||won.duration_hours*60||1440;
-    const tdur=dm<60?dm+"min":dm%60===0&&dm<1440?dm/60+"h":dm<1440?Math.floor(dm/60)+"h"+dm%60+"m":Math.round(dm/1440)+"j";
+    const expiresAtTs = Date.now() + dm*60000;
     document.getElementById("hc-result-sub").innerHTML=
       '<div style="background:'+tcol.replace("1)","0.12)")+';border:1px solid '+tcol.replace("1)","0.3)")+';border-radius:12px;padding:10px 14px;margin-bottom:4px;text-align:left">'
       +'<div style="font-size:10px;font-family:sans-serif;color:'+tcol+';text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">🎁 Récompense limitée obtenue</div>'
       +'<div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:5px">'+tlabel+'</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,.5);font-family:sans-serif">⏱ Valable <strong style="color:'+tcol+'">'+tdur+'</strong> — appliquée auto à ta prochaine commande</div>'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-top:6px">'
+        +'<span style="font-size:11px;color:rgba(255,255,255,.4)">⏱ Expire dans</span>'
+        +'<span id="hc-reveal-timer" style="font-size:15px;font-weight:900;font-family:sans-serif;color:'+tcol+';">'+timedFmt(dm*60000)+'</span>'
+      +'</div>'
+      +'<div style="font-size:10px;color:rgba(255,255,255,.3);font-family:sans-serif;margin-top:4px">Appliquée automatiquement à ta prochaine commande</div>'
       +'</div>';
+    // Timer défilant dans le reveal
+    if(window._revealTimer) clearInterval(window._revealTimer);
+    window._revealTimer = setInterval(()=>{
+      const el = document.getElementById("hc-reveal-timer");
+      if(!el){ clearInterval(window._revealTimer); return; }
+      const rem = expiresAtTs - Date.now();
+      if(rem <= 0){ el.textContent = "Expirée"; clearInterval(window._revealTimer); return; }
+      el.textContent = timedFmt(rem);
+    }, 1000);
   } else {
     document.getElementById("hc-result-sub").textContent=msgs[rarity];
   }
@@ -5654,6 +5678,7 @@ function spawnRarityEffect(rarity,col,container){
 }
 
 function closeHcOpening(){
+  if(window._revealTimer){ clearInterval(window._revealTimer); window._revealTimer=null; }
   const overlay=document.getElementById("hc-opening-overlay");
   overlay.classList.remove("open");
   overlay.style.background="";
