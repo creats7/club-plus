@@ -5078,7 +5078,9 @@ async function saveCase(){
   const rows=document.getElementById("caf-rewards-list").querySelectorAll(".car-row");
   const rewards=[];
   rows.forEach(r=>{
-    const n=r.querySelectorAll("input")[0]?.value.trim();
+    // Cibler le champ nom précisément (placeholder "Nom du lot")
+    const nameInput=r.querySelector("input[placeholder='Nom du lot']");
+    const n=nameInput?.value.trim();
     const p=parseInt(r.querySelector(".car-prob")?.value)||0;
     const rarity=r.querySelector(".car-rarity")?.value||"common";
     const image_url=r.querySelector(".car-img")?.value.trim()||null;
