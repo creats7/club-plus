@@ -5503,7 +5503,7 @@ function flashWinItem(el,col){
 async function showHcResult(won,clientChestId){
   await dbPatch(T_CLIENT_CHESTS+"?id=eq."+clientChestId,{opened:true,chest_id:selectedCaseId,reward_name:won.name,opened_at:new Date().toISOString()});
   // Si récompense temporaire — la créer pour le client
-  if(won.reward_type&&won.reward_type!=="standard"&&won.duration_hours){
+  if(won.reward_type&&won.reward_type!=="standard"&&(won.duration_minutes||won.duration_hours)){
     const now=new Date();
     const expiresAt=new Date(now.getTime()+(won.duration_minutes||won.duration_hours*60||1440)*60000);
     const durMinutes=won.duration_minutes||won.duration_hours*60||1440;
