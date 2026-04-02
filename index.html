@@ -5512,7 +5512,8 @@ function flashWinItem(el,col){
 async function showHcResult(won,clientChestId){
   await dbPatch(T_CLIENT_CHESTS+"?id=eq."+clientChestId,{opened:true,chest_id:selectedCaseId,reward_name:won.name,opened_at:new Date().toISOString()});
   // Si récompense temporaire — la créer pour le client
-  if(won.reward_type&&won.reward_type!=="standard"&&(won.duration_minutes||won.duration_hours)){
+  const isTimedReward=won.reward_type&&won.reward_type!=="standard"&&won.reward_type!==null&&(won.duration_minutes||won.duration_hours);
+  if(isTimedReward){
     const now=new Date();
     const expiresAt=new Date(now.getTime()+(won.duration_minutes||won.duration_hours*60||1440)*60000);
     const durMinutes=won.duration_minutes||won.duration_hours*60||1440;
@@ -5557,7 +5558,7 @@ async function showHcResult(won,clientChestId){
   const msgs={common:"Retente ta chance !",rare:"Belle prise ! 🔵",epic:"Incroyable ! 🟣",legendary:"LÉGENDAIRE ! 🔥"};
 
   // Récompense temporaire — afficher clairement le type et la durée
-  if(won.reward_type&&won.reward_type!=="standard"&&won.duration_hours){
+  if(isTimedReward){
     const tcol=TIMED_TYPE_COLORS[won.reward_type]||"rgba(74,222,128,1)";
     const tlabel=timedLabel({type:won.reward_type,value:won.timed_value,name:won.name});
     const dm=won.duration_minutes||won.duration_hours*60||1440;
