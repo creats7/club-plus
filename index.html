@@ -1751,16 +1751,16 @@ select option{background:#1a1a1a;color:#fff}
         <!-- Droite : achats/niveau + barre + jours semaine -->
         <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0">
 
-          <!-- Ligne achats/niveau -->
+          <!-- Ligne streak jours / total -->
           <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
-            <div style="font-size:26px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1" id="profil-total-achats">0</div>
-            <div style="font-size:13px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace" id="profil-max-display">/ 10</div>
-            <div style="margin-left:auto;font-size:11px;font-weight:700;font-family:'DM Mono',monospace" id="profil-rang-display">New</div>
+            <div style="font-size:26px;font-weight:900;font-family:'DM Mono',monospace;color:rgba(251,146,60,1);line-height:1" id="profil-streak-big">0</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace" id="profil-streak-max">/ 10 jours</div>
           </div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;margin-bottom:8px">Prochain palier streak</div>
 
-          <!-- Barre de progression cycle -->
+          <!-- Barre progression streak -->
           <div style="background:rgba(255,255,255,.08);border-radius:99px;height:8px;overflow:hidden;margin-bottom:10px;position:relative">
-            <div id="profil-progress-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(124,111,247,1),rgba(167,139,250,1));transition:width .6s cubic-bezier(.34,1.4,.64,1);width:0%;box-shadow:0 0 8px rgba(124,111,247,.5)"></div>
+            <div id="profil-progress-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(251,146,60,1),rgba(251,191,36,1));transition:width .6s cubic-bezier(.34,1.4,.64,1);width:0%;box-shadow:0 0 8px rgba(251,146,60,.4)"></div>
           </div>
 
           <!-- 7 jours semaine -->
@@ -3577,7 +3577,45 @@ function switchClientTab(tab){
   if(tab==="shop"&&currentClientId){loadClientShop(currentClientId);}
   if(tab==="commandes"&&currentClientId){loadClientProducts();setTimeout(()=>{updateCartFab();updateCartProgressBar();loadClientTimedReward(currentClientId);},100);}
   else{const b=document.getElementById("cart-progress-bar");if(b)b.style.display="none";}
-  if(tab==="profil"&&currentClientId){loadClientChallenges(currentClientId);loadClientStreak(currentClientId);loadClientFlash(currentClientId);}
+  if(tab==="profil"&&currentClientId){loadClientChallenges(currentClientId);loadClientStreak(currentClientId);loadClientTimedReward(currentClientId);refreshProfilStats();}
+}
+
+async function refreshProfilStats(){
+  const c=window._currentClientData;
+  if(!c)return;
+  const streakCount=c.streak_count||0;
+  const totalXP=c.total_stamps||0;
+
+  // Streak gauche (petit)
+  const pStreak=document.getElementById("profil-streak-display");
+  if(pStreak)pStreak.textContent=streakCount;
+
+  // Streak droite (grand)
+  const pBig=document.getElementById("profil-streak-big");
+  if(pBig)pBig.textContent=streakCount;
+
+  // Total jours streak depuis la config
+  const cfgData=await dbGet(T_STREAK_CONFIG+"?active=eq.true&limit=1");
+  const totalDays=(cfgData&&cfgData[0])?cfgData[0].total_days||10:10;
+  const pMax=document.getElementById("profil-streak-max");
+  if(pMax)pMax.textContent="/ "+totalDays+" jours";
+
+  // Barre streak
+  const bar=document.getElementById("profil-progress-bar");
+  if(bar)bar.style.width=Math.min(100,(streakCount/totalDays)*100)+"%";
+
+  // Rang selon achats total
+  const pRang=document.getElementById("profil-rang-display");
+  if(pRang){
+    const rang=totalXP>=100?"Elite":totalXP>=50?"Gold":totalXP>=20?"Silver":totalXP>=5?"Bronze":"New";
+    pRang.textContent=rang;
+    const rc={Elite:"rgba(255,185,0,1)",Gold:"rgba(251,146,60,1)",Silver:"rgba(180,180,200,1)",Bronze:"rgba(180,120,60,1)",New:"rgba(255,255,255,.5)"};
+    pRang.style.color=rc[rang]||"#fff";
+  }
+
+  // Grille 7 jours (streak)
+  const weekGrid=document.getElementById("profil-week-grid");
+  if(weekGrid&&window._streakWeekFn) window._streakWeekFn(streakCount, c.streak_last_claim||null);
 }
 
 function clientLogout(){
@@ -4342,15 +4380,13 @@ async function loadClientView(id){
   const pStreak=document.getElementById("profil-streak-display");
   if(pName)pName.textContent=c.name||"—";
   if(pUser)pUser.textContent=c.username?"@"+c.username:"";
-  if(pAchats)pAchats.textContent=totalXP;
+  // Achats cycle actuel (0-10) dans la card profil
+  if(pAchats)pAchats.textContent=cycleXP;
 
-  // Barre progression cycle (stamps = 0-10 dans le cycle actuel)
+  // Barre progression cycle
   const progressBar=document.getElementById("profil-progress-bar");
   const maxDisplay=document.getElementById("profil-max-display");
-  if(progressBar){
-    const cycleProgress=(cycleXP/10)*100;
-    progressBar.style.width=Math.min(100,cycleProgress)+"%";
-  }
+  if(progressBar) progressBar.style.width=Math.min(100,(cycleXP/10)*100)+"%";
   if(maxDisplay) maxDisplay.textContent="/ 10";
 
   // Initiales
@@ -4371,18 +4407,16 @@ async function loadClientView(id){
 
   const streakCount=c.streak_count||0;
   const streakLast=c.streak_last_claim||null;
-  if(pStreak)pStreak.textContent=streakCount+"j";
+  if(pStreak)pStreak.textContent=streakCount;
 
-  // Label streak
-  const pStreakLbl=document.getElementById("profil-streak-label");
-  if(pStreakLbl)pStreakLbl.textContent=streakCount>0?streakCount+" jour"+(streakCount>1?"s":"")+" consécutif"+(streakCount>1?"s":""):"Commence ton streak";
-
-  // Grille 7 jours
-  const weekGrid=document.getElementById("profil-week-grid");
-  if(weekGrid){
+  // Grille 7 jours — définir la fonction pour réutilisation
+  window._streakWeekFn = function(sc, sl) {
+    const weekGrid=document.getElementById("profil-week-grid");
+    if(!weekGrid)return;
     const days=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
     const today=new Date();
     const todayStr=today.toLocaleDateString("fr-CA");
+    const streakCount=sc; const streakLast=sl;
     // Calculer les 7 derniers jours
     const cells=days.map((_,i)=>{
       const d=new Date(today); d.setDate(today.getDate()-6+i);
@@ -4408,7 +4442,8 @@ async function loadClientView(id){
       +"</div>";
     });
     weekGrid.innerHTML=cells.join("");
-  }
+  };
+  window._streakWeekFn(streakCount, streakLast);
 
   // Code parrainage
   const refRow=document.getElementById("cv-referral-row");
