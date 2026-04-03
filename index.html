@@ -5007,7 +5007,7 @@ async function openCartSheet(){
       const puffsOkN   = !isPuffsDeal || cartTotalQty >= puffsReqN;
       const subLine    = isPuffsDeal
         ? (puffsOkN
-            ? "✓ "+cartTotalQty+"/"+puffsReqN+" puffs — réduction appliquée · Expire dans <span id='cart-reward-timer'>"+timedFmt(rem)+"</span>"
+            ? "✓ "+cartTotalQty+"/"+puffsReqN+" puffs — -"+activeTimedReward.value+"% appliqué sur toute la commande · Expire dans <span id='cart-reward-timer'>"+timedFmt(rem)+"</span>"
             : cartTotalQty+"/"+puffsReqN+" puffs — encore "+(puffsReqN-cartTotalQty)+" à ajouter · Expire dans <span id='cart-reward-timer'>"+timedFmt(rem)+"</span>")
         : "Expire dans <span id='cart-reward-timer'>"+timedFmt(rem)+"</span> · Appliquée auto";
       trBannerEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;background:'+tcol.replace("1)","0.08)")+';border:1px solid '+tcol.replace("1)","0.2)")+';border-radius:10px;padding:9px 12px;width:100%">'
@@ -6755,7 +6755,7 @@ function timedLabel(r) {
   switch(r.type) {
     case "discount_pct":   return "-"+r.value+"% sur ta commande";
     case "discount_fixed": return "-"+r.value+"€ sur ta commande";
-    case "puffs_deal":     return "Achète "+(r.puffs_required||r.duration_minutes||"X")+" puffs → -"+r.value+"% sur la suivante";
+    case "puffs_deal":     return "Achète "+(r.puffs_required||r.duration_minutes||"X")+" puffs → -"+r.value+"% sur ta commande";
     case "product_offer":  return r.value||"Offre produit";
     case "free_item":      return r.value||"Article offert";
     default: return r.name||"Récompense";
