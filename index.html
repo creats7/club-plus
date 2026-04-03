@@ -5019,12 +5019,12 @@ async function openCartSheet(){
     } else if (activeTimedReward.type==="discount_fixed") {
       finalTotal = Math.max(0, total-(parseFloat(activeTimedReward.value)||0));
     } else if (activeTimedReward.type==="puffs_deal") {
-      const puffsReq = parseInt(activeTimedReward.puffs_required||activeTimedReward.duration_minutes)||1;
+      const puffsReq = parseInt(activeTimedReward.puffs_required)||2;
       if (cartTotalQty >= puffsReq) {
         finalTotal = Math.max(0, total*(1-(parseFloat(activeTimedReward.value)||0)/100));
       }
     } else if (activeTimedReward.type==="buy_x_get_y") {
-      const reqB = parseInt(activeTimedReward.puffs_required||activeTimedReward.duration_minutes)||2;
+      const reqB = parseInt(activeTimedReward.puffs_required)||2;
       const offeredB = parseInt(activeTimedReward.value)||1;
       if (cartTotalQty >= reqB) {
         const avgPrice = cartTotalQty > 0 ? total/cartTotalQty : 0;
@@ -5729,7 +5729,7 @@ const expiresAt=new Date(now.getTime()+(won.duration_minutes||(won.duration_hour
       value:won.timed_value||null,
       duration_minutes:durMinutes,
       puffs_required:won.puffs_required||null,
-      duration_minutes:won.reward_type==="buy_x_get_y"?(won.puffs_required||null):(won.duration_minutes||won.duration_hours*60||null),
+      duration_minutes:won.duration_minutes||won.duration_hours*60||null,
       created_at:now.toISOString(),
       expires_at:expiresAt.toISOString(),
       used:false
@@ -6805,7 +6805,7 @@ function timedLabel(r) {
     case "discount_pct":   return "-"+r.value+"% sur ta commande";
     case "discount_fixed": return "-"+r.value+"€ sur ta commande";
     case "puffs_deal":     return "Achète "+(r.puffs_required||r.duration_minutes||"X")+" puffs → -"+r.value+"% sur ta commande";
-    case "buy_x_get_y":    return "Achète "+(r.puffs_required||r.duration_minutes||"X")+" → "+(r.value||"X")+" offerte"+(parseInt(r.value)>1?"s":"");
+    case "buy_x_get_y":    return "Achète "+(r.puffs_required||"?")+" → "+(r.value||"X")+" offerte"+(parseInt(r.value)>1?"s":"");
     case "product_offer":  return r.value||"Offre produit";
     case "free_item":      return r.value||"Article offert";
     default: return r.name||"Récompense";
@@ -6971,7 +6971,7 @@ async function applyTimedRewardToCart(clientId, baseTotal) {
   } else if (reward.type==="buy_x_get_y") {
     const cartItems2 = Object.values(window.cart||{});
     const totalQty2 = cartItems2.reduce((s,{qty})=>s+qty,0);
-    const required2 = parseInt(reward.puffs_required||reward.duration_minutes)||2;
+    const required2 = parseInt(reward.puffs_required)||2;
     const offered = parseInt(reward.value)||1;
     if (totalQty2 >= required2) {
       const avgPrice = totalQty2 > 0 ? baseTotal/totalQty2 : 0;
