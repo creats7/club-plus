@@ -6252,16 +6252,17 @@ function renderStreakPreview(cfg) {
 
 // ── CLIENT : Afficher le streak ──
 function buildStreakCTA(canClaim, alreadyClaimed, currentDay, clientId) {
+  // Stocker le clientId dans window pour y accéder depuis onclick sans guillemets imbriqués
+  window._streakClientId = clientId;
   const S = "width:100%;padding:13px;border-radius:13px;font-family:Inter,sans-serif;letter-spacing:-.02em;transition:all .2s;cursor:pointer;border:none;";
   if (canClaim) {
     const label = (currentDay && currentDay.rewardType === "none")
       ? (currentDay.label || "Continuer mon streak ⚡")
       : "Récupérer ma récompense 🎁";
-    const onclick = "claimStreakReward(" + JSON.stringify(clientId) + ")";
-    return "<button onclick=" + JSON.stringify(onclick) + " style=" + JSON.stringify(S+"color:#fff;font-size:14px;font-weight:800;background:linear-gradient(135deg,#7c6ff7,#6d5ff5);box-shadow:0 4px 20px rgba(124,111,247,.4);-webkit-tap-highlight-color:transparent") + ">" + label + "</button>";
+    return "<button onclick=\"claimStreakReward(window._streakClientId)\" style=\""+S+"color:#fff;font-size:14px;font-weight:800;background:linear-gradient(135deg,#7c6ff7,#6d5ff5);box-shadow:0 4px 20px rgba(124,111,247,.4);-webkit-tap-highlight-color:transparent\">"+label+"</button>";
   }
   if (alreadyClaimed) {
-    return "<button disabled style=" + JSON.stringify(S+"color:rgba(255,255,255,.25);font-size:13px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);cursor:not-allowed") + ">✓ Validé — reviens demain</button>";
+    return "<button disabled style=\""+S+"color:rgba(255,255,255,.25);font-size:13px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);cursor:not-allowed\">✓ Validé — reviens demain</button>";
   }
   return '<div style="text-align:center;font-size:12px;color:rgba(255,255,255,.25);padding:8px 0">Reviens demain pour continuer ⏳</div>';
 }
