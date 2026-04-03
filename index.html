@@ -4971,16 +4971,26 @@ async function openCartSheet(){
   const activeTimedReward = trData && trData[0] ? trData[0] : null;
 
   let finalTotal = total;
+  const cartItemsArr = Object.values(cart||{});
+  const cartTotalQty = cartItemsArr.reduce((s,{qty})=>s+qty, 0);
   if (activeTimedReward) {
-    if (activeTimedReward.type==="discount_pct") finalTotal = Math.max(0, total*(1-(parseFloat(activeTimedReward.value)||0)/100));
-    else if (activeTimedReward.type==="discount_fixed") finalTotal = Math.max(0, total-(parseFloat(activeTimedReward.value)||0));
+    if (activeTimedReward.type==="discount_pct") {
+      finalTotal = Math.max(0, total*(1-(parseFloat(activeTimedReward.value)||0)/100));
+    } else if (activeTimedReward.type==="discount_fixed") {
+      finalTotal = Math.max(0, total-(parseFloat(activeTimedReward.value)||0));
+    } else if (activeTimedReward.type==="puffs_deal") {
+      const puffsReq = parseInt(activeTimedReward.puffs_required||activeTimedReward.duration_minutes)||1;
+      if (cartTotalQty >= puffsReq) {
+        finalTotal = Math.max(0, total*(1-(parseFloat(activeTimedReward.value)||0)/100));
+      }
+    }
   }
 
   // Update total
   const totalEl = document.getElementById("cart-total");
   if (activeTimedReward && finalTotal !== total) {
-    const tcol = TIMED_TYPE_COLORS[activeTimedReward.type]||"rgba(74,222,128,1)";
-    totalEl.innerHTML = '<span style="text-decoration:line-through;color:rgba(255,255,255,.3);font-size:16px">'+total.toFixed(2)+'€</span> <span style="color:'+tcol+'">'+finalTotal.toFixed(2)+' €</span>';
+    const tcolDisplay = TIMED_TYPE_COLORS[activeTimedReward.type]||"rgba(74,222,128,1)";
+    totalEl.innerHTML = '<span style="text-decoration:line-through;color:rgba(255,255,255,.3);font-size:16px">'+total.toFixed(2)+'€</span> <span style="color:'+tcolDisplay+'">'+finalTotal.toFixed(2)+' €</span>';
   } else {
     totalEl.textContent = finalTotal.toFixed(2)+" €";
   }
@@ -4992,10 +5002,18 @@ async function openCartSheet(){
       const tcol = TIMED_TYPE_COLORS[activeTimedReward.type]||"rgba(74,222,128,1)";
       const rem = new Date(activeTimedReward.expires_at).getTime()-Date.now();
       trBannerEl.style.display = "flex";
+      const isPuffsDeal = activeTimedReward.type==="puffs_deal";
+      const puffsReqN  = isPuffsDeal ? (parseInt(activeTimedReward.puffs_required||activeTimedReward.duration_minutes)||1) : 0;
+      const puffsOkN   = !isPuffsDeal || cartTotalQty >= puffsReqN;
+      const subLine    = isPuffsDeal
+        ? (puffsOkN
+            ? "✓ "+cartTotalQty+"/"+puffsReqN+" puffs — réduction appliquée · Expire dans <span id='cart-reward-timer'>"+timedFmt(rem)+"</span>"
+            : cartTotalQty+"/"+puffsReqN+" puffs — encore "+(puffsReqN-cartTotalQty)+" à ajouter · Expire dans <span id='cart-reward-timer'>"+timedFmt(rem)+"</span>")
+        : "Expire dans <span id='cart-reward-timer'>"+timedFmt(rem)+"</span> · Appliquée auto";
       trBannerEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;background:'+tcol.replace("1)","0.08)")+';border:1px solid '+tcol.replace("1)","0.2)")+';border-radius:10px;padding:9px 12px;width:100%">'
         +'<span style="font-size:16px">🎁</span>'
-        +'<div style="flex:1"><div style="font-size:12px;font-weight:700;color:'+tcol+'">'+timedLabel(activeTimedReward)+' appliquée</div>'
-        +'<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">Expire dans <span id="cart-reward-timer">'+timedFmt(rem)+'</span></div></div>'
+        +'<div style="flex:1"><div style="font-size:12px;font-weight:700;color:'+tcol+'">'+timedLabel(activeTimedReward)+'</div>'
+        +'<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">'+subLine+'</div></div>'
         +(finalTotal!==total?'<div style="font-size:13px;font-weight:800;color:'+tcol+'">-'+(total-finalTotal).toFixed(2)+'€</div>':'')
       +'</div>';
     // Timer défilant dans le panier
@@ -5245,7 +5263,7 @@ function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="sta
           <input class="input car-puffs-required" type="number" min="1" placeholder="nb puffs" value="${puffsRequired||2}" style="margin-bottom:0;width:60px;font-size:11px;text-align:center" />
           <span style="font-size:10px;color:rgba(255,255,255,.4);white-space:nowrap">puffs</span>
         </div>
-        <div class="car-duration-fields" style="display:${rewardType==='puffs_deal'?'none':'flex'};gap:4px;align-items:center">
+        <div class="car-duration-fields" style="display:flex;gap:4px;align-items:center">
           <input class="input car-timed-duration" type="number" min="1" placeholder="durée" value="${duration||24}" style="margin-bottom:0;width:48px;font-size:11px;text-align:center" />
           <select class="input car-timed-unit" style="margin-bottom:0;width:52px;font-size:10px;padding:5px 4px">
             <option value="hours" ${(durationUnit||'hours')==='hours'?'selected':''}>h</option>
@@ -5277,7 +5295,7 @@ async function saveCase(){
     const puffs_required=reward_type==="puffs_deal"?parseInt(r.querySelector(".car-puffs-required")?.value)||2:null;
     const durationRaw=parseInt(r.querySelector(".car-timed-duration")?.value)||24;
     const durationUnit=r.querySelector(".car-timed-unit")?.value||"hours";
-    const duration_minutes=reward_type==="puffs_deal"?null:(durationUnit==="minutes"?durationRaw:durationRaw*60);
+    const duration_minutes=durationUnit==="minutes"?durationRaw:durationRaw*60;
     if(n&&p>0)rewards.push({name:n,probability:p,rarity,image_url,reward_type,timed_value,puffs_required,duration_minutes});
   });
   const id=document.getElementById("caf-id").value;
@@ -5654,9 +5672,8 @@ async function showHcResult(won,clientChestId){
   if(isTimedReward){
     const now=new Date();
     const isPuffsDeal2 = won.reward_type==="puffs_deal";
-const expiresAt=new Date(now.getTime()+(isPuffsDeal2?43200:won.duration_minutes||won.duration_hours*60||1440)*60000); // puffs_deal = 30j
-    const isPuffsDeal = won.reward_type==="puffs_deal";
-    const durMinutes = isPuffsDeal ? null : (won.duration_minutes||won.duration_hours*60||1440);
+const expiresAt=new Date(now.getTime()+(won.duration_minutes||won.duration_hours*60||1440)*60000);
+    const durMinutes = won.duration_minutes||won.duration_hours*60||1440;
     await dbPost(T_CLIENT_TIMED_REWARDS,{
       client_id:currentClientId,
       name:won.name,
@@ -6755,15 +6772,12 @@ function toggleTimedFields(sel) {
   const durInput = row.querySelector(".car-timed-duration");
   const unitSel  = row.querySelector(".car-timed-unit");
   const puffsFields = row.querySelector(".car-puffs-fields");
-  const durFields   = row.querySelector(".car-duration-fields");
   if (sel.value === "puffs_deal") {
     if (valInput) valInput.placeholder = "% réduction (ex: 20)";
     if (puffsFields) puffsFields.style.display = "flex";
-    if (durFields)   durFields.style.display   = "none";
   } else {
     if (valInput) valInput.placeholder = "valeur (ex: 10)";
     if (puffsFields) puffsFields.style.display = "none";
-    if (durFields)   durFields.style.display   = "flex";
   }
 }
 
