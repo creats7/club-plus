@@ -1725,25 +1725,44 @@ select option{background:#1a1a1a;color:#fff}
     <div class="cv-section" id="cvs-profil">
 
       <!-- ── HERO ── -->
-      <div style="position:relative;margin-bottom:16px">
-        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:220px;height:80px;background:radial-gradient(ellipse,rgba(167,139,250,.18),transparent 70%);pointer-events:none"></div>
-        <div style="text-align:center;padding:20px 0 14px;position:relative">
-          <div style="font-size:26px;font-weight:900;letter-spacing:-.04em;color:#fff;line-height:1;margin-bottom:4px" id="profil-name-display">—</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;letter-spacing:.06em" id="profil-username-display"></div>
+      <div style="text-align:center;padding:24px 0 20px;position:relative">
+        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:260px;height:120px;background:radial-gradient(ellipse at 50% 0%,rgba(124,111,247,.22),transparent 70%);pointer-events:none"></div>
+
+        <!-- Initiales -->
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(124,111,247,.3),rgba(99,79,220,.2));border:2px solid rgba(124,111,247,.5);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 0 24px rgba(124,111,247,.2)">
+          <div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.02em;font-family:'DM Mono',monospace" id="profil-initials">—</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px">
-          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 10px;text-align:center">
-            <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1;margin-bottom:4px" id="profil-total-achats">—</div>
-            <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Achats</div>
-          </div>
-          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 10px;text-align:center">
-            <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1;margin-bottom:4px" id="profil-rang-display">—</div>
-            <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Niveau</div>
-          </div>
-          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 10px;text-align:center">
-            <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:rgba(251,146,60,1);line-height:1;margin-bottom:4px" id="profil-streak-display">—</div>
-            <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Streak</div>
-          </div>
+
+        <div style="font-size:24px;font-weight:900;letter-spacing:-.04em;color:#fff;line-height:1;margin-bottom:4px" id="profil-name-display">—</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;letter-spacing:.06em" id="profil-username-display"></div>
+      </div>
+
+      <!-- ── STATS ── -->
+      <div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;gap:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;margin-bottom:16px;overflow:hidden">
+        <div style="padding:14px 10px;text-align:center">
+          <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1;margin-bottom:4px" id="profil-total-achats">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Achats</div>
+        </div>
+        <div style="background:rgba(255,255,255,.07)"></div>
+        <div style="padding:14px 10px;text-align:center">
+          <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;line-height:1;margin-bottom:4px" id="profil-rang-display">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Niveau</div>
+        </div>
+        <div style="background:rgba(255,255,255,.07)"></div>
+        <div style="padding:14px 10px;text-align:center">
+          <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;color:rgba(251,146,60,1);line-height:1;margin-bottom:4px" id="profil-streak-display">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Streak</div>
+        </div>
+      </div>
+
+      <!-- ── STREAK HEBDO (7 derniers jours) ── -->
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#fff">Activité cette semaine</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace" id="profil-streak-label">0j consécutif</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px" id="profil-week-grid">
+          <!-- Injecté par JS -->
         </div>
       </div>
 
@@ -1760,72 +1779,57 @@ select option{background:#1a1a1a;color:#fff}
       <div id="cv-chests-cta" style="display:none;margin-bottom:12px">
         <button onclick="openMyChestsSheet()" style="width:100%;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(34,197,94,.1));border:1px solid rgba(74,222,128,.35);border-radius:16px;padding:14px 16px;position:relative;overflow:hidden;text-align:left;">
           <div style="position:absolute;top:-20px;right:-16px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.18),transparent 70%);pointer-events:none"></div>
-          <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(74,222,128,.9);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Caisses disponibles</div>
-          <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:-.03em;margin-bottom:10px" id="cv-chests-count-label">1 caisse à ouvrir</div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div style="font-size:11px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace">Appuie pour ouvrir tes récompenses</div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(74,222,128,.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(74,222,128,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14M5 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M9 8V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(74,222,128,.8);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Disponible</div>
+              <div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:-.02em" id="cv-chests-count-label">1 caisse à ouvrir</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(74,222,128,.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
         </button>
       </div>
 
       <!-- ── COMMANDE EN COURS ── -->
       <div id="cv-orders" style="display:none;margin-bottom:12px">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">En cours</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">Commande en cours</div>
         <div id="cv-orders-list"></div>
       </div>
 
       <!-- ── CODE PARRAIN ── -->
-      <div id="cv-referral-row" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <div style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <div id="cv-referral-row" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
           </div>
           <div>
-            <div style="font-size:12px;font-weight:700;color:#fff">Code parrain</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin-top:1px">Partage — tes amis reçoivent une caisse</div>
+            <div style="font-size:13px;font-weight:700;color:#fff">Code parrain</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin-top:1px">Tes amis reçoivent une caisse gratuite</div>
           </div>
         </div>
-        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:.18em;color:#fff" id="cv-referral-code">—</div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:.2em;color:#fff" id="cv-referral-code">—</div>
           <button onclick="copyReferralCode()" class="btn btn-sm" id="cv-referral-copy-btn" style="flex-shrink:0">Copier</button>
         </div>
       </div>
 
       <!-- ── QUIZ ── -->
-      <div onclick="openQuiz()" style="background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(99,79,220,.07));border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:12px" onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:40px;height:40px;border-radius:11px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          </div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em">Trouve ta puff idéale</div>
-            <div style="font-size:10px;color:rgba(167,139,250,.6);font-family:'DM Mono',monospace;margin-top:2px">5 questions · Résultats personnalisés</div>
-          </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <div onclick="openQuiz()" style="background:linear-gradient(135deg,rgba(124,111,247,.12),rgba(99,79,220,.08));border:1px solid rgba(124,111,247,.25);border-radius:16px;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:20px;display:flex;align-items:center;gap:14px" onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(124,111,247,.2);border:1px solid rgba(124,111,247,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
-      </div>
-
-      <!-- ── COMMENT ÇA MARCHE ── -->
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">Comment ça marche</div>
-      <div style="display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.06);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:20px">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface)">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
-          <div><div style="font-size:12px;font-weight:700;color:#fff">Achète une puff</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:1px">Chaque achat = +1 sur ta barre</div></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em">Trouve ta puff idéale</div>
+          <div style="font-size:11px;color:rgba(167,139,250,.6);font-family:'DM Mono',monospace;margin-top:2px">5 questions · Résultats personnalisés</div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface)">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-          <div><div style="font-size:12px;font-weight:700;color:#fff">Passe des paliers</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:1px">Chaque palier débloque une caisse</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface)">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
-          <div><div style="font-size:12px;font-weight:700;color:#fff">Ouvre ta caisse</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:1px">Tente ta chance et gagne des lots</div></div>
-        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
       <!-- ── DÉCONNEXION ── -->
       <div style="text-align:center;margin-bottom:8px">
-        <button onclick="clientLogout()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:99px;padding:8px 18px;font-size:11px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.08em;-webkit-tap-highlight-color:transparent">Changer de compte</button>
+        <button onclick="clientLogout()" style="background:none;border:none;padding:8px 18px;font-size:11px;color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.08em;-webkit-tap-highlight-color:transparent;text-decoration:underline;text-underline-offset:3px">Changer de compte</button>
       </div>
     </div>
 
@@ -4337,6 +4341,14 @@ async function loadClientView(id){
   if(pName)pName.textContent=c.name||"—";
   if(pUser)pUser.textContent=c.username?"@"+c.username:"";
   if(pAchats)pAchats.textContent=totalXP;
+
+  // Initiales
+  const pInitials=document.getElementById("profil-initials");
+  if(pInitials){
+    const parts=(c.name||"").trim().split(" ");
+    pInitials.textContent=(parts[0]?.[0]||"")+(parts[1]?.[0]||"").toUpperCase()||"?";
+  }
+
   // Rang selon total achats
   const pRang=document.getElementById("profil-rang-display");
   if(pRang){
@@ -4345,7 +4357,45 @@ async function loadClientView(id){
     const rangColors={Elite:"rgba(255,185,0,1)",Gold:"rgba(251,146,60,1)",Silver:"rgba(180,180,200,1)",Bronze:"rgba(180,120,60,1)",New:"rgba(255,255,255,.5)"};
     pRang.style.color=rangColors[rang]||"#fff";
   }
-  if(pStreak)pStreak.textContent=(c.streak_count||0)+"j";
+
+  const streakCount=c.streak_count||0;
+  const streakLast=c.streak_last_claim||null;
+  if(pStreak)pStreak.textContent=streakCount+"j";
+
+  // Label streak
+  const pStreakLbl=document.getElementById("profil-streak-label");
+  if(pStreakLbl)pStreakLbl.textContent=streakCount>0?streakCount+" jour"+(streakCount>1?"s":"")+" consécutif"+(streakCount>1?"s":""):"Commence ton streak";
+
+  // Grille 7 jours
+  const weekGrid=document.getElementById("profil-week-grid");
+  if(weekGrid){
+    const days=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+    const today=new Date();
+    const todayStr=today.toLocaleDateString("fr-CA");
+    // Calculer les 7 derniers jours
+    const cells=days.map((_,i)=>{
+      const d=new Date(today); d.setDate(today.getDate()-6+i);
+      const ds=d.toLocaleDateString("fr-CA");
+      const dayName=d.toLocaleDateString("fr-FR",{weekday:"short"}).slice(0,3);
+      const dayNum=d.getDate();
+      const isToday=ds===todayStr;
+      const diff=Math.round((new Date(todayStr)-new Date(ds))/(86400000));
+      const isFilled=streakLast&&diff<=streakCount-1&&diff>=0;
+      const isTodayDone=isToday&&streakLast===todayStr;
+      const active=isFilled||isTodayDone;
+      const bg=isToday?"rgba(124,111,247,.3)":active?"rgba(124,111,247,.2)":"rgba(255,255,255,.05)";
+      const bd=isToday?"rgba(124,111,247,.8)":active?"rgba(124,111,247,.4)":"rgba(255,255,255,.08)";
+      const sh=isToday?"0 0 8px rgba(124,111,247,.4)":"none";
+      const tc=active||isToday?"#fff":"rgba(255,255,255,.25)";
+      return "<div style='text-align:center'>"
+        +"<div style='font-size:9px;color:rgba(255,255,255,.3);font-family:sans-serif;margin-bottom:6px'>"+dayName+"</div>"
+        +"<div style='width:100%;aspect-ratio:1;border-radius:8px;background:"+bg+";border:1.5px solid "+bd+";display:flex;align-items:center;justify-content:center;box-shadow:"+sh+";transition:all .2s'>"
+          +"<div style='font-size:11px;font-weight:700;font-family:sans-serif;color:"+tc+"'>"+dayNum+"</div>"
+        +"</div>"
+      +"</div>";
+    });
+    weekGrid.innerHTML=cells.join("");
+  }
 
   // Code parrainage
   const refRow=document.getElementById("cv-referral-row");
