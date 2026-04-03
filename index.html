@@ -5203,14 +5203,14 @@ async function editCase(id){
   if(csChk){csChk.checked=!!ch.coming_soon;updateCsToggle();}
   if(ch.cover_url){document.getElementById("caf-cover-preview").style.display="block";document.getElementById("caf-cover-img").src=ch.cover_url;}
   document.getElementById("case-form-title").textContent="Modifier la caisse";
-  (rewards||[]).forEach(r=>{const dm=r.duration_minutes||r.duration_hours*60||1440;const unit=dm%60===0&&dm>=60?"hours":"minutes";const val=unit==="hours"?dm/60:dm;addCaseRewardRow(r.name,r.probability,r.rarity||"common",r.image_url||"",r.reward_type||"standard",r.timed_value||"",val,unit);});
+  (rewards||[]).forEach(r=>{const dm=r.duration_minutes||r.duration_hours*60||1440;const unit=dm%60===0&&dm>=60?"hours":"minutes";const val=unit==="hours"?dm/60:dm;addCaseRewardRow(r.name,r.probability,r.rarity||"common",r.image_url||"",r.reward_type||"standard",r.timed_value||"",val,unit,r.puffs_required||2);});
   if(!rewards||!rewards.length)addCaseRewardRow();
   f.classList.add("open");
   document.getElementById("caf-name").focus();
   updateCaseProbTotal();
 }
 
-function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="standard",timedValue="",duration=24,durationUnit="hours"){
+function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="standard",timedValue="",duration=24,durationUnit="hours",puffsRequired=2){
   const list=document.getElementById("caf-rewards-list");
   const row=document.createElement("div");
   row.className="chest-reward-row car-row";
@@ -5239,13 +5239,19 @@ function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="sta
         <option value="product_offer" ${rewardType==="product_offer"?"selected":""}>🛍 Offre produit</option>
         <option value="free_item" ${rewardType==="free_item"?"selected":""}>🆓 Article offert</option>
       </select>
-      <div class="car-timed-fields" style="display:${(!rewardType||rewardType==='standard')?'none':'flex'};gap:4px;align-items:center;flex-shrink:0">
-        <input class="input car-timed-value" placeholder="valeur (ex: 10)" value="${timedValue||''}" style="margin-bottom:0;width:80px;font-size:11px" />
-        <input class="input car-timed-duration" type="number" min="1" placeholder="durée" value="${duration||24}" style="margin-bottom:0;width:48px;font-size:11px;text-align:center" />
-        <select class="input car-timed-unit" style="margin-bottom:0;width:52px;font-size:10px;padding:5px 4px">
-          <option value="hours" ${(durationUnit||'hours')==='hours'?'selected':''}>h</option>
-          <option value="minutes" ${durationUnit==='minutes'?'selected':''}>min</option>
-        </select>
+      <div class="car-timed-fields" style="display:${(!rewardType||rewardType==='standard')?'none':'flex'};gap:4px;align-items:center;flex-shrink:0;flex-wrap:wrap">
+        <input class="input car-timed-value" placeholder="${rewardType==='puffs_deal'?'% réduction':'valeur'}" value="${timedValue||''}" style="margin-bottom:0;width:80px;font-size:11px" />
+        <div class="car-puffs-fields" style="display:${rewardType==='puffs_deal'?'flex':'none'};gap:4px;align-items:center">
+          <input class="input car-puffs-required" type="number" min="1" placeholder="nb puffs" value="${puffsRequired||2}" style="margin-bottom:0;width:60px;font-size:11px;text-align:center" />
+          <span style="font-size:10px;color:rgba(255,255,255,.4);white-space:nowrap">puffs</span>
+        </div>
+        <div class="car-duration-fields" style="display:${rewardType==='puffs_deal'?'none':'flex'};gap:4px;align-items:center">
+          <input class="input car-timed-duration" type="number" min="1" placeholder="durée" value="${duration||24}" style="margin-bottom:0;width:48px;font-size:11px;text-align:center" />
+          <select class="input car-timed-unit" style="margin-bottom:0;width:52px;font-size:10px;padding:5px 4px">
+            <option value="hours" ${(durationUnit||'hours')==='hours'?'selected':''}>h</option>
+            <option value="minutes" ${durationUnit==='minutes'?'selected':''}>min</option>
+          </select>
+        </div>
       </div>
     </div>`;
   list.appendChild(row);
@@ -5268,10 +5274,11 @@ async function saveCase(){
     const image_url=r.querySelector(".car-img")?.value.trim()||null;
     const reward_type=r.querySelector(".car-reward-type")?.value||"standard";
     const timed_value=r.querySelector(".car-timed-value")?.value.trim()||null;
+    const puffs_required=reward_type==="puffs_deal"?parseInt(r.querySelector(".car-puffs-required")?.value)||2:null;
     const durationRaw=parseInt(r.querySelector(".car-timed-duration")?.value)||24;
     const durationUnit=r.querySelector(".car-timed-unit")?.value||"hours";
-    const duration_minutes=durationUnit==="minutes"?durationRaw:durationRaw*60;
-    if(n&&p>0)rewards.push({name:n,probability:p,rarity,image_url,reward_type,timed_value,duration_minutes});
+    const duration_minutes=reward_type==="puffs_deal"?null:(durationUnit==="minutes"?durationRaw:durationRaw*60);
+    if(n&&p>0)rewards.push({name:n,probability:p,rarity,image_url,reward_type,timed_value,puffs_required,duration_minutes});
   });
   const id=document.getElementById("caf-id").value;
   if(!id&&!rewards.length){toast("Ajoute au moins un lot");return;}
@@ -5285,7 +5292,7 @@ async function saveCase(){
     await dbPatch(T_CHESTS+"?id=eq."+id,{name,description:desc,cover_url,cost,coming_soon:cs});
     if(rewards.length){
       await dbDelete(T_CHEST_REWARDS+"?chest_id=eq."+id);
-      for(const r of rewards)await dbPost(T_CHEST_REWARDS,{chest_id:id,name:r.name,probability:r.probability,rarity:r.rarity,image_url:r.image_url,reward_type:r.reward_type||"standard",timed_value:r.timed_value||null,duration_minutes:r.duration_minutes||null});
+      for(const r of rewards)await dbPost(T_CHEST_REWARDS,{chest_id:id,name:r.name,probability:r.probability,rarity:r.rarity,image_url:r.image_url,reward_type:r.reward_type||"standard",timed_value:r.timed_value||null,duration_minutes:r.duration_minutes||null,puffs_required:r.puffs_required||null});
     }
     toast("Caisse modifiée ✓");
   } else {
@@ -5646,14 +5653,17 @@ async function showHcResult(won,clientChestId){
   const isTimedReward=won.reward_type&&won.reward_type!=="standard"&&won.reward_type!==null&&(won.duration_minutes||won.duration_hours);
   if(isTimedReward){
     const now=new Date();
-    const expiresAt=new Date(now.getTime()+(won.duration_minutes||won.duration_hours*60||1440)*60000);
-    const durMinutes=won.duration_minutes||won.duration_hours*60||1440;
+    const isPuffsDeal2 = won.reward_type==="puffs_deal";
+const expiresAt=new Date(now.getTime()+(isPuffsDeal2?43200:won.duration_minutes||won.duration_hours*60||1440)*60000); // puffs_deal = 30j
+    const isPuffsDeal = won.reward_type==="puffs_deal";
+    const durMinutes = isPuffsDeal ? null : (won.duration_minutes||won.duration_hours*60||1440);
     await dbPost(T_CLIENT_TIMED_REWARDS,{
       client_id:currentClientId,
       name:won.name,
       type:won.reward_type,
       value:won.timed_value||null,
       duration_minutes:durMinutes,
+      puffs_required:won.puffs_required||null,
       created_at:now.toISOString(),
       expires_at:expiresAt.toISOString(),
       used:false
@@ -6728,7 +6738,7 @@ function timedLabel(r) {
   switch(r.type) {
     case "discount_pct":   return "-"+r.value+"% sur ta commande";
     case "discount_fixed": return "-"+r.value+"€ sur ta commande";
-    case "puffs_deal":     return "Achète "+(r.duration_minutes||r.puffs_required||"X")+" puffs → -"+r.value+"% sur la suivante";
+    case "puffs_deal":     return "Achète "+(r.puffs_required||r.duration_minutes||"X")+" puffs → -"+r.value+"% sur la suivante";
     case "product_offer":  return r.value||"Offre produit";
     case "free_item":      return r.value||"Article offert";
     default: return r.name||"Récompense";
@@ -6744,25 +6754,16 @@ function toggleTimedFields(sel) {
   const valInput = row.querySelector(".car-timed-value");
   const durInput = row.querySelector(".car-timed-duration");
   const unitSel  = row.querySelector(".car-timed-unit");
+  const puffsFields = row.querySelector(".car-puffs-fields");
+  const durFields   = row.querySelector(".car-duration-fields");
   if (sel.value === "puffs_deal") {
-    if (valInput) { valInput.placeholder = "% réduction (ex: 20)"; valInput.style.width="80px"; }
-    if (durInput) { durInput.placeholder = "nb puffs"; durInput.title = "Nombre de puffs à acheter"; }
-    if (unitSel)  unitSel.style.display = "none";
-    // Ajouter label contextuel
-    const existing = row.querySelector(".puffs-deal-hint");
-    if (!existing) {
-      const hint = document.createElement("span");
-      hint.className = "puffs-deal-hint";
-      hint.style.cssText = "font-size:10px;color:rgba(255,255,255,.4);white-space:nowrap;margin-left:2px";
-      hint.textContent = "puffs";
-      fields.appendChild(hint);
-    }
+    if (valInput) valInput.placeholder = "% réduction (ex: 20)";
+    if (puffsFields) puffsFields.style.display = "flex";
+    if (durFields)   durFields.style.display   = "none";
   } else {
     if (valInput) valInput.placeholder = "valeur (ex: 10)";
-    if (durInput) durInput.placeholder = "durée";
-    if (unitSel)  unitSel.style.display = "";
-    const hint = row.querySelector(".puffs-deal-hint");
-    if (hint) hint.remove();
+    if (puffsFields) puffsFields.style.display = "none";
+    if (durFields)   durFields.style.display   = "flex";
   }
 }
 
@@ -6836,7 +6837,7 @@ function renderTimedRewardBanner(reward) {
   if (rem <= 0) { banner.style.display="none"; return; }
   banner.style.display = "block";
   const cartQty = Object.values(window.cart||{}).reduce((s,{qty})=>s+qty,0);
-  const puffsRequired = reward.type==="puffs_deal" ? (parseInt(reward.duration_minutes)||1) : 0;
+  const puffsRequired = reward.type==="puffs_deal" ? (parseInt(reward.puffs_required||reward.duration_minutes)||1) : 0;
   const puffsOk = reward.type!=="puffs_deal" || cartQty>=puffsRequired;
   const subtext = reward.type==="puffs_deal"
     ? (puffsOk ? "✓ Condition remplie — réduction appliquée !" : cartQty+"/"+puffsRequired+" puffs dans le panier — encore "+(puffsRequired-cartQty)+" à ajouter")
@@ -6866,7 +6867,7 @@ async function applyTimedRewardToCart(clientId, baseTotal) {
     // Vérifier nb puffs dans le panier
     const cartItems = Object.values(window.cart||{});
     const totalQty = cartItems.reduce((s,{qty})=>s+qty,0);
-    const required = parseInt(reward.duration_minutes)||1;
+    const required = parseInt(reward.puffs_required||reward.duration_minutes)||1;
     if (totalQty >= required) {
       total = Math.max(0, baseTotal*(1-(parseFloat(reward.value)||0)/100));
     } else {
