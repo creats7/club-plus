@@ -1713,8 +1713,7 @@ select option{background:#1a1a1a;color:#fff}
 
         <!-- Nom + pseudo + tokens -->
         <div style="text-align:center;padding:20px 0 14px;position:relative">
-          <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,rgba(167,139,250,.25),rgba(99,79,220,.15));border:1.5px solid rgba(167,139,250,.35);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px">👤</div>
-          <div style="font-size:22px;font-weight:900;letter-spacing:-.04em;color:#fff;line-height:1;margin-bottom:4px" id="profil-name-display">—</div>
+            <div style="font-size:26px;font-weight:900;letter-spacing:-.04em;color:#fff;line-height:1;margin-bottom:4px" id="profil-name-display">—</div>
           <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;letter-spacing:.06em" id="profil-username-display"></div>
         </div>
 
@@ -1725,8 +1724,8 @@ select option{background:#1a1a1a;color:#fff}
             <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Achats</div>
           </div>
           <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 10px;text-align:center">
-            <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1;margin-bottom:4px" id="profil-tokens-display">—</div>
-            <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Tokens</div>
+            <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1;margin-bottom:4px" id="profil-rang-display">—</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace">Niveau</div>
           </div>
           <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 10px;text-align:center">
             <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:rgba(251,146,60,1);line-height:1;margin-bottom:4px" id="profil-streak-display">—</div>
@@ -4347,13 +4346,19 @@ async function loadClientView(id){
   const pName=document.getElementById("profil-name-display");
   const pUser=document.getElementById("profil-username-display");
   const pAchats=document.getElementById("profil-total-achats");
-  const pTokens=document.getElementById("profil-tokens-display");
   const pStreak=document.getElementById("profil-streak-display");
   if(pName)pName.textContent=c.name||"—";
   if(pUser)pUser.textContent=c.username?"@"+c.username:"";
   if(pAchats)pAchats.textContent=totalXP;
-  if(pTokens)pTokens.textContent=tokens;
-  if(pStreak)pStreak.textContent=(c.streak_count||0)+(c.streak_count>1?"j":"j");
+  // Rang selon total achats
+  const pRang=document.getElementById("profil-rang-display");
+  if(pRang){
+    const rang = totalXP>=100?"Elite":totalXP>=50?"Gold":totalXP>=20?"Silver":totalXP>=5?"Bronze":"New";
+    pRang.textContent=rang;
+    const rangColors={Elite:"rgba(255,185,0,1)",Gold:"rgba(251,146,60,1)",Silver:"rgba(180,180,200,1)",Bronze:"rgba(180,120,60,1)",New:"rgba(255,255,255,.5)"};
+    pRang.style.color=rangColors[rang]||"#fff";
+  }
+  if(pStreak)pStreak.textContent=(c.streak_count||0)+"j";
 
   // Code parrainage
   const refRow=document.getElementById("cv-referral-row");
