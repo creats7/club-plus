@@ -1724,18 +1724,13 @@ select option{background:#1a1a1a;color:#fff}
     <!-- ── SECTION PROFIL ── -->
     <div class="cv-section" id="cvs-profil">
 
-      <!-- ── HERO IDENTITÉ ── -->
+      <!-- ── HERO ── -->
       <div style="position:relative;margin-bottom:16px">
-        <!-- Bg glow -->
         <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:220px;height:80px;background:radial-gradient(ellipse,rgba(167,139,250,.18),transparent 70%);pointer-events:none"></div>
-
-        <!-- Nom + pseudo + tokens -->
         <div style="text-align:center;padding:20px 0 14px;position:relative">
-            <div style="font-size:26px;font-weight:900;letter-spacing:-.04em;color:#fff;line-height:1;margin-bottom:4px" id="profil-name-display">—</div>
+          <div style="font-size:26px;font-weight:900;letter-spacing:-.04em;color:#fff;line-height:1;margin-bottom:4px" id="profil-name-display">—</div>
           <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;letter-spacing:.06em" id="profil-username-display"></div>
         </div>
-
-        <!-- Stats row -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px">
           <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 10px;text-align:center">
             <div style="font-size:20px;font-weight:900;font-family:'DM Mono',monospace;color:#fff;line-height:1;margin-bottom:4px" id="profil-total-achats">—</div>
@@ -1763,14 +1758,9 @@ select option{background:#1a1a1a;color:#fff}
 
       <!-- ── CAISSES À OUVRIR ── -->
       <div id="cv-chests-cta" style="display:none;margin-bottom:12px">
-        <button onclick="openMyChestsSheet()" style="
-          width:100%;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
-          background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(34,197,94,.1));
-          border:1px solid rgba(74,222,128,.35);border-radius:16px;padding:14px 16px;
-          position:relative;overflow:hidden;text-align:left;
-        ">
+        <button onclick="openMyChestsSheet()" style="width:100%;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(34,197,94,.1));border:1px solid rgba(74,222,128,.35);border-radius:16px;padding:14px 16px;position:relative;overflow:hidden;text-align:left;">
           <div style="position:absolute;top:-20px;right:-16px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.18),transparent 70%);pointer-events:none"></div>
-          <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(74,222,128,.9);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">🗃 Caisses disponibles</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(74,222,128,.9);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Caisses disponibles</div>
           <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:-.03em;margin-bottom:10px" id="cv-chests-count-label">1 caisse à ouvrir</div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div style="font-size:11px;color:rgba(255,255,255,.4);font-family:'DM Mono',monospace">Appuie pour ouvrir tes récompenses</div>
@@ -1785,55 +1775,34 @@ select option{background:#1a1a1a;color:#fff}
         <div id="cv-orders-list"></div>
       </div>
 
-      <!-- ── DÉFIS ── -->
-      <div id="cv-defis-section" style="margin-bottom:12px">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">Défis en cours</div>
-        <div id="cv-challenges-list"></div>
-        <div id="cv-defis-empty"></div>
-      </div>
-
-      <!-- ── ACTIONS RAPIDES ── -->
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">Accès rapide</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-
-        <div onclick="openAllTiersSheet()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent" onmousedown="this.style.transform='scale(.97)'" ontouchstart="this.style.transform='scale(.97)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
-          <div style="margin-bottom:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
-          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">Paliers</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace">Caisses & récompenses</div>
-        </div>
-
-        <div onclick="switchClientTab('shop')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent" onmousedown="this.style.transform='scale(.97)'" ontouchstart="this.style.transform='scale(.97)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
-          <div style="margin-bottom:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14M5 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M9 8V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3"/><line x1="10" y1="13" x2="14" y2="13"/></svg></div>
-          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">Caisses</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace">Acheter des caisses</div>
-        </div>
-
-        <div onclick="openQuiz()" style="background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(99,79,220,.07));border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;grid-column:1/-1" onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:40px;height:40px;border-radius:11px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em">Trouve ta puff idéale</div>
-              <div style="font-size:10px;color:rgba(167,139,250,.6);font-family:'DM Mono',monospace;margin-top:2px">5 questions · Résultats personnalisés</div>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
-        </div>
-      </div>
-
       <!-- ── CODE PARRAIN ── -->
-      <div id="cv-referral-row" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-bottom:12px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
-            <div>
-              <div style="font-size:12px;font-weight:700;color:#fff">Code parrain</div>
-              <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin-top:1px">Tes amis reçoivent une caisse</div>
-            </div>
+      <div id="cv-referral-row" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
           </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#fff">Code parrain</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;margin-top:1px">Partage — tes amis reçoivent une caisse</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:.18em;color:#fff" id="cv-referral-code">—</div>
           <button onclick="copyReferralCode()" class="btn btn-sm" id="cv-referral-copy-btn" style="flex-shrink:0">Copier</button>
         </div>
-        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;text-align:center">
-          <div style="font-size:22px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:.18em;color:#fff" id="cv-referral-code">—</div>
+      </div>
+
+      <!-- ── QUIZ ── -->
+      <div onclick="openQuiz()" style="background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(99,79,220,.07));border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:12px" onmousedown="this.style.transform='scale(.98)'" ontouchstart="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''" ontouchend="this.style.transform=''">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:11px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em">Trouve ta puff idéale</div>
+            <div style="font-size:10px;color:rgba(167,139,250,.6);font-family:'DM Mono',monospace;margin-top:2px">5 questions · Résultats personnalisés</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
 
