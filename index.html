@@ -4736,7 +4736,26 @@ function addToCart(productId){
   updateCartFab();
   renderProductList();
   toast(`${p.name} ajouté ✓`);
-  if(window._activeTimedReward)renderTimedRewardBanner(window._activeTimedReward);
+  if(window._activeTimedReward){
+    const qty=Object.values(cart).reduce((s,{qty})=>s+qty,0);
+    // Mise à jour directe sans re-render complet
+    const pb=document.getElementById("tr-puffs-banner");
+    const pp=document.getElementById("tr-puffs-progress");
+    const puffsReqN=parseInt(window._activeTimedReward.puffs_required)||1;
+    if(pb){
+      pb.textContent=qty;
+      // Recalculer le statut visuellement
+      const parentDiv=pb.closest("div[style*='font-size:10px']");
+      if(parentDiv){
+        const ok=qty>=puffsReqN;
+        const col=TIMED_TYPE_COLORS[window._activeTimedReward.type]||"rgba(74,222,128,1)";
+        parentDiv.style.color=ok?"rgba(255,255,255,.6)":"rgba(255,255,255,.4)";
+      }
+    } else {
+      renderTimedRewardBanner(window._activeTimedReward);
+    }
+    if(pp)pp.textContent=qty;
+  }
 }
 function removeFromCart(productId){
   if(!cart[productId])return;
@@ -4744,7 +4763,26 @@ function removeFromCart(productId){
   if(cart[productId].qty<=0)delete cart[productId];
   updateCartFab();
   renderProductList();
-  if(window._activeTimedReward)renderTimedRewardBanner(window._activeTimedReward);
+  if(window._activeTimedReward){
+    const qty=Object.values(cart).reduce((s,{qty})=>s+qty,0);
+    // Mise à jour directe sans re-render complet
+    const pb=document.getElementById("tr-puffs-banner");
+    const pp=document.getElementById("tr-puffs-progress");
+    const puffsReqN=parseInt(window._activeTimedReward.puffs_required)||1;
+    if(pb){
+      pb.textContent=qty;
+      // Recalculer le statut visuellement
+      const parentDiv=pb.closest("div[style*='font-size:10px']");
+      if(parentDiv){
+        const ok=qty>=puffsReqN;
+        const col=TIMED_TYPE_COLORS[window._activeTimedReward.type]||"rgba(74,222,128,1)";
+        parentDiv.style.color=ok?"rgba(255,255,255,.6)":"rgba(255,255,255,.4)";
+      }
+    } else {
+      renderTimedRewardBanner(window._activeTimedReward);
+    }
+    if(pp)pp.textContent=qty;
+  }
 }
 
 function renderProductList(){
@@ -6823,7 +6861,13 @@ function renderTimedRewardCard(reward, clientId) {
     card.innerHTML = `<div style="background:linear-gradient(135deg,${col.replace("1)","0.12)")},rgba(0,0,0,0));border:1px solid ${col.replace("1)","0.3)")};border-radius:14px;padding:14px;position:relative;overflow:hidden">
       <div style="position:absolute;top:-20px;right:-16px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,${col.replace("1)","0.15)")},transparent 70%);pointer-events:none"></div>
       <div style="font-size:10px;font-family:sans-serif;color:${col};text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">🎁 Récompense active</div>
-      <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:10px">${timedLabel(reward)}</div>
+      ${reward.type==="puffs_deal"
+        ? `<div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:6px">-${reward.value}% sur ta commande</div>
+           <div style="font-size:12px;font-family:'DM Mono',monospace;color:${col};margin-bottom:10px">
+             Achète <span id="tr-puffs-progress">${Object.values(window.cart||{}).reduce((s,{qty})=>s+qty,0)}</span>/${reward.puffs_required||"?"} puffs pour activer
+           </div>`
+        : `<div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:10px">${timedLabel(reward)}</div>`
+      }
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:5px">
           <span style="font-size:12px">${urgent?"⏳":"⏱"}</span>
@@ -6862,13 +6906,12 @@ function renderTimedRewardBanner(reward) {
 
   let subtext;
   if (isPuffs) {
-    const progress = cartQty+"/"+puffsReq+" puffs";
     const status = puffsOk
-      ? "✓ "+progress+" — -"+reward.value+"% appliqué sur toute la commande"
-      : progress+" — encore "+(puffsReq-cartQty)+" à ajouter";
+      ? "✓ <span id='tr-puffs-banner'>"+cartQty+"</span>/"+puffsReq+" puffs — -"+reward.value+"% appliqué"
+      : "<span id='tr-puffs-banner'>"+cartQty+"</span>/"+puffsReq+" puffs — encore "+(puffsReq-cartQty)+" à ajouter";
     subtext = status+" · <span id='tr-cart-countdown' style='font-weight:700'>"+remFmt+"</span>";
   } else {
-    subtext = "Expire dans <span id='tr-cart-countdown' style='font-weight:700'>"+remFmt+"</span> · Appliquée auto";
+    subtext = "Expire dans <span id='tr-cart-countdown' style='font-weight:700'>"+remFmt+"</span> · e auto";
   }
 
   const savings = (() => {
