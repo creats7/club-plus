@@ -5023,6 +5023,13 @@ async function openCartSheet(){
       if (cartTotalQty >= puffsReq) {
         finalTotal = Math.max(0, total*(1-(parseFloat(activeTimedReward.value)||0)/100));
       }
+    } else if (activeTimedReward.type==="buy_x_get_y") {
+      const reqB = parseInt(activeTimedReward.puffs_required)||1;
+      const offeredB = parseInt(activeTimedReward.value)||1;
+      if (cartTotalQty >= reqB) {
+        const avgPrice = cartTotalQty > 0 ? total/cartTotalQty : 0;
+        finalTotal = Math.max(0, total - avgPrice*offeredB);
+      }
     }
   }
 
@@ -5333,7 +5340,7 @@ async function saveCase(){
     const image_url=r.querySelector(".car-img")?.value.trim()||null;
     const reward_type=r.querySelector(".car-reward-type")?.value||"standard";
     const timed_value=r.querySelector(".car-timed-value")?.value.trim()||null;
-    const puffs_required=reward_type==="puffs_deal"?parseInt(r.querySelector(".car-puffs-required")?.value)||2:null;
+    const puffs_required=(reward_type==="puffs_deal"||reward_type==="buy_x_get_y")?parseInt(r.querySelector(".car-puffs-required")?.value)||2:null;
     const durationRaw=parseInt(r.querySelector(".car-timed-duration")?.value)||24;
     const durationUnit=r.querySelector(".car-timed-unit")?.value||"hours";
     const duration_minutes=durationUnit==="minutes"?durationRaw:durationRaw*60;
