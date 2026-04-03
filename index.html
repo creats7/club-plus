@@ -5670,11 +5670,11 @@ function flashWinItem(el,col){
 async function showHcResult(won,clientChestId){
   await dbPatch(T_CLIENT_CHESTS+"?id=eq."+clientChestId,{opened:true,chest_id:selectedCaseId,reward_name:won.name,opened_at:new Date().toISOString()});
   // Si récompense temporaire — la créer pour le client
-  const isTimedReward=won.reward_type&&won.reward_type!=="standard"&&won.reward_type!==null&&(won.duration_minutes||won.duration_hours);
+  const isTimedReward=won.reward_type&&won.reward_type!=="standard"&&won.reward_type!==null&&(won.duration_minutes||won.duration_hours||won.reward_type==="puffs_deal");
   if(isTimedReward){
     const now=new Date();
     const isPuffsDeal2 = won.reward_type==="puffs_deal";
-const expiresAt=new Date(now.getTime()+(won.duration_minutes||won.duration_hours*60||1440)*60000);
+const expiresAt=new Date(now.getTime()+(won.duration_minutes||(won.duration_hours||0)*60||43200)*60000); // défaut 30j si pas de durée
     const durMinutes = won.duration_minutes||won.duration_hours*60||1440;
     await dbPost(T_CLIENT_TIMED_REWARDS,{
       client_id:currentClientId,
@@ -5720,7 +5720,7 @@ const expiresAt=new Date(now.getTime()+(won.duration_minutes||won.duration_hours
   // Récompense temporaire — afficher clairement le type et la durée
   if(isTimedReward){
     const tcol=TIMED_TYPE_COLORS[won.reward_type]||"rgba(74,222,128,1)";
-    const tlabel=timedLabel({type:won.reward_type,value:won.timed_value,name:won.name});
+    const tlabel=timedLabel({type:won.reward_type,value:won.timed_value,name:won.name,puffs_required:won.puffs_required,duration_minutes:won.duration_minutes});
     const dm=won.duration_minutes||won.duration_hours*60||1440;
     const expiresAtTs = Date.now() + dm*60000;
     document.getElementById("hc-result-sub").innerHTML=
