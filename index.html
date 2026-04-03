@@ -5235,6 +5235,7 @@ function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="sta
         <option value="standard" ${(!rewardType||rewardType==="standard")?"selected":""}>🎁 Récompense standard</option>
         <option value="discount_pct" ${rewardType==="discount_pct"?"selected":""}>💸 Réduction (%)</option>
         <option value="discount_fixed" ${rewardType==="discount_fixed"?"selected":""}>💶 Réduction (€)</option>
+        <option value="puffs_deal" ${rewardType==="puffs_deal"?"selected":""}>🔥 X puffs = X% de réduction</option>
         <option value="product_offer" ${rewardType==="product_offer"?"selected":""}>🛍 Offre produit</option>
         <option value="free_item" ${rewardType==="free_item"?"selected":""}>🆓 Article offert</option>
       </select>
@@ -6727,6 +6728,7 @@ function timedLabel(r) {
   switch(r.type) {
     case "discount_pct":   return "-"+r.value+"% sur ta commande";
     case "discount_fixed": return "-"+r.value+"€ sur ta commande";
+    case "puffs_deal":     return "Achète "+(r.duration_minutes||r.puffs_required||"X")+" puffs → -"+r.value+"% sur la suivante";
     case "product_offer":  return r.value||"Offre produit";
     case "free_item":      return r.value||"Article offert";
     default: return r.name||"Récompense";
@@ -6737,7 +6739,31 @@ function toggleTimedFields(sel) {
   const row = sel.closest(".car-row");
   if (!row) return;
   const fields = row.querySelector(".car-timed-fields");
-  if (fields) fields.style.display = sel.value === "standard" ? "none" : "flex";
+  if (!fields) return;
+  fields.style.display = sel.value === "standard" ? "none" : "flex";
+  const valInput = row.querySelector(".car-timed-value");
+  const durInput = row.querySelector(".car-timed-duration");
+  const unitSel  = row.querySelector(".car-timed-unit");
+  if (sel.value === "puffs_deal") {
+    if (valInput) { valInput.placeholder = "% réduction (ex: 20)"; valInput.style.width="80px"; }
+    if (durInput) { durInput.placeholder = "nb puffs"; durInput.title = "Nombre de puffs à acheter"; }
+    if (unitSel)  unitSel.style.display = "none";
+    // Ajouter label contextuel
+    const existing = row.querySelector(".puffs-deal-hint");
+    if (!existing) {
+      const hint = document.createElement("span");
+      hint.className = "puffs-deal-hint";
+      hint.style.cssText = "font-size:10px;color:rgba(255,255,255,.4);white-space:nowrap;margin-left:2px";
+      hint.textContent = "puffs";
+      fields.appendChild(hint);
+    }
+  } else {
+    if (valInput) valInput.placeholder = "valeur (ex: 10)";
+    if (durInput) durInput.placeholder = "durée";
+    if (unitSel)  unitSel.style.display = "";
+    const hint = row.querySelector(".puffs-deal-hint");
+    if (hint) hint.remove();
+  }
 }
 
 // Charger la récompense active du client
@@ -6809,10 +6835,16 @@ function renderTimedRewardBanner(reward) {
   const rem = new Date(reward.expires_at).getTime() - Date.now();
   if (rem <= 0) { banner.style.display="none"; return; }
   banner.style.display = "block";
+  const cartQty = Object.values(window.cart||{}).reduce((s,{qty})=>s+qty,0);
+  const puffsRequired = reward.type==="puffs_deal" ? (parseInt(reward.duration_minutes)||1) : 0;
+  const puffsOk = reward.type!=="puffs_deal" || cartQty>=puffsRequired;
+  const subtext = reward.type==="puffs_deal"
+    ? (puffsOk ? "✓ Condition remplie — réduction appliquée !" : cartQty+"/"+puffsRequired+" puffs dans le panier — encore "+(puffsRequired-cartQty)+" à ajouter")
+    : "Expire dans <span id=\"tr-cart-countdown\">"+timedFmt(rem)+"</span> · Appliquée auto";
   banner.innerHTML = `<div style="background:${col.replace("1)","0.1)")};border:1px solid ${col.replace("1)","0.25)")};border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:10px">
     <div style="flex:1">
       <div style="font-size:12px;font-weight:800;color:${col}">🎁 ${timedLabel(reward)}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">Expire dans <span id="tr-cart-countdown">${timedFmt(rem)}</span> · Appliquée auto au panier</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.4);font-family:sans-serif;margin-top:1px">${subtext}</div>
     </div>
   </div>`;
 }
@@ -6826,8 +6858,22 @@ async function applyTimedRewardToCart(clientId, baseTotal) {
   const reward = data && data[0] ? data[0] : null;
   if (!reward) return {total: baseTotal, note:""};
   let total = baseTotal;
-  if (reward.type==="discount_pct") total = Math.max(0, baseTotal*(1-(parseFloat(reward.value)||0)/100));
-  else if (reward.type==="discount_fixed") total = Math.max(0, baseTotal-(parseFloat(reward.value)||0));
+  if (reward.type==="discount_pct") {
+    total = Math.max(0, baseTotal*(1-(parseFloat(reward.value)||0)/100));
+  } else if (reward.type==="discount_fixed") {
+    total = Math.max(0, baseTotal-(parseFloat(reward.value)||0));
+  } else if (reward.type==="puffs_deal") {
+    // Vérifier nb puffs dans le panier
+    const cartItems = Object.values(window.cart||{});
+    const totalQty = cartItems.reduce((s,{qty})=>s+qty,0);
+    const required = parseInt(reward.duration_minutes)||1;
+    if (totalQty >= required) {
+      total = Math.max(0, baseTotal*(1-(parseFloat(reward.value)||0)/100));
+    } else {
+      // Condition pas remplie — ne pas appliquer, ne pas consommer
+      return {total: baseTotal, note:""};
+    }
+  }
   await dbPatch(T_CLIENT_TIMED_REWARDS+"?id=eq."+reward.id, {used:true, used_at:new Date().toISOString()});
   return {total, note:` [🎁 ${timedLabel(reward)} appliquée]`};
 }
