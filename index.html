@@ -5306,10 +5306,13 @@ function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="sta
         <option value="free_item" ${rewardType==="free_item"?"selected":""}>🆓 Article offert</option>
       </select>
       <div class="car-timed-fields" style="display:${(!rewardType||rewardType==='standard')?'none':'flex'};gap:4px;align-items:center;flex-shrink:0;flex-wrap:wrap">
-        <input class="input car-timed-value" placeholder="${rewardType==='puffs_deal'?'% réduction':'valeur'}" value="${timedValue||''}" style="margin-bottom:0;width:80px;font-size:11px" />
-        <div class="car-puffs-fields" style="display:${rewardType==='puffs_deal'?'flex':'none'};gap:4px;align-items:center">
-          <input class="input car-puffs-required" type="number" min="1" placeholder="nb puffs" value="${puffsRequired||2}" style="margin-bottom:0;width:60px;font-size:11px;text-align:center" />
-          <span style="font-size:10px;color:rgba(255,255,255,.4);white-space:nowrap">puffs</span>
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
+          <span style="font-size:9px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em">${rewardType==='puffs_deal'?'% réduc':rewardType==='buy_x_get_y'?'nb offert':'valeur'}</span>
+          <input class="input car-timed-value" placeholder="${rewardType==='puffs_deal'?'ex: 20':rewardType==='buy_x_get_y'?'ex: 1':'valeur'}" value="${timedValue||''}" style="margin-bottom:0;width:70px;font-size:11px" />
+        </div>
+        <div class="car-puffs-fields" style="display:${(rewardType==='puffs_deal'||rewardType==='buy_x_get_y')?'flex':'none'};flex-direction:column;gap:2px">
+          <span style="font-size:9px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em">${rewardType==='buy_x_get_y'?'nb à acheter':'nb puffs'}</span>
+          <input class="input car-puffs-required" type="number" min="1" placeholder="ex: 2" value="${puffsRequired||2}" style="margin-bottom:0;width:60px;font-size:11px;text-align:center" />
         </div>
         <div class="car-duration-fields" style="display:flex;gap:4px;align-items:center">
           <input class="input car-timed-duration" type="number" min="1" placeholder="durée" value="${duration||24}" style="margin-bottom:0;width:48px;font-size:11px;text-align:center" />
@@ -6822,15 +6825,24 @@ function toggleTimedFields(sel) {
   const durInput = row.querySelector(".car-timed-duration");
   const unitSel  = row.querySelector(".car-timed-unit");
   const puffsFields = row.querySelector(".car-puffs-fields");
-  if (sel.value === "puffs_deal" || sel.value === "buy_x_get_y") {
-    if (valInput) valInput.placeholder = sel.value==="buy_x_get_y" ? "nb offertes (ex: 1)" : "% réduction (ex: 20)";
+  const isBuyXGetY = sel.value === "buy_x_get_y";
+  const isPuffsDeal = sel.value === "puffs_deal";
+  if (isPuffsDeal || isBuyXGetY) {
+    if (valInput) valInput.placeholder = isBuyXGetY ? "ex: 1" : "ex: 20";
+    // Mettre à jour les labels
+    const valLabel = valInput?.previousElementSibling;
+    if (valLabel && valLabel.tagName==="SPAN") valLabel.textContent = isBuyXGetY ? "nb offert" : "% réduc";
     if (puffsFields) {
       puffsFields.style.display = "flex";
       const pr = puffsFields.querySelector(".car-puffs-required");
-      if (pr) pr.placeholder = sel.value==="buy_x_get_y" ? "nb à acheter" : "nb puffs";
+      if (pr) pr.placeholder = "ex: 2";
+      const prLabel = puffsFields.querySelector("span");
+      if (prLabel) prLabel.textContent = isBuyXGetY ? "nb à acheter" : "nb puffs";
     }
   } else {
     if (valInput) valInput.placeholder = "valeur (ex: 10)";
+    const valLabel = valInput?.previousElementSibling;
+    if (valLabel && valLabel.tagName==="SPAN") valLabel.textContent = "valeur";
     if (puffsFields) puffsFields.style.display = "none";
   }
 }
