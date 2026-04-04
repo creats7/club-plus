@@ -5302,8 +5302,6 @@ function addCaseRewardRow(name="",prob="",rarity="common",img="",rewardType="sta
         <option value="discount_fixed" ${rewardType==="discount_fixed"?"selected":""}>💶 Réduction (€)</option>
         <option value="puffs_deal" ${rewardType==="puffs_deal"?"selected":""}>🔥 X puffs = X% de réduction</option>
         <option value="buy_x_get_y" ${rewardType==="buy_x_get_y"?"selected":""}>🎁 X achetée(s) = X offerte(s)</option>
-        <option value="product_offer" ${rewardType==="product_offer"?"selected":""}>🛍 Offre produit</option>
-        <option value="free_item" ${rewardType==="free_item"?"selected":""}>🆓 Article offert</option>
       </select>
       <div class="car-timed-fields" style="display:${(!rewardType||rewardType==='standard')?'none':'flex'};gap:4px;align-items:center;flex-shrink:0;flex-wrap:wrap">
         <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
@@ -6809,8 +6807,6 @@ function timedLabel(r) {
     case "discount_fixed": return "-"+r.value+"€ sur ta commande";
     case "puffs_deal":     return "Achète "+(r.puffs_required||r.duration_minutes||"X")+" puffs → -"+r.value+"% sur ta commande";
     case "buy_x_get_y":    return "Achète "+(r.puffs_required||"?")+" → "+(r.value||"X")+" offerte"+(parseInt(r.value)>1?"s":"");
-    case "product_offer":  return r.value||"Offre produit";
-    case "free_item":      return r.value||"Article offert";
     default: return r.name||"Récompense";
   }
 }
